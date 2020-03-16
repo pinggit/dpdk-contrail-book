@@ -1,5 +1,34 @@
 # contrail dpdk day one book
 
+target date: before July 1 2020
+
+<!--
+current coauthors: 
+
+* kiran <kirankn@juniper.net>
+* Przemyslaw Grygiel <pgrygiel@juniper.net>
+* Laurent Antoine Durand <ldurand@juniper.net>
+* ping song <pings@juniper.net>
+* Damian Szeluga <dszeluga@juniper.net>
+-->
+
+
+## progress/meetings
+
+
+
+### 0316: drafted TOC!
+
+* discussed topic/TOC of the basic book
+* advanced topics were held for advanced book
+* private github folder built
+
+### 0310: kicked off first book meeting!
+
+* the book idea discussed 
+* materials/references shared
+* private google doc home folder built
+
 ## table of content (Volume I)
 
 * Overview of Software Defined Networking
@@ -45,41 +74,40 @@
     * Pinning
     * hugepages
 
-<!--
-## details
+### details
 
-1. DPDK vrouter architecture description
-    vrouter agent and vrouter dataplane
-    vif 1, vif 2
-    physical connectivity
-    vif 0
-    virtual connectivity
-    vif N and virtio 
-    packet processing
-    2 steps : polling  then processing
-    different scenarios (depending encap)
-    NIC and vNIC queue
-    High level description of Q (focus on sizing)
+* DPDK vrouter architecture description
+    * vrouter agent and vrouter dataplane
+        * vif 1, vif 2
+    * physical connectivity
+        * vif 0
+    * virtual connectivity
+        * vif N and virtio 
+    * packet processing
+      * 2 steps : polling  then processing
+        * different scenarios (depending encap)
+    * NIC and vNIC queue
+      * High level description of Q (focus on sizing)
  
-2. DPDK vrouter fine tuning
-    2.1 CPU pinning
-    2.2 HT and Sibling
-    2.3 Queue sizing
-    2.4 new parameters
-            - internal hash suppression
-    - yield desactivation
-    - Q accurate pining
-    2.4 flow mode specific tuning
-            Pin more CPU on service threads
-            Increase flow table size
-3 - DPDK vrouter fine trouble shouting
-  	In a shot, what we have to look into logs
-      And some specific tools usage (packet drop log, vrouter info, …)
+* DPDK vrouter fine tuning
+    * CPU pinning
+    * HT and Sibling
+    * Queue sizing
+    * new parameters
+        * internal hash suppression
+        * yield desactivation
+        * Q accurate pining
+    * flow mode specific tuning
+        * Pin more CPU on service threads
+        * Increase flow table size
+
+* DPDK vrouter fine trouble shouting
+    * In a shot, what we have to look into logs
+    * And some specific tools usage (packet drop log, vrouter info, ...)
  
-4 – DPDK fine tuning Scenarios
-  	- when to use sibling
-  	- when to desactivate internal hash
--->
+* DPDK fine tuning Scenarios
+    * when to use sibling
+    * when to desactivate internal hash
 
 ## table of content (Volume II)
 
@@ -112,3 +140,15 @@
     * Hugepage size
     * Static mapping of queues
     * Run-to-completion
+
+## references/materials
+
+* day one book workplace google folder: https://drive.google.com/drive/u/2/folders/1GtlqAhiY0u2DIClPVUwWsCTIsfHMv9uO
+* References - DPDK day-one book - https://docs.google.com/document/d/1_V1zLgh8wiYyQz2KdV_dqQJe8j7hHvm4GQpsO4xVU7o/edit?usp=sharing
+
+* DPDK performance guide - https://docs.google.com/document/d/1vbW7a2NDSbB0NBcYQzqyVkcH3E0g1pqj8PXQg4EMD28/edit?ts=5a845566
+* CONTRAIL DPDK VROUTERS INTERNAL DETAILS - https://drive.google.com/open?id=1ITKvvPM19M1xF_bgYgi_x7hpvx6bFysB 
+* DPDK architecture - https://static.sched.com/hosted_files/osndaysbangalore2019/c4/vrouter-arch1.pptx
+* Performance tests (WIP) - https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g75c8716119_0_0
+* Performance degradation analysis - https://docs.google.com/presentation/d/1UDzqtLgRKDO3azQS7VVsMF-y0WMJu6BLe24i_VudyMs/edit#slide=id.g75c8716119_0_0
+* DPDK performance tests https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g6f0dcffbae_4_22
