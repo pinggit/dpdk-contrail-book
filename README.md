@@ -11,15 +11,12 @@
 
 target date: before July 1 2020
 
-<!--
-current coauthors: 
+coauthors:  (as of March 17)
 
 * kiran <kirankn@juniper.net>
 * Przemyslaw Grygiel <pgrygiel@juniper.net>
 * Laurent Antoine Durand <ldurand@juniper.net>
 * ping song <pings@juniper.net>
-* Damian Szeluga <dszeluga@juniper.net>
--->
 
 
 ## progress/meetings
@@ -76,7 +73,7 @@ current coauthors:
     * TripleO
     * Juju
     * Contrail cloud???
-    * DPDK vRouter Troubleshooting
+* DPDK vRouter Troubleshooting
     * Configuration
     * Qemu/libvirt/virsh
     * Drops
