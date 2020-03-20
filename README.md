@@ -41,7 +41,7 @@ coauthors:  (as of March 17)
     * Different SDN solutions
     * Overview of Tungsten Fabric
     * Dataplane in SDN
-    * Openstack integration
+    * Openstack integration (brief)
         * Neutron
         * Nova
 * Compute nodes in TF
@@ -53,16 +53,16 @@ coauthors:  (as of March 17)
 * Overview of DPDK and DPDK vrouter
     * DPDK overview
     * vRouter and DPDK
-* DPDK vRouter Architecture
+* DPDK vRouter Architecture (core)
     * Role of various threads
     * Pipelining v/s run to completion
     * Memory mapping of VNF
     * Virtio
     * Interaction with Qemu
-* Openstack integration
+* Openstack integration (detail) (core)
     * Neutron plugin
     * Nova Vif plugin
-* DPDK vRouter Performance tuning
+* DPDK vRouter Performance tuning (core)
     * Core Pinning
     * Hugepages
     * Number of threads
@@ -73,12 +73,19 @@ coauthors:  (as of March 17)
     * TripleO
     * Juju
     * Contrail cloud???
+    * Ansible (OSA: OpenStack Ansibile)         # laurent
+   * HELM ?                                    # laurent
+       seems more and more used. If not too long to explain, it could be worth. 
+
 * DPDK vRouter Troubleshooting
     * Configuration
+    * Vrouter info command I guess
     * Qemu/libvirt/virsh
     * Drops
     * Pinning
     * hugepages
+    * DPDK logs analysis                        # laurent
+      (what to check into DPDK logs: vrring activation, queue, and setup info)
 
 ### details
 
