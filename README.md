@@ -21,19 +21,26 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
-### 0323 agenda
+### 0323 agenda/meeting minutes
 
 * consistent material - shared documents (done)
     - performance guide word
     - vrouter-arch ppt
     - dpdk vrouter internal details ppt
     - others?
-        - [vmx guide](https://github.com/pinggit/vmx-tutorial/blob/master/vmx-tutorial.adoc)
-* consistent data source - share lab access?  which one?
-* consistent test method - share testing process?  tools?
-* go over the TOC and adjust in more details
-* split the task? now? friday?
-    - per chapter/per topic?
+        - [vmx guide (ping)](https://github.com/pinggit/vmx-tutorial/blob/master/vmx-tutorial.adoc)
+* consistent data source - share lab access? - pyz to share
+* consistent test method - share testing process?  - pyz to share
+* split the task? - DONE, see below
+* document format/tool recommendation
+    * asciidoc/adoc
+        * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
+        * can convert to word and all other docs
+    * word
+        * I can convert to adoc and push into github
+    * markdown
+        * should be ok, but I didn't use it to write complex stuffs
+        * similiar to asciidoc, so let's use either asciidoc or word
 
 
 ### 0316: drafted TOC!
@@ -50,54 +57,61 @@ coauthors:  (as of March 17)
 
 ## table of content (Volume I)
 
-* Overview of Software Defined Networking
-    * Different SDN solutions
+* Overview of SDN       (prz, ping)
+    * Different SDN solutions (contrail, calico, nuage, OVN)
     * Overview of Tungsten Fabric
     * Dataplane in SDN
     * Openstack integration (brief)
         * Neutron
         * Nova
-* Compute nodes in TF
+
+* Compute nodes in TF  (prz, kiran)
     * Introduction to TF vRouter
         * Interfaces
         * Packet processing pipeline
         * Variants (DPDK/Kernel/Smart NIC/SRIOV)
-        * Use-cases
-* Overview of DPDK and DPDK vrouter
+    * Use-cases (prz)
+        * vendor x : why select multiq, isolation, bgpaas, HAs..etc
+        * ATT(vMME, nimbus)
+
+* Overview of DPDK and DPDK vrouter (kiran, prz)
     * DPDK overview
     * vRouter and DPDK
-* DPDK vRouter Architecture (core)
+
+* DPDK vRouter Architecture (core) (kiran, prz)
     * Role of various threads
     * Pipelining v/s run to completion
     * Memory mapping of VNF
     * Virtio
     * Interaction with Qemu
-* Openstack integration (detail) (core)
+
+* Openstack integration (detail) (core) (kiran, prz)
     * Neutron plugin
     * Nova Vif plugin
-* DPDK vRouter Performance tuning (core)
+
+* DPDK vRouter Performance tuning (core) (damian, prz)
     * Core Pinning
     * Hugepages
     * Number of threads
     * System calls
     * CPU partitioning
     * Multiqueue virtio
-* DPDK vRouter Deployment
+
+* DPDK vRouter Deployment (Damian)
     * TripleO
     * Juju
     * Contrail cloud???
     * Ansible (OSA: OpenStack Ansibile) laurent
-   * HELM ? laurent
-       seems more and more used. If not too long to explain, it could be worth. 
+    * HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
 
-* DPDK vRouter Troubleshooting
+* DPDK vRouter Troubleshooting (joint work)
     * Configuration
     * Vrouter info command I guess
     * Qemu/libvirt/virsh
     * Drops
     * Pinning
     * hugepages
-    * DPDK logs analysis                        # laurent
+    * DPDK logs analysis (laurent)
       (what to check into DPDK logs: vrring activation, queue, and setup info)
 
 ### details
