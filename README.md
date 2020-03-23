@@ -21,6 +21,19 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0323 agenda
+
+* consistent material - shared documents (done)
+    - performance guide word
+    - vrouter-arch ppt
+    - dpdk vrouter internal details ppt
+    - others?
+        - [vmx guide](https://github.com/pinggit/vmx-tutorial/blob/master/vmx-tutorial.adoc)
+* consistent data source - share lab access?  which one?
+* consistent test method - share testing process?  tools?
+* go over the TOC and adjust in more details
+* split the task? now? friday?
+    - per chapter/per topic?
 
 
 ### 0316: drafted TOC!
@@ -73,8 +86,8 @@ coauthors:  (as of March 17)
     * TripleO
     * Juju
     * Contrail cloud???
-    * Ansible (OSA: OpenStack Ansibile)         # laurent
-   * HELM ?                                    # laurent
+    * Ansible (OSA: OpenStack Ansibile) laurent
+   * HELM ? laurent
        seems more and more used. If not too long to explain, it could be worth. 
 
 * DPDK vRouter Troubleshooting
