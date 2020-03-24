@@ -32,16 +32,20 @@ coauthors:  (as of March 17)
 * consistent data source - share lab access? - pyz to share
 * consistent test method - share testing process?  - pyz to share
 * split the task? - DONE, see below
+
 * document format/tool recommendation
     * asciidoc/adoc
         * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
         * can convert to word and all other docs
-    * word
+        * editors: VIM (with Voom plugin), asciidocFX, etc
+    * MS word
+        * but not github and change tracking friendly
         * I can convert to adoc and push into github
     * markdown
         * should be ok, but I didn't use it to write complex stuffs
-        * similiar to asciidoc, so let's use either asciidoc or word
+        * similiar to asciidoc, so let's use either asciidoc or word if possible
 
+* started with editor (Patrick)
 
 ### 0316: drafted TOC!
 
