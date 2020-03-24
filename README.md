@@ -37,6 +37,7 @@ coauthors:  (as of March 17)
     * asciidoc/adoc
         * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
         * can convert to word and all other docs
+        * syntax and online tool https://asciidoclive.com/
         * editors: VIM (with Voom plugin), asciidocFX, etc
     * MS word
         * but not github and change tracking friendly
