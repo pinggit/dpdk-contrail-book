@@ -3,7 +3,6 @@
 :toc: right
 :toclevels: 3
 
-= chapter 1: SDN overview
 == what is SDN
 === SDN history
 === SDN definition
@@ -24,10 +23,15 @@
 ===== OVSDB
 ==== northbound interface
 ==== other terms
+
 == SDN solutions
+
 === overlay SDN solution (VN)
+
 === ONOS
+
 === calico
+
 === nuage (Nokia)
 === OVN
 ==== OVS
@@ -38,9 +42,19 @@
 ==== cisco: apic
 ==== openflood
 ==== opendaylight
+
+== Dataplane in SDN
+=== kernel
+=== dpdk
+=== sriov
+=== smartnic
+=== vDPA
+=== eBPF
+
 == Overview of Tungsten Fabric
-=== Dataplane in SDN
+
 === Openstack integration (brief)
 ==== Neutron
 ==== Nova
+
 == resources
