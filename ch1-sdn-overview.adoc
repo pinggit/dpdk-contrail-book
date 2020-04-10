@@ -1,77 +1,46 @@
-= chapter 1: SDN overview (prz, ping)
+= chapter 1: SDN overview
+:doctype: book
+:toc: right
+:toclevels: 3
 
-== Different SDN solutions (contrail, calico, nuage, OVN)
-
-软件定义网络，是一种网络设计理念，或者一种推倒重来的设计思想。只要网络硬件可以
-集中式软件管理，可编程化，控制转发层面分开，则可以认为这个网络是一个SDN网络。所
-以说，SDN并不是一个具体的技术，不是一个具体的协议，而是一个思想、一个框架。狭义
-的SDN是指的“软件定义网络”，广义的SDN的概念还延伸出了：软件定义安全、软件定义存
-储等等。可以说，SDN是一个浪潮，席卷整个IT产业
-
-https://www.opennetworking.org/sdn-definition/
-What is SDN? The physical separation of the network control plane from the
-forwarding plane, and where a control plane controls several devices.
-
-https://en.wikipedia.org/wiki/Software-defined_networking
-
-https://www.opendaylight.org/what-we-do/current-release/boron
-
-SDN controller report:
-https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf
-
-
-https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf
-
-https://www.opendaylight.org/what-we-do/current-release/boron
-
-https://wiki.onosproject.org/display/ONOS/Intent+Framework
-https://wiki.onosproject.org/display/ONOS/SDN-IP+Architecture
-
-=== NFV
-
-* nfv
-* opnfv
-
-
-* contrail
-* opendaylight
-* onos
-
-
-=== overlay SDN solution
-
-* NSX
-* contrail
-* nuage
-
-=== SDN vs openstack
-
-首先从大的角度谈区别，OpenStack是一个IaaS开源实现方案之一，提供计算、存储、网络
-等基础服务以及诸如数据库服务、大数据服务、容器编排服务等高级服务，而SDN主要聚集
-在网络这一块。因此从技术生态覆盖面角度看，OpenStack的生态方方面面十分庞大，网络
-只是其中的一个点，由组件Neutron负责实现。而SDN的生态只有网络这一点。同样是网络
-，OpenStack Neutron注重的是为虚拟机、容器、物理服务器等提供网络服务，提供的是面
-向用户的北向RESTFul API，而SDN注重的是解决网络设备的配置以及转发控制问题，更侧
-重于底层网络设备的配置管理以及控制，既要提供面向用户的北向API，还要提供南向API
-，对接各种硬件设备的协议。
-
-
+= chapter 1: SDN overview
+== what is SDN
+=== SDN history
+=== SDN definition
+==== What is SDN? 
+==== traditional network planes
+==== SDN layers
+==== changes (comparing with traditional networking)
+==== interfaces between layers
+==== underlay vs overlay
+==== SDN vs openstack
+==== NFV
+=== SDN controllers
+==== SDN controller reports
+==== SDN controller
+==== opendaylight
+==== southbound interface 
+===== openflow
+===== OVSDB
+==== northbound interface
+==== other terms
+== SDN solutions
+=== overlay SDN solution (VN)
+=== ONOS
 === calico
-
-=== nuage
-
-=== ovn
-
+=== nuage (Nokia)
+=== OVN
+==== OVS
+==== OVN
 === contrail
-
+=== vmare NSX
+=== others
+==== cisco: apic
+==== openflood
+==== opendaylight
 == Overview of Tungsten Fabric
-
-== Dataplane in SDN
-
-== Openstack integration (brief)
-
-=== Neutron
-
-=== Nova
-
-
+=== Dataplane in SDN
+=== Openstack integration (brief)
+==== Neutron
+==== Nova
+== resources
