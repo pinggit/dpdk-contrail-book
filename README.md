@@ -37,19 +37,6 @@ coauthors:  (as of March 17)
 * consistent test method - share testing process?  - pyz to share
 * split the task? - DONE, see below
 
-* document format/tool recommendation
-    * asciidoc/adoc
-        * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
-        * can convert to word and all other docs
-        * syntax and online tool https://asciidoclive.com/
-        * editors: VIM (with Voom plugin), asciidocFX, etc
-    * MS word
-        * but not github and change tracking friendly
-        * I can convert to adoc and push into github
-    * markdown
-        * should be ok, but I didn't use it to write complex stuffs
-        * similiar to asciidoc, so let's use either asciidoc or word if possible
-
 * started with editor (Patrick)
 
 ### 0316: drafted TOC!
@@ -189,6 +176,40 @@ coauthors:  (as of March 17)
     * Hugepage size
     * Static mapping of queues
     * Run-to-completion
+
+## document format/editor recommendation
+
+* asciidoc/adoc (preferred)
+    * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
+    * can convert to word and all other docs
+    * syntax and online tool https://asciidoclive.com/
+    * editors: 
+        * VIM (with Voom plugin https://www.vim.org/scripts/script.php?script_id=2657), 
+        * asciidocFX (UI, real time preview)
+        * etc
+
+* MS word
+    * not github and change tracking friendly
+    * I can convert to adoc and push into github
+
+* markdown
+    * should be ok, but I didn't use it to write complex stuffs
+    * similiar to asciidoc, so let's use either asciidoc or word if possible
+
+### emf picture
+
+.to png
+
+    $ libreoffice --headless --convert-to png image1.emf
+
+    #high dpi
+    $ inkscape -e image1.png -d 600 image1.emf
+
+.to svg
+
+    $ libreoffice --headless --convert-to svg image1.emf
+    #inkscape: from UI
+
 
 ## references/materials
 
