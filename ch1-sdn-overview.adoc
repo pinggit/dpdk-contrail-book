@@ -428,8 +428,17 @@ devices.
 .NVF
 TODO
 
-== SDN controllers
+== SDN Dataplane 
+=== kernel
+=== dpdk
+=== sriov
+=== smartnic
+=== vDPA
+=== eBPF
 
+== SDN solutions
+
+=== controllers
 As we've mentioned in previous sections, SDN is a networking scenario which
 changes the traditional network architecture by bringing all control
 functionalities to a single location and making centralized decisions.
@@ -445,16 +454,6 @@ own pros and cons along with its working domain.
 === SDN controller reports
 
 === opendaylight
-
-== SDN Dataplane 
-=== kernel
-=== dpdk
-=== sriov
-=== smartnic
-=== vDPA
-=== eBPF
-
-== SDN solutions
 
 === overlay SDN solution (VN)
 

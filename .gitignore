@@ -22,3 +22,6 @@ Backup of *.doc*
 
 # Visio autosave temporary files
 *.~vsd*
+
+#asciidocFX generated cheatsheet
+cheatsheet*
