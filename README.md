@@ -2,11 +2,19 @@
 
 * [contrail dpdk day one book](#contrail-dpdk-day-one-book)
     * [progress/meetings](#progressmeetings)
+        * [0327 agenda/meeting minutes](#0327-agendameeting-minutes)
+        * [0323 agenda/meeting minutes](#0323-agendameeting-minutes)
         * [0316: drafted TOC!](#0316-drafted-toc)
         * [0310: kicked off first book meeting!](#0310-kicked-off-first-book-meeting)
     * [table of content (Volume I)](#table-of-content-volume-i)
         * [details](#details)
     * [table of content (Volume II)](#table-of-content-volume-ii)
+    * [lab resources (from Laurent)](#lab-resources-from-laurent)
+    * [tools](#tools)
+        * [git/github](#gitgithub)
+        * [document format/editor recommendation](#document-formateditor-recommendation)
+        * [asciidocFX](#asciidocfx)
+        * [emf picture](#emf-picture)
     * [references/materials](#referencesmaterials)
 
 target date: before July 1 2020
@@ -20,6 +28,11 @@ coauthors:  (as of March 17)
 
 
 ## progress/meetings
+
+### 0420 agenda/meeting minutes
+
+* first draft better done before June, so we have at least 1 month to review/update
+* we can ask editor for more time if necessary
 
 ### 0327 agenda/meeting minutes
 
@@ -204,7 +217,36 @@ For more details on how to reach GUI or any node, have a look into:
 https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
 
 
-## document format/editor recommendation
+## tools
+
+### git/github
+
+clone
+
+    git clone https://github.com/pinggit/dpdk-contrail-book
+    cd dpdk-contrail-book
+
+EDIT
+
+    (add/change/delete/etc)
+
+commit
+
+    git status
+    git add -A .
+    git commit -am "SOME SHORT COMMENTS"
+
+push(publish)
+
+    (if there is no conflict)
+    git push 
+
+    (if there is confliction - updates from others)
+
+    git pull 
+    git push
+
+### document format/editor recommendation
 
 * asciidoc/adoc (preferred)
     * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
@@ -215,7 +257,7 @@ https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
         * asciidocFX (UI, real time preview)
         * etc
 
-* MS word
+* MS word (also fine)
     * not github and change tracking friendly
     * I can convert to adoc and push into github
 
@@ -223,7 +265,16 @@ https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
     * should be ok, but I didn't use it to write complex stuffs
     * similiar to asciidoc, so let's use either asciidoc or word if possible
 
-### emf picture
+### asciidocFX
+
+* support windows/linux/mac
+* write in 'adoc' plain text format, but preview the rendered format in realtime
+* install and open `ch1-sdn-overview.adoc` for quick referencing the syntax
+* there is also a "cheatsheet" in asciidocFX.
+
+![image](https://user-images.githubusercontent.com/2038044/79781265-3aa51e00-830b-11ea-810b-67512ffdadaa.png)
+
+### `emf` picture
 
 .to png
 
