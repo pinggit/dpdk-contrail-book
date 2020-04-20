@@ -177,6 +177,33 @@ coauthors:  (as of March 17)
     * Static mapping of queues
     * Run-to-completion
 
+## lab resources (from Laurent)
+
+    If needed you can use following labs:
+    19.12.L1:     10.85.32.6
+    19.10:        10.85.224.2
+
+    User:         root
+    Password:     contrail123
+
+    From any of the hypervisor, run:
+    ./ssh_director.sh
+    Password:           contrail123
+
+    You’ll be in director node.
+
+
+    Don’t worry if you break one of them, I can easily rebuild it.
+    Normally a demo project with 4 Cirros VM should be deployed.
+    1 or 2 computes are DPDK, 1 or 2 othera are in Kernel mode.
+
+    Best regards,
+    Laurent DURAND
+
+For more details on how to reach GUI or any node, have a look into:
+https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
+
+
 ## document format/editor recommendation
 
 * asciidoc/adoc (preferred)
@@ -208,8 +235,8 @@ coauthors:  (as of March 17)
 .to svg
 
     $ libreoffice --headless --convert-to svg image1.emf
-    #inkscape: from UI
-
+    #inkscape: from UI, saveas, or
+    $ inkscape -z -l image8.svg image8.emf
 
 ## references/materials
 

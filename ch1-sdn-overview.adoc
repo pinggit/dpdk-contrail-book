@@ -439,21 +439,53 @@ TODO
 == SDN solutions
 
 === controllers
+
 As we've mentioned in previous sections, SDN is a networking scenario which
 changes the traditional network architecture by bringing all control
 functionalities to a single location and making centralized decisions.
 SDN controllers are the brain of SDN architecture, which perform the control
 decision tasks while routing the packets. Centralized decision capability for
-routing enhances the network performance.
+routing enhances the network performance. As a result, SDN controller is the
+core components of any SDN solutions.
 
 While working with SDN architecture, one of the major point of concerns is which
-controller should be selected for deployment. There are quite a few SDN
-controller implementations from various vendors, and every controller has its
-own pros and cons along with its working domain. 
+controller and solution should be selected for deployment. There are quite a few
+SDN controller and solutions implementations from various vendors, and every
+solution has its own pros and cons along with its working domain. In this
+section we'll review some of the popular SDN controllers in the market, and the
+corresponding SDN solutions.
 
 === SDN controller reports
 
+TODO
+
+image::https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-11ea-9742-20b94163ddcf.png[image]
+
+.References
+
+* https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf[2015 ]
+* https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf[2016 ]
+* https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403[Controllers in SDN: A Review Report. 2018]
+//* https://aptira.com/comparison-of-software-defined-networking-sdn-controllers-part-2-open-network-operating-system-onos[2019]
+
+
 === opendaylight
+
+OpenDaylight is an open source project started from 2013, it was originally led
+by IBM and Cisco but later hosted under the Linux Foundation.  it was the first
+open source Controller that can support non-OpenFlow southbound protocols, which
+can make it much easier to be integrated with multiple vendors.
+
+.opendaylight "Boron"
+image::diagrams/BoronDiagrams_final.png[]
+//image::https://user-images.githubusercontent.com/2038044/78376350-2f789100-759c-11ea-923c-883b03048d37.png[image]
+
+.References:
+
+* https://www.opendaylight.org/technical-community/getting-started-for-developers/roadmap
+* https://www.opendaylight.org/what-we-do/current-release/boron
+* https://www.sdnlab.com/community/article/odl/1
+
 
 === overlay SDN solution (VN)
 

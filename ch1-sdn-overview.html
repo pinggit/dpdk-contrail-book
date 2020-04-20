@@ -452,28 +452,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_sdn_definition">SDN definition</a>
 <ul class="sectlevel2">
 <li><a href="#_what_is_sdn">What is SDN?</a></li>
-<li><a href="#_traditional_network_planes">Traditional Network Planes</a></li>
-<li><a href="#_sdn_layer">SDN layer</a></li>
+<li><a href="#_traditional_network_planes_and_sdn_layer">Traditional Network Planes and SDN layer</a></li>
 <li><a href="#_the_primary_changes_between_sdn_and_traditional_networking">the primary changes between SDN and traditional networking</a></li>
 <li><a href="#_underlay_vs_overlay">underlay vs overlay</a></li>
 <li><a href="#_interfaces_between_layers">interfaces between layers</a></li>
-<li><a href="#_sdn_vs_openstack">SDN vs openstack</a></li>
-<li><a href="#_nfv">NFV</a></li>
+<li><a href="#_sdn_openstack_and_nvf">SDN, openstack and NVF</a></li>
 </ul>
 </li>
-<li><a href="#_sdn_controllers">SDN controllers</a>
-<ul class="sectlevel2">
-<li><a href="#_sdn_controller_reports">SDN controller reports</a></li>
-<li><a href="#_sdn_controller">SDN controller</a></li>
-<li><a href="#_opendaylight">opendaylight</a></li>
-<li><a href="#_southbound_interface">southbound interface</a></li>
-<li><a href="#_openflow">openflow</a></li>
-<li><a href="#_ovsdb">OVSDB</a></li>
-<li><a href="#_northbound_interface">northbound interface</a></li>
-<li><a href="#_other_terms">other terms</a></li>
-</ul>
-</li>
-<li><a href="#_dataplane_in_sdn">Dataplane in SDN</a>
+<li><a href="#_sdn_dataplane">SDN Dataplane</a>
 <ul class="sectlevel2">
 <li><a href="#_kernel">kernel</a></li>
 <li><a href="#_dpdk">dpdk</a></li>
@@ -485,6 +471,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_sdn_solutions">SDN solutions</a>
 <ul class="sectlevel2">
+<li><a href="#_controllers">controllers</a></li>
+<li><a href="#_sdn_controller_reports">SDN controller reports</a></li>
+<li><a href="#_opendaylight">opendaylight</a></li>
 <li><a href="#_overlay_sdn_solution_vn">overlay SDN solution (VN)</a></li>
 <li><a href="#_onos">ONOS</a></li>
 <li><a href="#_calico">calico</a></li>
@@ -704,6 +693,7 @@ and where a control plane controls several devices</p>
 <div class="content">
 <img src="diagrams/sdn-architecture-img.jpg" alt="image" width="400" height="400">
 </div>
+<div class="title">Figure 1. SDN layer<sup><a href="#onf-sdn-definition">[onf-sdn-definition]</a></sup></div>
 </div>
 <div class="paragraph">
 <p>In this diagram, you can see that SDN allows simple high-level policies in the
@@ -738,6 +728,21 @@ controlled device using flow tables</p>
 </li>
 </ul>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+in this diagram, "openflow" is marked as the protocol between control
+layer and infrastructure layer. This is to give an example about the "south
+bound" interface. As of today there are more choices available and standardized
+in the SDN industry, which will be covered later in this chapter.
+</td>
+</tr>
+</table>
+</div>
 <div class="ulist">
 <div class="title">References:</div>
 <ul>
@@ -751,15 +756,16 @@ controlled device using flow tables</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_traditional_network_planes">Traditional Network Planes</h3>
+<h3 id="_traditional_network_planes_and_sdn_layer">Traditional Network Planes and SDN layer</h3>
 <div class="paragraph">
+<div class="title">traditional network device planes</div>
 <p>traditionally, A typical network device (e.g. a router) has following planes:</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="ch1-extracted-media/word/media/image3.svg" alt="image">
 </div>
-<div class="title">Figure 1. traditional network device planes</div>
+<div class="title">Figure 2. traditional network device planes</div>
 </div>
 <div class="ulist">
 <ul>
@@ -784,17 +790,15 @@ proprietary protocols and is specific to each network equipment vendor.</p>
 <p>First two planes (configuration and control) are located into router main
 processor card. The last one is located into the router line cards.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_sdn_layer">SDN layer</h3>
 <div class="paragraph">
+<div class="title">SDN layer</div>
 <p>SDN architecture is built with 3 layers:</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="ch1-extracted-media/word/media/image4.svg" alt="image">
 </div>
-<div class="title">Figure 2. SDN architecture</div>
+<div class="title">Figure 3. SDN architecture</div>
 </div>
 <div class="ulist">
 <ul>
@@ -858,7 +862,7 @@ and of a distributed calculation.</p>
 <div class="content">
 <img src="ch1-extracted-media/word/media/image5.svg" alt="image">
 </div>
-<div class="title">Figure 3. Component in a traditional router</div>
+<div class="title">Figure 4. Component in a traditional router</div>
 </div>
 <div class="paragraph">
 <p>Traditional networks are very robust but very hard to manage due to the high
@@ -897,7 +901,7 @@ nodes, the smartest part has been moved onto a controller.</p>
 <div class="content">
 <img src="ch1-extracted-media/word/media/image2.svg" alt="image">
 </div>
-<div class="title">Figure 4. Comparison between tradition network devices and SDN devices</div>
+<div class="title">Figure 5. Comparison between tradition network devices and SDN devices</div>
 </div>
 <div class="paragraph">
 <p>A southbound network protocol is the last piece needed to allow routing
@@ -1027,104 +1031,85 @@ terminating the overlay tunnels.</p>
 <div class="sect2">
 <h3 id="_interfaces_between_layers">interfaces between layers</h3>
 <div class="paragraph">
+<p>We&#8217;ve seen "openflow" marked as one of the possible interfaces in the "SDN
+layer" section. Now we&#8217;ll introduce the concept of "southbound" and "northbound"
+interface and other available choices in today&#8217;s industry.</p>
+</div>
+<div class="paragraph">
 <div class="title">southbound interface</div>
 <p>The "southbound" interface resides between the controller in "control layer" and
-network devices in "infrastructure layer". Basically what it does is it installs
-the appropriate flow rules in the switch forwarding table decided by the
-controller.
-provides a means of communication
-between</p>
+network devices in "infrastructure layer". Basically what it does is to provide
+a means of communication between the 2 layers. Based on the demands and needs, a
+SDN Controller will dynamically changes the configuration or routing information
+of network devices. For example, a new VM will advertise a new subnet or host
+routes when it is spawned in a server, this advertisement will be delivered to
+SDN controller via a southbound protocol. Accordingly, SDN controller collects
+all routing updates from the whole SDN cluster, decides the most current and
+best route entries and it may "reflect" these information to all other network
+devices or VMs. this ensures all devices will has the most uptodate routing
+information in real time. the two most well-known southbound interface in the
+industry is <code>openflow</code> and <code>OVSDB</code>.</p>
 </div>
 <div class="paragraph">
 <div class="title">openflow</div>
-<p>OpenFlow is the most widely deployed southbound standard from open source
-community. OpenFlow provides various information for the Controller. It
-generates the event-based messages in case of port or link changes. The protocol
-also generates a flow based statistic for the forwarding device and passes it to
-the controller. Packet IN message sends in the case when a router doesn’t know
-how to handle the new incoming packet. However, this is not the only choice for
-the southbound interface.</p>
+<p>OpenFlow is one of the most widely deployed southbound standard from open source
+community. It first made its appearance in 2008 by Martin Casado at Stanford
+University. The appearance of OpenFlow was one of the main factors which gave
+birth to Software Defined Networking.</p>
 </div>
 <div class="paragraph">
-<p>OpenFlow provides a set of protocols for effective communication between the
-control plane and data plane. It is supported by open source community. It
-first made its appearance in 2008 by Martin Casado at Stanford University.  The
-appearance of OpenFlow was one of the main factors which gave birth to Software
-Defined Networking. Open Flow provides an open source platform for Research
-Community. It consists of a rich set of protocol specifications at the
-controller and switching element side.</p>
+<p>OpenFlow provides various information for the Controller. It generates the
+event-based messages in case of port or link changes. The protocol generates a
+flow based statistic for the forwarding device and passes it to the controller.</p>
+</div>
+<div class="paragraph">
+<p>OpenFlow also provides a rich set of protocol specifications for effective
+communication at the controller and switching element side. Open Flow provides
+an open source platform for Research Community.</p>
+</div>
+<div class="paragraph">
+<p>Remember, openflow is not the only choice for the southbound interface.</p>
 </div>
 <div class="paragraph">
 <div class="title">OVSDB</div>
-<p>OVSDB is a southbound API designed to provide additional
-management capabilities like networking functions. With
-OVSDB we can create the virtual switch instances, set the
-interfaces and connect them to the switches. We can also
-provide the Quality of Service (QoS) policy for the interfaces.</p>
+<p>unlike openflow, OVSDB is a southbound API designed to provide additional
+management capabilities like networking functions. With OVSDB we can create the
+virtual switch instances, set the interfaces and connect them to the switches.
+We can also provide the QoS policy for the interfaces.</p>
 </div>
 <div class="paragraph">
 <div class="title">northbound interface</div>
-<p>The northbound interface provides connectivity between the
-controller and the network applications running in management
-plane. As we already discussed that southbound interface has
-OpenFlow as open source protocol, northbound lacks such type
-of protocol standards. However with the advancement of
-technology now we have a wide range of northbound API
-support like ad-hoc API&#8217;s, RESTful APIs etc. Soon we hope for
-the common standard for northbound API as SDN is growing
-day by day. The selection of northbound interface depends on
-the programming language used in application development.</p>
+<p>The northbound interface provides connectivity between the controller and the
+network applications running in management plane. As we already discussed that
+southbound interface has OpenFlow as open source protocol, northbound lacks such
+type of protocol standards. However with the advancement of technology now we
+have a wide range of northbound API support like ad-hoc API&#8217;s, RESTful APIs etc.
+The selection of northbound interface depends on the programming language used
+in application development.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_sdn_vs_openstack">SDN vs openstack</h3>
-
+<h3 id="_sdn_openstack_and_nvf">SDN, openstack and NVF</h3>
+<div class="paragraph">
+<div class="title">openstack</div>
+<p>OpenStack is one of the IaaS open source implementation solutions, providing
+basic services like computing service, storage service, networking service, etc.
+It also provides advanced services like database, container orchestration and
+other advanced services. SDN, and its ecology, in contrast, mainly focus on the
+networking. Therefore, from the perspective of technical ecological coverage,
+the ecological aspects of OpenStack are much wider, because networking is just one
+of its services that is implemented by its <code>Neutron</code> component and it&#8217;s various
+plugins.</p>
 </div>
-<div class="sect2">
-<h3 id="_nfv">NFV</h3>
-
+<div class="paragraph">
+<div class="title">NVF</div>
+<p>TODO</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_sdn_controllers">SDN controllers</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_sdn_controller_reports">SDN controller reports</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_sdn_controller">SDN controller</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_opendaylight">opendaylight</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_southbound_interface">southbound interface</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_openflow">openflow</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_ovsdb">OVSDB</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_northbound_interface">northbound interface</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_other_terms">other terms</h3>
-
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_dataplane_in_sdn">Dataplane in SDN</h2>
+<h2 id="_sdn_dataplane">SDN Dataplane</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_kernel">kernel</h3>
@@ -1155,6 +1140,68 @@ the programming language used in application development.</p>
 <div class="sect1">
 <h2 id="_sdn_solutions">SDN solutions</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_controllers">controllers</h3>
+<div class="paragraph">
+<p>As we&#8217;ve mentioned in previous sections, SDN is a networking scenario which
+changes the traditional network architecture by bringing all control
+functionalities to a single location and making centralized decisions.
+SDN controllers are the brain of SDN architecture, which perform the control
+decision tasks while routing the packets. Centralized decision capability for
+routing enhances the network performance. As a result, SDN controller is the
+core components of any SDN solutions.</p>
+</div>
+<div class="paragraph">
+<p>While working with SDN architecture, one of the major point of concerns is which
+controller and solution should be selected for deployment. There are quite a few
+SDN controller and solutions implementations from various vendors, and every
+solution has its own pros and cons along with its working domain. In this
+section we&#8217;ll review some of the popular SDN controllers in the market, and the
+corresponding SDN solutions.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sdn_controller_reports">SDN controller reports</h3>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+<div class="ulist">
+<div class="title">References</div>
+<ul>
+<li>
+<p><a href="https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf">2015 </a></p>
+</li>
+<li>
+<p><a href="https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf">2016 </a></p>
+</li>
+<li>
+<p><a href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403">Controllers in SDN: A Review Report. 2018</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_opendaylight">opendaylight</h3>
+<div class="paragraph">
+<p>OpenDaylight is an open source project started from 2013, it was originally led
+by IBM and Cisco but later hosted under the Linux Foundation.  it was the first
+open source Controller that can support non-OpenFlow southbound protocols, which
+can make it much easier to be integrated with multiple vendors.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="diagrams/BoronDiagrams_final.png" alt="BoronDiagrams final">
+</div>
+</div>
+<div class="ulist">
+<div class="title">References:</div>
+<ul>
+<li>
+<p><a href="https://www.sdnlab.com/community/article/odl/1" class="bare">https://www.sdnlab.com/community/article/odl/1</a></p>
+</li>
+</ul>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_overlay_sdn_solution_vn">overlay SDN solution (VN)</h3>
 
@@ -1233,7 +1280,7 @@ the programming language used in application development.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-04-16 18:41:24 -0400
+Last updated 2020-04-20 00:00:53 -0400
 </div>
 </div>
 </body>
