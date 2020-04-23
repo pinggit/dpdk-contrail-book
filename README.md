@@ -276,17 +276,30 @@ push(publish)
 
 ### `emf` picture
 
-.to png
+    #irfanview/inkscape: from UI, saveas, or
 
+#### to png
+
+works in everywhere
+
+    #via pdf, best quality
+    unoconv -f pdf -o image1.pdf image1.emf
+    convert -density 300 -trim -bordercolor white -border 5 image1.pdf image1.png
+    #or oneliner
+    unoconv -f pdf -T 15 --stdout image1.emf | convert -density 300 -trim -bordercolor white -border 5 - image1.png
+
+    #libreoffice
     $ libreoffice --headless --convert-to png image1.emf
 
-    #high dpi
+    #inkscape: high dpi, but will loose color!
     $ inkscape -e image1.png -d 600 image1.emf
 
-.to svg
+#### to svg
+
+for web page, word has problem to display
 
     $ libreoffice --headless --convert-to svg image1.emf
-    #inkscape: from UI, saveas, or
+
     $ inkscape -z -l image8.svg image8.emf
 
 ## references/materials

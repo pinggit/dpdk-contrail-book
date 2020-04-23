@@ -2,6 +2,7 @@
 :doctype: book
 :toc: right
 :toclevels: 3
+:data-uri:
 
 == what is SDN - the history
 
@@ -13,7 +14,8 @@ was computed into the central CPU to reach a situation where the central CPU is
 less and less used due to a distributed architecture in which lots of action
 are done in “line cards”.
 
-image::ch1-extracted-media/word/media/image1.svg[image]
+//image::ch1-extracted-media/word/media/image1.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image1.png[image]
 
 These progresses have been made thanks to the use of proprietary ASICs
 (Application-Specific Integrated Circuit), TCAM (Ternary Content-Addressable
@@ -122,7 +124,10 @@ According to <<onf-sdn-definition>>, *Software-Defined Networking (SDN)* is:
 > and where a control plane controls several devices
 
 .SDN layer^<<onf-sdn-definition>>^
-image::diagrams/sdn-architecture-img.jpg[image, 400, 400]
+//jpg is too small after converted to word
+//image::diagrams/sdn-architecture-img.jpg[image, 400, 400]
+//seems size does not help when converting to word
+image::diagrams/sdn-architecture-img.png[image, 400, 400]
 
 ////
 //ping:
@@ -188,7 +193,8 @@ in the SDN industry, which will be covered later in this chapter.
 traditionally, A typical network device (e.g. a router) has following planes:
 
 .traditional network device planes
-image::ch1-extracted-media/word/media/image3.svg[image]
+//image::ch1-extracted-media/word/media/image3.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image3.png[image]
 
 - *Configuration* (and management) *plane*: used for network node configuration
   and supervision. Widely use protocols are CLI (Command Line Interface), SNMP
@@ -208,7 +214,8 @@ processor card. The last one is located into the router line cards.
 SDN architecture is built with 3 layers:
 
 .SDN architecture
-image::ch1-extracted-media/word/media/image4.svg[image]
+//image::ch1-extracted-media/word/media/image4.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image4.png[image]
 
 - *Application Layer*: is containing all the application provided by the SDN
   solution. Generally a Web GUI dashboard is the first application provided to
@@ -240,7 +247,8 @@ individual router. Routing path is the result of routing information exchange,
 and of a distributed calculation.
 
 .Component in a traditional router
-image::ch1-extracted-media/word/media/image5.svg[image]
+//image::ch1-extracted-media/word/media/image5.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image5.png[image]
 
 Traditional networks are very robust but very hard to manage due to the high
 number of points to configure. Traditional network nodes are requiring
@@ -264,7 +272,8 @@ is proposed by the SDN Architecture. In order to be able to simplify network
 nodes, the smartest part has been moved onto a controller.
 
 .Comparison between tradition network devices and SDN devices
-image::ch1-extracted-media/word/media/image2.svg[image]
+//image::ch1-extracted-media/word/media/image2.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image2.png[image]
 
 A southbound network protocol is the last piece needed to allow routing
 information between the SDN controller and each controlled element. A network
@@ -316,7 +325,8 @@ fabric. The underlay also needs to separate between different administrative
 domains (tenants), switch within the same L2 broadcast domain, route between L2
 broadcast domains, and provide IP separation via VRFs.
 
-image::ch1-extracted-media/word/media/image6.svg[image]
+//image::ch1-extracted-media/word/media/image6.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image6.png[image]
 
 Indeed, without such an encapsulation mechanism, traditional segmentation
 solutions (VLAN, VRF) would have to be provided by the physical infrastructure
@@ -342,7 +352,8 @@ Several encapsulation protocols are used into SDN networks; they are:
 These encapsulation protocols are providing Overlay connectivity which is
 required between customers workload connected to the SDN infrastructure.
 
-image::ch1-extracted-media/word/media/image6.svg[image]
+//image::ch1-extracted-media/word/media/image6.svg[image]
+image::diagrams/ch1-extracted-media/word/media/image6.png[image]
 
 Each SDN node is call a VTEP (Virtual Tunnel End Point) as it is starting and
 terminating the overlay tunnels.
@@ -383,6 +394,16 @@ OpenFlow also provides a rich set of protocol specifications for effective
 communication at the controller and switching element side. Open Flow provides
 an open source platform for Research Community. 
 
+Every physical or virtual OpenFlow-enabled switch in the SDN domain needs to
+first register with the OpenFlow controller (OpenDaylight). Our Mininet
+switches, which are actually OVS switches, will then be registered with
+OpenDaylight and will pop up in the OpenDaylight topology view instantly.
+
+The registration process is completed via an OpenFlow HELLO packet originating
+from the OpenFlow switch sent, to the SDN controller. This controller
+(OpenDaylight) can authenticate the request and check whether the switch is
+allowed to be part of OpenDaylight's SDN domain.
+
 Remember, openflow is not the only choice for the southbound interface.
 
 .OVSDB
@@ -402,17 +423,18 @@ have a wide range of northbound API support like ad-hoc API's, RESTful APIs etc.
 The selection of northbound interface depends on the programming language used
 in application development.
 
-=== SDN, openstack and NVF
+=== SDN, openstack, NVF and data center
 
 .openstack
+
 OpenStack is one of the IaaS open source implementation solutions, providing
 basic services like computing service, storage service, networking service, etc.
 It also provides advanced services like database, container orchestration and
 other advanced services. SDN, and its ecology, in contrast, mainly focus on the
 networking. Therefore, from the perspective of technical ecological coverage,
-the ecological aspects of OpenStack are much wider, because networking is just one
-of its services that is implemented by its `Neutron` component and it's various
-plugins.
+the ecological aspects of OpenStack are much wider, because networking is just
+one of its services that is implemented by its `Neutron` component and it's
+various plugins.
 
 ////
 There are also difference in the way that Neutron works comparing with how a
@@ -425,8 +447,28 @@ but also to provide southbound API, communicating with various hardware
 devices.
 ////
 
-.NVF
-TODO
+.NFV: Networking Function Virtualization
+
+NFV/VNF sounds like new buzzwords, but those technologies have been around for
+years. `NFV` means "network function virtualization", according to ETSI it
+stands for an "operation framework for orchestrating and automating VNFs". And
+`VNF` means "virtualized network function", such as virtualized routers,
+firewalls, load balancers, traffic optimizers, IDS or IPS, web application
+protectors, and so on. When you read today's documents about virtualization
+technology, you will see the terms in such a pattern like "vXX" (e.g. vSRX) very
+often. that letter `v` indicates it is a "virtualized" product.  Among others,
+firewalls and load balancers are the two most common VNFs in the industry,
+especially for deployments inside data centers.
+
+.data center
+
+Flexibility is the main driver for any visualization platform.  The data center
+network itself is also part of the virtualization revolution. SDN and network
+overlays are the key drivers for virtualizing networks in data centers.
+
+.References
+
+* https://portal.etsi.org/NFV/NFV_White_Paper.pdf
 
 == SDN Dataplane 
 === kernel
@@ -457,7 +499,7 @@ corresponding SDN solutions.
 
 === SDN controller reports
 
-TODO
+.TODO, some research about today's market players, may skip
 
 image::https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-11ea-9742-20b94163ddcf.png[image]
 
@@ -468,17 +510,58 @@ image::https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-
 * https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403[Controllers in SDN: A Review Report. 2018]
 //* https://aptira.com/comparison-of-software-defined-networking-sdn-controllers-part-2-open-network-operating-system-onos[2019]
 
+=== opendaylight (ODL)
 
-=== opendaylight
+OpenDaylight, aften abbreviated as ODL, is a Java based open source project
+started from 2013, it was originally led by IBM and Cisco but later hosted under
+the Linux Foundation. it was the first open source Controller that can support
+non-OpenFlow southbound protocols, which can make it much easier to be
+integrated with multiple vendors.
 
-OpenDaylight is an open source project started from 2013, it was originally led
-by IBM and Cisco but later hosted under the Linux Foundation.  it was the first
-open source Controller that can support non-OpenFlow southbound protocols, which
-can make it much easier to be integrated with multiple vendors.
+ODL is a modular platform for SDN. It is not a single piece of software. It is a
+modular platform for integrating multiple plugins and modules under one umbrella
+There are many plugins and modules built for OpenDaylight. Some are in
+production, while some are still under development. 
 
 .opendaylight "Boron"
 image::diagrams/BoronDiagrams_final.png[]
 //image::https://user-images.githubusercontent.com/2038044/78376350-2f789100-759c-11ea-923c-883b03048d37.png[image]
+
+Some of the initial SDN controllers had their southbound APIs tightly bound to
+OpenFlow, But as we can see from the diagram, besides openflow, many other
+southbound protocols that are available in today's market are also supported.
+Examples are NETCONF, OVSDB, SNMP, BGP, etc. Support of these protocols are done
+in a modular method in the form of different plugins, which are linked
+dynamically to a central component named "Service Abstraction Layer (SAL)". SAL
+does translations between the SDN application and the underlaying network
+equipments. for instance, when it receives a service request from a SDN
+application, typically via high level API calls (northbound), it understands the
+API call and translates the request to a language that the underlying network
+equipments can also understand. That language is one of the southbound
+protocols.
+
+While this "translation" is transparent to the SDN application, ODL itself needs
+to know all the details about how to talk to each one of the network devices it
+supports, their features, capabilities etc. a `topology manager` module in OLD
+manages this type of information. What `topology manager` does is to collect
+topology related information from various modules and protocols, such as ARP,
+host tracker, device manager, switch manager, OpenFlow, etc, and based on these
+info, it visualize the network topology by drawing a diagram dynamically, all
+the managed devices and how they are connected together will be showed in it.
+
+.ODL topology
+image::diagrams/odl-topo1.png[]
+
+any topology changes, such as adding new devices, will be updated in the
+database and reflected immediately in the diagram. 
+
+.ODL topology update
+image::diagrams/odl-topo2.png[]
+
+Remember earlier we mentioned that an SDN controller has "global
+view" of the whole SDN network. In that sense ODL has all necessary visibility
+and knowledge of the network that can be used to draw the network diagram in
+realtime.
 
 .References:
 
@@ -486,17 +569,19 @@ image::diagrams/BoronDiagrams_final.png[]
 * https://www.opendaylight.org/what-we-do/current-release/boron
 * https://www.sdnlab.com/community/article/odl/1
 
+=== underlay network and overlay network
 
-=== overlay SDN solution (VN)
+=== OVN
+
+==== OVS
+==== OVN
 
 === ONOS
 
 === calico
 
 === nuage (Nokia)
-=== OVN
-==== OVS
-==== OVN
+
 === contrail (brief)
 === vmare NSX
 === others
@@ -509,5 +594,7 @@ image::diagrams/BoronDiagrams_final.png[]
 === Openstack integration (brief)
 === Neutron
 === Nova
+
+== summary
 
 == resources
