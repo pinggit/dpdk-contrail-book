@@ -574,11 +574,157 @@ realtime.
 === OVN
 
 ==== OVS
+
 ==== OVN
 
 === ONOS
 
 === calico
+
+==== calico introduction
+
+quote from calico official website:
+____
+Calico is an open source networking and network security solution for
+containers, virtual machines, and native host-based workloads. Calico supports
+a broad range of platforms including Kubernetes, OpenShift, Docker EE,
+OpenStack, and bare metal services.
+____
+
+Calico has been an open-source project from day one. It was originally designed
+for today's modern cloud-native world and runs on both public and private
+clouds. Its reputation mostly comes from it's deplayment in Kubernetes and its
+ecosystem environments. Today Calico has become one of the most popularly used
+kubernetes CNIes and many enterprises using it at scale.
+
+Comparing with other overlay network SDN solutions, Calico is special in the
+sense that it does not use any overlay networking design or tunneling
+protocols, nor does it require NAT.  Instead it uses a plain IP networking
+fabric to enables host to host and pod to pod networking.  The basic idea is to
+provides Layer 3 networking capabilities and associates a virtual router with
+each node, so that each node is behaving like a traditional router, or a
+"virtual router". We know that a typical Internet router relies on routing
+protocols like OSPF, BGP to learn and advertise the routing information, and
+That is the way a node in calico networking works. It chooses BGP, because of
+it's simple, industry's current best practice, and the only protocol that
+sufficiently scale.
+
+calico uses a policy engine to deliver high-level network policy management. 
+
+==== calico archetecture
+image::diagrams/k8s-calico-graph.png[image]
+
+Calico is made up of the following components:
+
+- Felix: the primary Calico agent that runs on each machine that hosts endpoints.
+- The Orchestrator plugin: orchestrator-specific code that tightly integrates Calico into that orchestrator.
+- BIRD: a BGP speaker that advertise and install routing information.
+- BGP Route Reflector (BIRD): an optional BGP route reflector for higher scale.
+- calico CNI plugin: connect the containers with the host
+- IPAM: for IP address allocation management
+- etcd: the data store.
+
+===== felix (policy)
+
+This is calico "agent" - a daemon that runs on every workload, for example on
+nodes that host containers or VMs. it is the one that performs most of the
+"magics" in the calico stack. It is responsible for programming routes and
+ACLs, and anything else required on the host, in order to provide the desired
+connectivity for the endpoints on that host.
+
+Depending on the specific orchestrator environment, Felix is responsible for
+the following tasks:
+
+* Interface management (ARP response)
+* Route programming (linux kernel FIB)
+* ACL programming (host IPtables)
+* State reporting (health check)
+
+////
+It has multiple responsibilities:
+
+- it writes the routing table of the operating system 
+- it manipulates IPtables on the host.
+////
+It does all this by connecting to etcd and reading information from there. It
+runs inside the calico/node DaemonSet along with `confd` and `BIRD`.
+
+===== Orchestrator plugin
+
+The orchestrator plugins are essentially responsible for API translations.
+Calico has a separate plugin for each major cloud orchestration platforms (e.g.
+OpenStack, Kubernetes). 
+////
+The purpose of these plugins is to bind Calico more tightly into the
+orchestrator, allowing users to manage the Calico network just as they’d manage
+network tools that were built into the orchestrator.
+////
+For example in openstack environment, a Calico Neutron ML2 driver integrates
+with Neutron’s ML2 plugin to allows users to configure the Calico network
+simply by making Neutron API calls. This provides seamless integration with
+Neutron.
+
+===== Etcd (database)
+
+the backend data store for all the information Calico needs. it can be the same of different etcd that kubernetes use.
+//it's recommended deploy a separate etcd for production systems, or at least
+//deploy it outside of your kubernetes cluster.
+it has at least, but not limited to the following information:
+* list of all workloads (endpoints)
+* BGP configuration
+* policys from user (e.g. defined via the `calicoctl` tool)
+* information about each container (pod name, IP, etc), received from calico CNI
+
+===== BIRD (BGP)
+
+Calico makes uses of BGP to propagate routes between hosts.  And the BGP
+"speaker" in calico is BIRD - a routing daemon that runs on every host that
+also hosts Felix module in the Kubernetes cluster, usually as a `DaemonSet`. It
+’s included in the calico/node container.  it's role is to read routing state
+that Felix programs into the kernel and distribute it around the data center.
+comparing with what Felix does, one of the main differences is that Felix
+"insert" routes into the linux kernel FIB and BIRD "distribute" them to all
+other nodes in the deployment, this turns each host to a virtual Internet BGP
+router ("vRouter"), and ensures that traffic is efficiently routed around the
+deployment.
+
+===== Confd
+
+confd is a simple configuration management tool. In Calico, BIRD does not deal
+with etcd directly, it is another module "confd" that reads the BGP
+configuration from etcd and feed to BIRD in the form of configurations files in
+disk.
+
+===== CNI plugin
+
+configure IP, routes
+`CNI` stands for "container networking interface". 
+
+There’s an interface for each pod, When the container spun up, calico (via CNI)
+created an interface for us and assigned it to the pod.
+
+when a new pod starts up, Calico will:
+- query the kubernetes API to determine the pod exists and that it’s on this node
+- assigns the pod an IP address from within its IPAM
+- create an interface on the host so that the container can get an address
+- tell the kubernetes API about this new IP
+
+===== IPAM plugin
+
+IP address allocation management
+talks to etcd, which IP is allocated and which is available still
+route aggregation: instead of using /32, it use IP "block", def /26
+
+t.b.c
+
+==== calico workflow
+
+t.b.c
+
+.Reference
+
+* https://www.projectcalico.org
+* https://www.projectcalico.org/why-bgp/
 
 === nuage (Nokia)
 
@@ -587,7 +733,6 @@ realtime.
 === others
 ==== cisco: apic
 ==== openflood
-==== opendaylight
 
 == Overview of Tungsten Fabric
 
