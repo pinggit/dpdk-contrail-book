@@ -395,16 +395,13 @@ communication at the controller and switching element side. Open Flow provides
 an open source platform for Research Community. 
 
 Every physical or virtual OpenFlow-enabled switch in the SDN domain needs to
-first register with the OpenFlow controller (OpenDaylight). Our Mininet
-switches, which are actually OVS switches, will then be registered with
-OpenDaylight and will pop up in the OpenDaylight topology view instantly.
+first register with the OpenFlow controller. The registration process is
+completed via an OpenFlow HELLO packet originating from the OpenFlow switch
+sent, to the SDN controller. 
 
-The registration process is completed via an OpenFlow HELLO packet originating
-from the OpenFlow switch sent, to the SDN controller. This controller
-(OpenDaylight) can authenticate the request and check whether the switch is
-allowed to be part of OpenDaylight's SDN domain.
-
-Remember, openflow is not the only choice for the southbound interface.
+NOTE: although openflow is very popularly used as southbound interface in SDN,
+it is not the only choice for the southbound interface. there are other options
+available(like XMPP).
 
 .OVSDB
 
@@ -417,11 +414,11 @@ We can also provide the QoS policy for the interfaces.
 
 The northbound interface provides connectivity between the controller and the
 network applications running in management plane. As we already discussed that
-southbound interface has OpenFlow as open source protocol, northbound lacks such
-type of protocol standards. However with the advancement of technology now we
-have a wide range of northbound API support like ad-hoc API's, RESTful APIs etc.
-The selection of northbound interface depends on the programming language used
-in application development.
+southbound interface has OpenFlow as open source protocol, northbound lacks
+such type of protocol standards. However with the advancement of technology now
+we have a wide range of northbound API support like ad-hoc API's, RESTful APIs
+etc. The selection of northbound interface usually depends on the programming
+language used in application development.
 
 === SDN, openstack, NVF and data center
 
@@ -612,7 +609,9 @@ sufficiently scale.
 calico uses a policy engine to deliver high-level network policy management. 
 
 ==== calico archetecture
-image::diagrams/k8s-calico-graph.png[image]
+
+//image::diagrams/k8s-calico-graph.png[image]
+image::diagrams/calico-arch.png[image]
 
 Calico is made up of the following components:
 
@@ -711,34 +710,362 @@ when a new pod starts up, Calico will:
 
 ===== IPAM plugin
 
-IP address allocation management
-talks to etcd, which IP is allocated and which is available still
-route aggregation: instead of using /32, it use IP "block", def /26
-
-t.b.c
+as the name indicated already, Calico's IPAM plugin is responsible for "IP
+address management". when a new container is spawn, calico IPAM plugin reads
+information from etcd database to decide which IP is available to be allocated
+to the container. the IP address by default will be allocated in the unit of
+/26 "block". a block is essentially a subnet which aggregate the routes to save
+routing table spaces.
 
 ==== calico workflow
 
-t.b.c
+- A container is spawned
+- calico IPAM plugin assign an IP address from an IP block (by default /26). it
+  then records this in etcd.
+- calico CNI apply the network configuration to the container so it has a
+  default route pointing to the host. CNI also save these information to etcd.
+- calico felix appy the network configuration to the host, so it is aware of
+  the new container, and be ready to receive packets from it.
+- confd read the data from etcd and generate the routing configuration, BIRD
+  use these configuratioin to establish BGP neighborship with other nodes. it
+  then advertises the container subnet to the rest of the cluster via BGP
+- all other hosts in the same cluster will learn this subnet via BGP and
+  install the route into its local routing table, now the new container is
+  reachable from anywhere in the cluster.
+- user may configure a routing policy, e.g. via the `calicoctl` commands. the
+  policy will be save in etcd database. felix read this policy and applies it
+  to the firewall configurations.
 
 .Reference
 
 * https://www.projectcalico.org
 * https://www.projectcalico.org/why-bgp/
 
-=== nuage (Nokia)
+=== nuage VCP (Nokia)
+
+The Virtualized Cloud Platform (VCP) product from Nuage networks provides a
+highly scalable policy-based Software-Defined Networking (SDN) platform. It is
+an enterprise-grade offering that builds on top of the open source Open vSwitch
+for the data plane along with a feature-rich SDN controller built on open
+standards.
+
+The Nuage platform uses overlays to provide seamless policy-based networking
+between Kubernetes Pods and non-Kubernetes environments (VMs and bare metal
+servers). Nuage's policy abstraction model is designed with applications in
+mind and makes it easy to declare fine-grained policies for applications. The
+platform's real-time analytics engine enables visibility and security
+monitoring for Kubernetes applications.
+
+All VCS components can be installed in containers. There are no special
+hardware requirements.
+
+.Nuage architecture
+image::https://user-images.githubusercontent.com/2038044/78465427-93e24000-76c3-11ea-92ee-39a45a259e74.png[image]
+
+.Nuage VSP incudes 3 major components
+
+* virtualized services directory (VSD)
+* virtualized services controller (VSC)
+* virtualized routing and switching (VRS)
+
+==== VSD
+
+In Nuage VCP, The Virtualised Services Directory (VSD) is a policy engine,
+business logic and analytics engine that supports the abstract definition of
+network services. Through RESTful APIs to VSD, administrators can define and
+refine service designs and incorporate enterprise policies.
+
+It is a web-based, graphical console that connects to all of the VRS nodes in
+the network to manage their deployment and configuration. 
+
+The VSD policy & analytics engine presents a unified web interface where
+configuration and monitoring data is presented. The VSD is API-enabled for
+integration with other orchestration tools. Alternatively, you can develop your
+apps. Either way, the VSD is based on tools from the service provider world,
+and therefore scaling potential looks very good. It integrates multiple data
+centre networks by linking VSDs together and exchanging policy data.
+
+==== VSC
+
+Nuage Virtual Services Controllers (VSC) works between VSD and VRS. policies
+from VSD is distributed through a number of VSC to all of the VRS nodes in the
+network to manage their deployment and configuration.
+
+VSC is SDN controller in Nuage VCP architecture. it provides a robust control
+plane for the datacenter network, maintaining a full per-tenant view of network
+and service topologies. Through network APIs that use southbound interfaces
+(e.g. OpenFlow), VSC programs the datacenter network independent of different
+hardwares.
+
+The VSC implements an OSPF, IS-IS or BGP listener to monitor the state of the
+physical network. Therefore, if routes starts flapping, the VSC is able to
+incorporate those events into the decision tree.
+
+while scalability in a single data center can be achieved by setting up
+multiple VSC, each handling a certain group of VRS devices, scalability between
+multiple data centres can be achieved by connecting VSC controllers
+horizontally at the top of the hierarchy.
+
+.Nuage VSC MP-BGP
+image::diagrams/nuage-mpbgp.png[]
+
+As shown in the diagram above, VSC controllers are synchronised using
+MP-BGP. A BGP connection peers with PE routers at the WAN edge, and then the
+VSC controller uses MP-BGP to synchronise controller state & configuration with
+VSCs in other data centres. This is vital for end-to-end network stability.
+
+When dVRS devices are communicating to non-local dVRS devices,
+data is tunnelled in MPLS-over-GRE to the PE router.
+
+==== VRS
+
+The VRS module serves as a virtual endpoint for network services. It detects
+changes in the compute environment as they occur and instantaneously triggers
+policy-based responses to ensure that the network connectivity needs of
+applications are met.
+
+configuration of the VRS is derived from a series of templates. 
+
+Each VRS routes traffic into the network according to its flow table.
+Therefore, the entire VRS system performs routing at the edge of the
+network.
+
+A VRS can’t make a forwarding decision in a vacuum, as events in the
+underlying physical network must be considered. Nuage Networks has
+extensively considered how to provide the VSC controller with all the
+information required to have a complete model of the network. 
 
 === contrail (brief)
+
 === vmare NSX
-=== others
+
+
+
+=== other solutions?
+
 ==== cisco: apic
 ==== openflood
 
-== Overview of Tungsten Fabric
+== Overview of Tungsten Fabric (TF)
+
+=== TF introduction
+
+Many SDN solutions exists to help automate the provisioning of network devices.
+Some of them are based on proprietary protocols and standards. Openflow is
+standardized protocol, but it is more or less "outdated" technologies after
+more than a decade since it's birth in 2008.
+
+The Tungsten Fabric (TF), is an open-standard based, proactive overlay SDN
+solution that works with existing physical network devices and help address the
+networking challenges for self-service, automated, and vertically integrated
+cloud architecture. It also improves scalability through a proactive overlay
+virtual network technique.
+
+TF controller integrates with most of the popular cloud management systems such
+as OpenStack, vmware, and Kubernetes. TF's focus is to provide networking
+connectivity and functionalities, and enforce user-defined network and security
+policies to the various of workloads based on different platforms and
+orchestrators.
+
+The TF system is implemented as a set of nodes running on general-purpose x86
+servers. Each node can be implemented as a separate physical server, or VM.
+
+.open source
+
+`Contrail` was a product of a startup company "Contrail system", which was
+acquired by Juniper Networks in Dec. 2012. It was open sourced in 2013 with a
+new name "OpenContrail" under the Apache 2.0 license, which means that anyone
+can use and modify the code of Opencontrail system without any obligation to
+publish or release the modifications. In early 2018, it was renamed again to
+Tungsten Fabric. 
+
+Juniper also maintains a commercial version of the Contrail system.  and
+provides commercial support to the payed users. both The open-source version
+and commerical version of the Contrail system provide the same full
+functionalities, features and performances.
+
+NOTE: Throughout this book, we use these terms "contrail", "opencontrail",
+"Tungsten Fabric"(TF) interchangeably.
+
+=== TF components
+
+TF consists of two main components:
+
+- Tungsten Fabric Controller: the SDN controller in the SDN architecture. 
+
+////
+a set of software services that maintains a model of networks and network
+policies, typically running on several servers for high availability
+////
+
+- Tungsten Fabric vRouter: a forwarding plane that runs in the each compute node
+  performings packet forwarding and enforces network and security policies.
+
+The communication between the controller and vRouters is via XMPP, which is a
+widely used messaging protocol.
+
+//installed in each host that runs workloads (virtual machines or containers)
+
+A high level Tungsten Fabric architecture is shown below:
+
+.TF architecture
+image::diagrams/TFA_private_cloud.png[TF arch]
+//image::diagrams/TF_arch1.png[TF arch]
+
+==== The TF SDN controller
+
+The TF SDN controller integrates with an orchestrator's networking module in
+the form of a "plugin", for instance:
+
+- in OpenStack environment, TF interfaces with the Neutron server as a neutron plugin 
+- in kubernetes environment, TF interfaces with k8s API server as a
+  `kube-network-manager` process and a `CNI` plugin that is watching the events
+  from the k8s API.
+
+TF SDN Controller is a "logically centralized" but "physically distributed" SDN
+controller. it is "physically distributed" because same exact controllers can be
+running in multiple (typicall three) nodes in a cluster. However, all
+controllers together behaves consistently as a single logical unit that is
+responsible for providing the management, control, and analytics functions of
+the whole cluster. As any SDN controller, The TF controller has a "global view"
+of all routes in the cluster. it implements this by collecting the route
+information from all computes (where the TF Vrouters resides) and distributes
+these information throughout the cluster.
+
+////
+The physically distributed nature of the Contrail SDN Controller is a
+distinguishing feature. Because there can be multiple redundant instances of
+any node, operating in an active/active mode (as opposed to an active-standby
+mode), the system can continue to operate without any interruption when any
+node fails. When a node becomes overloaded, additional instances of that node
+type can be instantiated after which the load is automatically redistributed.
+This prevents any single node from becoming a bottleneck and allows the system
+to manage a very large-scale system—tens of thousands of servers.
+////
+
+In a typical High-Availability (HA) deployment, three controller nodes are
+running in an active-active mode, single point failure is eliminated in this
+model. This is a distinguishing feature to archive the goal of redundancy and
+horizontal scalability.
+
+==== TF vRouter
+
+Compute nodes are general-purpose virtualized servers that host VMs. These VMs
+can be tenants running general applications, or service VMs running network
+services such as a virtual load balancer or virtual firewall.  Each compute
+node contains a TF vRouter that implements the forwarding plane and the
+distributed part of the control plane.
+
+The TF vRouter is conceptually similar to other existing virtualized switches
+such as the Open vSwitch (OVS), but it also provides routing and higher layer
+services. It replaces traditional Linux bridge and IP tables, or Open vSwitch
+networking on the compute hosts. Configured by TF controller, TF vRouter
+implement the desired networking and security policies. while workloads in same
+network can communicate with each other "by default", a explicit network policy
+is required to communicate with VMs in different networks.
+
+TF vRouter also extends the network from the physical routers and switches in a
+data center into a virtual overlay network hosted in the virtualized servers.
+Overlay tunnels are established statelessly between all forwarding plane nodes, 
+communication between endpoints on different nodes are carried in these tunnels
+and behaves as if they are on the same nodes. currently vXLAN, MPLSoUDP and
+MPLSoGRE tunnels are supported.
+
+==== TF controller components
+
+the TF SDN Controller consists of three main components:
+
+image::diagrams/TF_arch2.png[contrail arch]
+
+- Configuration nodes is the "brain" of TF SDN controller. they are responsible
+  for translating the high-level data model into a lower-level form suitable
+  for interacting with network elements. it keep a persistent copy of the
+  intended configuration state and translate the high-level data model into the
+  lower-level model suitable for interacting with network elements. This
+  information is kept in cassandra database.
+
+- Control nodes are responsible for propagating this low-level state to and
+  from network elements and peer systems in an eventually consistent way.  it
+  implement a logically centralized control plane that is responsible for
+  maintaining ephemeral network state. Control nodes interact with each other
+  and with network elements to ensure that network state is eventually
+  consistent.
+
+- Analytics nodes are responsible for capturing real-time data from network
+  elements, abstracting it, and presenting it in a form suitable for
+  applications to consume.  it collect, store, correlate, and analyze
+  information from network elements. This information includes statistics,
+  logs, events, and errors. 
+
+////
+- Gateway nodes are physical gateway routers or switches that connect the
+  tenant virtual networks to physical networks such as the Internet, a customer
+  VPN, another data center, or non-virtualized servers.
+
+- Service nodes are physical network elements providing network services such
+  as DPI, IDP,IPS, WAN optimizers, and load balancers. Service chains can
+  contain a mixture of virtual services (implemented as VMs on compute nodes)
+  and physical services (hosted on service nodes).
+
+For clarity, Figure 2 does not show physical routers and switches that form the
+underlay IP-over-Ethernet network.  There is also an interface from every node
+in the system to the analytics nodes. This interface is not shown in Figure 2
+to avoid clutter.
+////
+
+==== TF vRouter components
+
+TF vRouter is running in each compute node. The compute node is a
+general-purpose x86 server that hosts tenant VMs running customer applications.
+
+// examples can be: Web servers, database servers, enterprise applications or hosting
+// virtualized services used to create service chains
+
+TF vRouter consists two components:
+
+* the vRouter agent: the local control plane. 
+* the vRouter forwarding plane
+
+NOTE: In the typical configuration, Linux is the host OS and KVM is the
+hypervisor. The Contrail vRouter forwarding plane can sits either in the Linux
+kernel space, or in the user spalce in dpdk mode.
+
+.vRouter Agent
+
+image::diagrams/TF_vrouter1.png[contrail vrouter1]
+
+The vRouter agent is a user space process running inside Linux. It acts as the
+local, lightweight control plane in the compute, in a way similar to what
+"routing engine" does in a pysical router.  For example, vRouter agent
+establish XMPP neighborships with two controller nodes, then exchances the
+routing information with them. vRouter agent also dynamically generate flow
+entries and inject them into the vRouter forwarding plane, this gives
+instructions about how to forward the packets.
+
+.vRouter Forwarding Plane
+
+image::diagrams/TF_vrouter2.png[contrail vrouter2]
+
+The vRouter forwarding plane works like a "line card" of a traditional router.
+it look up its local FIB and determines the next hop of a packet, 
+and enables encapsulating packets to be sent to the overlay network and
+decapsulating packets to be received from the overlay network.
+
+We'll cover more details of TF vrouter in the next chapter.
 
 === Openstack integration (brief)
-=== Neutron
-=== Nova
+
+.Neutron
+TODO
+
+.Nova
+TODO
+
+=== k8s integration?
+
+=== openshift integration?
+
+=== vcenter integration?
 
 == summary
 
