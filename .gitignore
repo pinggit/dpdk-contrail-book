@@ -24,4 +24,4 @@ Backup of *.doc*
 *.~vsd*
 
 #asciidocFX generated cheatsheet
-cheatsheet*
+#cheatsheet*
