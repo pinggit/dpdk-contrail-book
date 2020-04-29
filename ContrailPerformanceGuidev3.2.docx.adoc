@@ -304,7 +304,7 @@ Ethernet minimum frame size is 64 Bytes.
 When Ethernet frames are sent onto the wire, Inter Frame Gap and Preamble bits are added.
 Minimum size of Ethernet frames on the physical layer is 84 Bytes (672 bits).
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image1.png[image,width=605,height=236]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image1.png[image,width=605,height=236]
 
 For a 10 Gbit/s interface, the number of frames per seconds can reach up to
 14.88 Mpps for traffic using the smallest Ethernet frame size.  It means a new
@@ -345,7 +345,7 @@ vRouter dataplane has 2 kinds of interfaces
 - Physical NIC : connected to underlay network in order to send traffic out of the compute node
 - vNIC tap : connected to guest virtual instances
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image37.png[image,width=351,height=373]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image37.png[image,width=351,height=373]
 
 vRouter dataplane is running either in Linux Kernel space or in Linux User space when DPDK is used.
 Better performances are expected when vRouter dataplane is running into Linux User space.
@@ -363,7 +363,7 @@ There are two parts to networking within VirtIO:
 In Contrail Networking, VirtIO is used to connect with guest VM vNIC onto the vrouter vif interface.
 In the diagram below you have a detailed view of a Virtual instance connectivity with a Kernel mode vrouter :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image29.png[image,width=708,height=468]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image29.png[image,width=708,height=468]
 
 For more information on VirtIO :
 
@@ -384,7 +384,7 @@ Such systems are called NUMA systems, or Non-Uniform Memory Access.
 For example, in a server with 2 CPUs, each one can be a separate NUMA: NUMA0 and NUMA1.
 
 .NUMA nodes architecture.
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image30.jpg[image,width=602,height=338]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image30.jpg[image,width=602,height=338]
 
 - *In green*: CPU core accessing a memory item located in its own NUMA’s RAM controller, showing minimum latency.
 - *In red*: CPU core accessing a memory item located in the other NUMA through
@@ -481,7 +481,7 @@ Data Plane Development Kit (DPDK) is a set of data plane libraries and network
 interface controller drivers for fast packet processing, currently managed as
 an open-source project under the Linux Foundation.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image27.png[image,width=602,height=258]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image27.png[image,width=602,height=258]
 
 The main goal of the DPDK is to provide a simple, complete framework for fast
 packet processing in data plane applications.
@@ -510,18 +510,18 @@ For more information please refer to dpdk.org documents http://dpdk.org/doc/guid
 With DPDK there is a direct link between application data stored in host memory
 and the NIC memory used to transfer data onto the wire :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image13.png[image,width=492,height=273]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image13.png[image,width=492,height=273]
 
 DPDK uses message buffers known as `mbufs` to store packet data into the host memory.
 These `mbufs` are stored in memory pools known as `mempools`.
 `Mempools` are set up as a ring, which creates a pool with a configuration similar to a first-in, first-out (FIFO) system.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image17.png[image,width=604,height=254]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image17.png[image,width=604,height=254]
 
 `Rings descriptors` are managing data storage into mempools.
 The more descriptors RX/TX rings are containing, the more memory size will be required in each mempool to store data.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image20.png[image,width=605,height=293]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image20.png[image,width=605,height=293]
 
 The Host OS exchanges packets with the NIC through the so called rings.
 A ring is a circular array of descriptors allocated by the OS in the system memory (RAM). Each descriptor contains information about a packet that has been received or that is going to be transmitted.
@@ -530,7 +530,7 @@ A ring is a circular array of descriptors allocated by the OS in the system memo
 
 RX ring is managing Data transfer from NIC memory to host memory :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image18.png[image,width=605,height=279]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image18.png[image,width=605,height=279]
 
 Synchronization between the OS and the NIC happens through two registers, whose content is interpreted as an index in the RX ring:
 
@@ -541,7 +541,7 @@ Synchronization between the OS and the NIC happens through two registers, whose 
 
 TX ring is managing data transfer from host memory to NIC memory :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image14.png[image,width=605,height=279]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image14.png[image,width=605,height=279]
 
 Synchronization between the host OS and the NIC happens through two registers, whose content is interpreted as an index in the TX ring:
 
@@ -574,16 +574,16 @@ http://dpdk.org/doc/guides-17.02/rel_notes/index.html[[.underline]#http://dpdk.o
 When using contrail vrouter without DPDK, vRouter dataplane process is running into Linux Kernel.
 
 .vRouter in kernel with VM application not DPDK aware
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[Picture1.png,width=330,height=288]
-//image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[vrouter in kernel with VM]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[Picture1.png,width=330,height=288]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[vrouter in kernel with VM]
 
 When using contrail vrouter with DPDK, vRouter dataplane is running into Linux user space.
 
 .vRouter DPDK with VM application DPDK aware.
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image35.png[Picture1.png,width=336,height=272]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image35.png[Picture1.png,width=336,height=272]
 
 .vRouter DPDK with VM application not DPDK aware.
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image36.png[image,width=453,height=312]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image36.png[image,width=453,height=312]
 
 Contrail DPDK vrouter as any DPDK application is based on queue management.
 
@@ -595,7 +595,7 @@ Queue packets processing consists in :
 - memory spaces (mempool)
 
 .muf, queue, ring, lcore
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image26.png[image,width=491,height=206]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image26.png[image,width=491,height=206]
 
 For each vrouter interface one or several queues are managed.
 3 kinds of interfaces are connected onto the vrouter :
@@ -618,7 +618,7 @@ an external packet to be sent to virtual machine instances.
 
 [[packet-processing]] 
 .vrouter packet processing (first overview)
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image25.png[image,width=293,height=363]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image25.png[image,width=293,height=363]
 
 ==== ping:packet processing steps
 There are 4 main steps in packet processing :
@@ -658,7 +658,7 @@ Virtual Network Function) are implementing DPDK. 4 topologies are possible:
 An all DPDK stack, used both at vrouter level and at VNF level, is providing the best performance.
 
 .vrouter 4 topologies
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image16.png[image,width=618,height=513]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image16.png[image,width=618,height=513]
 
 ping: why vhost0?
 
@@ -836,7 +836,7 @@ In Virtualization, an IOMMU is re-mapping the addresses accessed by the
 hardware into a similar translation table that is used to map guest-physical
 address to host-physical addresses.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image10.png[image,width=296,height=296]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image10.png[image,width=296,height=296]
 
 IOMMU provides a short path for the guest to get access to the physical device memory. 
 Intel has published a specification for IOMMU technology as Virtualization Technology for Directed I/O, abbreviated VT-d.
@@ -881,7 +881,7 @@ To enable vfio-pci driver change physical_uio_driver in
 === Contrail DPDK vRouter packet walk-through
 
 .Contrail DPDK vRouter architecture
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.png[image,width=602,height=404]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.png[image,width=602,height=404]
 
 ==== ping:forwarding thread
 
@@ -936,7 +936,7 @@ That is the reason Juniper recommends implementing MPLSoUDP on Juniper MXes (sup
 When the traffic is coming from the underlay network, encapsulated packets are
 received DPDK compute Physical interface which is bound to vrouter vif 0/0:
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image,width=708,height=289]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image,width=708,height=289]
 
 Incoming packets are processed in 3 steps :
 
@@ -959,7 +959,7 @@ The packet arrives at a physical NIC (pNIC) encapsulated in a MPLSoGRE header
 
 Based on the "RSS hash", the pNIC selects a queue and writes the packet to the queue (RX QUEUE into the previous diagram).
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image24.png[image,width=664,height=165]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image24.png[image,width=664,height=165]
 
 Then incoming packet is dequeued by the polling logical core (step 1) :
 
@@ -1009,7 +1009,7 @@ NIC is likely not efficient :
 
 .DPDK Contrail vRouter packet walk-through from NIC to DPDK guest
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image11.png[image,width=605,height=321]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image11.png[image,width=605,height=321]
 
 ==== Forwarding core - second step of packet processing (MPLS over UDP or VxLAN)
 
@@ -1029,17 +1029,17 @@ same as the forwarding CPU, which will be the case for MPLSoUDP and VXLAN
 packets from the NIC:
 
 .DPDK Contrail vRouter packet walk-through from NIC to DPDK guest
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image34.png[image,width=605,height=321]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image34.png[image,width=605,height=321]
 
 When MPLS over UDP is used, there is internal traffic load balancing onto vrouter CPU.
 Incoming packets are processed with the same forwarding core as polling core :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image4.png[image,width=708,height=276]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image4.png[image,width=708,height=276]
 
 It can be easily shown using a traffic generator to send a "single UDP" flow onto a virtual instance.
 When single UDP flow is reaching the vrouter, RX port packets and RX packets counters on vif 0/0 have the same values for a same lcore: Here the VM incoming traffic is polled and processed by core 12:
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.png[image,width=708,height=270]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.png[image,width=708,height=270]
 
 Table above has been made using real single flow traffic seen on each vif 0/0 and vif 0/3 interface (vNIC) with _vif --get_ command (cf appendixes)
 
@@ -1049,7 +1049,7 @@ vRouter forwarding threads are also responsible for polling virtio interface que
 The decision which thread will poll which virtio queue is made by Contrail DPDK vRouter.
 If VM uses multiqueue then more vRouter forwarding threads (CPU cores) will be engaged in receiving packets from a single VM.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image28.png[image,width=604,height=321]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image28.png[image,width=604,height=321]
 
 Figure.
 DPDK Contrail vRouter packet walk-through from DPDK guest to NIC.
@@ -1087,13 +1087,13 @@ Then forwarding logical core is processing the packet (step 2). Forwarding CPU i
 
 For VM incoming traffic a hash is calculated in order to rebalance received traffic on a given polling core to all other forwarding cores :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
 
 It can be easily shown using a traffic generator to send a "single UDP" flow onto a virtual instance.
 When single UDP flow is reaching the vrouter, RX port packets and RX packets counters on vif 0/N have the same values for distinct lcores.
 Here the VM incoming traffic is polled by core 13 and processed by core 11:
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image23.png[image,width=708,height=260]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image23.png[image,width=708,height=260]
 
 Table above has been made using real single flow traffic seen on each vif 0/0 and vif 0/3 interface (vNIC) with _vif --get_ command (cf appendixes)
 
@@ -1432,7 +1432,7 @@ In order to allocate memory on the NUMA0 and NUMA1 socket, we are using option w
 
 --socket-mem <value>,<value>
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image31.png[image,width=443,height=466]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image31.png[image,width=443,height=466]
 
 PS: On a 2 NUMA nodes we have to allocate memory on each of them even if vRouter is only pinned on a single one.
 Indeed Virtual machines are pinned on both and require memory on each.
@@ -2544,7 +2544,7 @@ In the first column we can read the *_CPU pinning_* put onto the process with ta
 When multiqueue is used on a Guest VM, the vrouter will only be able to sustain guest vNIC configured with a number of queue below or equal to the number for processing core allocated to the vrouter.
 In the ideal scenario, each multiqueue vNIC is configured with the same number of queue than the number of CPU allocated to vrouter for packet processing.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image40.png[Screen Shot 2017-11-13 at 10.54.12.png,width=524,height=255]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image40.png[Screen Shot 2017-11-13 at 10.54.12.png,width=524,height=255]
 
 === Single queue virtIO
 
@@ -2565,7 +2565,7 @@ Also there is a vhost userspace process wherein the vRouter copies packets to/fr
 
 Every queue inside the VM maps to a virtio ring on the host user space.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image41.png[Screen Shot 2017-11-10 at 16.32.08.png,width=423,height=220]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image41.png[Screen Shot 2017-11-10 at 16.32.08.png,width=423,height=220]
 
 Some of the offload capabilities, e.g. GRO (Generic Receive Offload), is not supported with multiqueue virtio on DPDK vrouter in Contrail 3.2.
 
@@ -3059,7 +3059,7 @@ DPDK vrouter dimensioning is depending on following parameters:
 
 === Compute Node CPU capacity planning
 
-When we are designing an OpenStack Contrail infrastructure we have to define how many CPU will be used for vRouter needs, how many for virtual instances and how many will remain to be used by the Operating system.image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
+When we are designing an OpenStack Contrail infrastructure we have to define how many CPU will be used for vRouter needs, how many for virtual instances and how many will remain to be used by the Operating system.image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
 
 ===== 
 
@@ -3075,7 +3075,7 @@ When HT siblings are not assigned for vRouter they *MUST NOT* be assigned for No
 In the next diagram we can see that with a single lcore allocated to the vrouter, we’ve got around 1.8 MPPS performance.
 When 2 lcores are allocated to the vrouter, performance is falling to 0.5 MPPS per core (this is the impact of internal load balancing which is very inefficient for only 2 lcores). When 4 or more lcores are allocated to the vrouter, we can see a performance of 0.8 MPPS per lcore when siblings are used (1.6 MPPS per physical CPUl) and a performance of 1.2 MPPS per lecore when siblings are not used (1.2 MPPS at per physical CPU).
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image19.png[image,width=601,height=337]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image19.png[image,width=601,height=337]
 
 _Juniper QA tests - 2018_
 
@@ -3105,7 +3105,7 @@ So in release 19.12 and earlier (without patch applied), for a given level of pa
 In 2020, new tests have been proceeded (in Juniper and customer labs) with DPDK control threads vrouter service threads pinning.
 In these tests (done on RedHat OpeStack platform + contrail 19.12 + patch for DPDK control threads and vrouter service threads pinning) we’ve enforced CPU isolation (with isolcpus and tuned).
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image12.png[image,width=708,height=418]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image12.png[image,width=708,height=418]
 
 _Juniper and customer tests summary - 2020 (19.12 + patch) - siblings used_
 
@@ -3122,7 +3122,7 @@ We can use the results we’ve got for packet size below 512 bytes to extrapolat
 
 In the diagram below, the MPPS per lcore values for 1024, 1280 and 1500 packet have been extrapolated using 64, 128, 256 and 512 packet size values :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image21.png[image,width=708,height=416]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image21.png[image,width=708,height=416]
 
 This diagram could help our customers to evaluate the number of lcores needed to get a given performance at vrouter level.
 Of course these values are dependent on the customer's actual setup and have to be revalidated on field.
@@ -3312,7 +3312,7 @@ Onto a Contrail OpenStack platform we have following kind of processes that will
 - vRouter Agent (default is 2, this can be upgraded to 4 in high flow environment)
 - vrouter DPDK forwarding thread
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
 
 We are defining 4 CPU groups:
 
@@ -3346,7 +3346,7 @@ CPUs 2-35,38-71 will be allocated to Contrail DPDK vRouter and to Nova.
 They will be isolated using both *_tuned partitioning_* and *_isolcpus_* mechanisms.
 The diagram below is describing the target situation:
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image45.png[image,width=708,height=365]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image45.png[image,width=708,height=365]
 
 *PS:* When using a Contrail release 19.12 and earlier, this is not recommended to enforce any CPU isolation rule (for both vrouter and nova assigned CPU). As these release are not supporting control and service threads CPU pinning, any isolation rule could generate some instabilities and random packet drop period)
 
@@ -3818,15 +3818,15 @@ To run the CPU at the maximum frequency set scaling_governor to performance.
 Disable all power saving options such as: Power performance tuning, CPU P-State, CPU C3 Report and CPU C6 Report.
 Select Performance as the CPU Power and Performance policy.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image38.png[image,width=470,height=159]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image38.png[image,width=470,height=159]
 
 Disable Turbo Boost to ensure the performance scaling increases with the number of cores.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image39.png[image,width=476,height=138]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image39.png[image,width=476,height=138]
 
 Set memory frequency to the highest available number, NOT auto.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image43.png[image,width=483,height=174]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image43.png[image,width=483,height=174]
 
 
 
@@ -3903,7 +3903,7 @@ Alternatively, packet based mode can be enabled in Contrail on per interface bas
 
 Packet-based processing is configurable at port level by selecting the "Disable Policy" checkbox: this will stop the creation of new flows for this interface only.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image42.png[Picture1.png,width=538,height=286]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image42.png[Picture1.png,width=538,height=286]
 
 Despite disabling policy the following features will continue to be available:
 
@@ -3980,7 +3980,7 @@ ____
 
 The encapsulation can be set by WebUI.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image47.png[image,width=624,height=342]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image47.png[image,width=624,height=342]
 
 
 
@@ -4244,7 +4244,7 @@ Starting from Contrail 4.0.1 and 3.2.8, jumbo frames are supported in all scenar
 
 In non-multiqueue VNF with one DPDK interface, increasing the number of CPU cores for vRouter can actually decrease performance because of One to Many CPU cores queues are sending packets one by one what takes time and can produce microbursts.
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image44.png[image,width=409,height=284]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image44.png[image,width=409,height=284]
 
 On the diagram cores one by one are sending traffic to VM and when last finish data processing potentially first will have no time (buffers) to send VM (virtio queue).
 
@@ -4615,7 +4615,7 @@ These values have to be adjusted depending on :
 - the number of NIC members of vhost0 bond
 - the number of logical cores allocated to the vrouter
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image22.png[image,width=662,height=476]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image22.png[image,width=662,height=476]
 
 ==== DPDK fine tuning rules (mainly for Intel NIC)
 
@@ -5382,7 +5382,7 @@ From underlay to virtual instances, packets are processed into 3 differents step
 
 In order to check the 2 first steps, we have to use counters on vif0/0. For the last one, we have to use counters on vif0/n. In the following diagram is shown counters that we have to check on each interface to be able to follow packets processing from vif0/0 to vif0/n into the vrouter :
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image2.png[image,width=708,height=277]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image2.png[image,width=708,height=277]
 
 Here on vif 0/0, RX port and RX packets have the same value :
 
@@ -5450,7 +5450,7 @@ From virtual instances to underlay, packets are processed into 3 differents step
 - vif0/n packet processing by a forwarding core
 - vif0/0 packet delivery by a forwarding core
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image3.png[image,width=708,height=272]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image3.png[image,width=708,height=272]
 
 Here on a transmitting VM vif, RX port and RX packets have the same value :
 
@@ -5499,7 +5499,7 @@ with *<N>*, interface number to be checked.
 
 $ ./dpdkvifstats.py -v *3*
 
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image9.png[image,width=708,height=170]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image9.png[image,width=708,height=170]
 
 Here we can see that the traffic is well balanced on all cores for vif 0/3. Whatever the direction (vrouter to vif 0/3 = TX pps or vif0/3 to vrouter = TX pps), whatever the core, each core is processing around 500KPPS.
 
@@ -5518,7 +5518,8 @@ $ vif --get 3 --get-drop-stats | grep "RX queue packets“
 RX queue packets:73891601519 errors:325686650
 
 This value also matches RX Ports packets – RX Packets value: +
-image:extracted-media-ContrailPerformanceGuidev3.2.docx/media/image7.png[image,width=275,height=74]
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image7.png[image,width=275,height=74]
 
 $ vif --get 3 --get-drop-stats | grep "RX packets"
 
