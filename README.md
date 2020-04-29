@@ -66,64 +66,72 @@ coauthors:  (as of March 17)
 
 ## table of content (Volume I)
 
-* Overview of SDN       (prz, ping)
-    * Different SDN solutions (contrail, calico, nuage, OVN)
-    * Overview of Tungsten Fabric
-    * Dataplane in SDN
-    * Openstack integration (brief)
-        * Neutron
-        * Nova
+### ch1: Overview of SDN       (prz, ping)
 
-* Compute nodes in TF  (prz, kiran)
-    * Introduction to TF vRouter
-        * Interfaces
-        * Packet processing pipeline
-        * Variants (DPDK/Kernel/Smart NIC/SRIOV)
-    * Use-cases (prz)
-        * vendor x : why select multiq, isolation, bgpaas, HAs..etc
-        * ATT(vMME, nimbus)
+* Different SDN solutions (contrail, calico, nuage, OVN)
+* Overview of Tungsten Fabric
+* Dataplane in SDN
+* Openstack integration (brief)
+    * Neutron
+    * Nova
 
-* Overview of DPDK and DPDK vrouter (kiran, prz)
-    * DPDK overview
-    * vRouter and DPDK
+### ch2: Compute nodes in TF  (prz, kiran)
 
-* DPDK vRouter Architecture (core) (kiran, prz)
-    * Role of various threads
-    * Pipelining v/s run to completion
-    * Memory mapping of VNF
-    * Virtio
-    * Interaction with Qemu
+* Introduction to TF vRouter
+    * Interfaces
+    * Packet processing pipeline
+    * Variants (DPDK/Kernel/Smart NIC/SRIOV)
+* Use-cases (prz)
+    * vendor x : why select multiq, isolation, bgpaas, HAs..etc
+    * ATT(vMME, nimbus)
 
-* Openstack integration (detail) (core) (kiran, prz)
-    * Neutron plugin
-    * Nova Vif plugin
+### ch3: Overview of DPDK and DPDK vrouter (kiran, prz)
 
-* DPDK vRouter Performance tuning (core) (damian, prz)
-    * Core Pinning
-    * Hugepages
-    * Number of threads
-    * System calls
-    * CPU partitioning
-    * Multiqueue virtio
+* DPDK overview
+* vRouter and DPDK
 
-* DPDK vRouter Deployment (Damian)
-    * TripleO
-    * Juju
-    * Contrail cloud???
-    * Ansible (OSA: OpenStack Ansibile) laurent
-    * HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
+### ch4: DPDK vRouter Architecture (core) (kiran, prz)
 
-* DPDK vRouter Troubleshooting (joint work)
-    * Configuration
-    * Vrouter info command I guess
-    * Qemu/libvirt/virsh
-    * Drops
-    * Pinning
-    * hugepages
-    * DPDK logs analysis (laurent)
-      (what to check into DPDK logs: vrring activation, queue, and setup info)
+* Role of various threads
+* Pipelining v/s run to completion
+* Memory mapping of VNF
+* Virtio
+* Interaction with Qemu
 
-### details
+### ch5: Openstack integration (detail) (core) (kiran, prz)
+
+* Neutron plugin
+* Nova Vif plugin
+
+### ch6: DPDK vRouter Performance tuning (core) (damian, prz)
+
+* Core Pinning
+* Hugepages
+* Number of threads
+* System calls
+* CPU partitioning
+* Multiqueue virtio
+
+### ch7: DPDK vRouter Deployment (Damian)
+
+* TripleO
+* Juju
+* Contrail cloud???
+* Ansible (OSA: OpenStack Ansibile) laurent
+* HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
+
+### ch8: DPDK vRouter Troubleshooting (joint work)
+
+* Configuration
+* Vrouter info command I guess
+* Qemu/libvirt/virsh
+* Drops
+* Pinning
+* hugepages
+* DPDK logs analysis (laurent)
+  (what to check into DPDK logs: vrring activation, queue, and setup info)
+
+### misc details
 
 * DPDK vrouter architecture description
     * vrouter agent and vrouter dataplane
