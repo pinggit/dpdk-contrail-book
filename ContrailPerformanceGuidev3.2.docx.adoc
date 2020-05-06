@@ -1,6 +1,9 @@
 :doctype: book
 :toc: right
 :toclevels: 3
+:source-highlighter: pygments
+:pygments-style: manni
+:pygments-linenums-mode: inline
 :title: contrail performance guide
 
 = Conrail Performance Guide v3.2
@@ -29,6 +32,8 @@ More details about virtio.
 |====
 
 == *Table of Contents*
+
+some text needed
 
 *link:#contrail-vrouter-dataplane-architecture[Contrail vrouter Dataplane Architecture] 8*
 
@@ -300,6 +305,8 @@ ____
 
 == Contrail vrouter Dataplane Architecture
 
+some text needed
+
 === Performance requirements for packet processing
 
 Ethernet minimum frame size is 64 Bytes.
@@ -373,6 +380,8 @@ For more information on VirtIO :
 * https://www.redhat.com/en/blog/deep-dive-virtio-networking-and-vhost-net
 
 === Compute node architecture
+
+some text needed
 
 ==== Non-Uniform Memory Access (NUMA) systems
 
@@ -557,6 +566,8 @@ This is a fundamental requirement for high performance devices.
 
 ==== Contrail and DPDK
 
+some text needed
+
 ===== ping:dpdk version
 
 Contrail vRouter is using DPDK library to improve packet processing performance.
@@ -692,17 +703,17 @@ This *_lcore numbering_* used in vrouter can be seen into source file (vr_dpdk.h
 An enumeration is defining this numbering :
 
     enum \{
-    VR_DPDK_KNITAP_LCORE_ID = 0,
-    VR_DPDK_TIMER_LCORE_ID,
-    VR_DPDK_UVHOST_LCORE_ID,
-    VR_DPDK_IO_LCORE_ID, = 3
-    VR_DPDK_IO_LCORE_ID2,
-    VR_DPDK_IO_LCORE_ID3,
-    VR_DPDK_IO_LCORE_ID4,
-    VR_DPDK_LAST_IO_LCORE_ID, # 7
-    VR_DPDK_PACKET_LCORE_ID, # 8
-    VR_DPDK_NETLINK_LCORE_ID,
-    VR_DPDK_FWD_LCORE_ID, # 10
+        VR_DPDK_KNITAP_LCORE_ID = 0,
+        VR_DPDK_TIMER_LCORE_ID,
+        VR_DPDK_UVHOST_LCORE_ID,
+        VR_DPDK_IO_LCORE_ID, = 3
+        VR_DPDK_IO_LCORE_ID2,
+        VR_DPDK_IO_LCORE_ID3,
+        VR_DPDK_IO_LCORE_ID4,
+        VR_DPDK_LAST_IO_LCORE_ID, # 7
+        VR_DPDK_PACKET_LCORE_ID, # 8
+        VR_DPDK_NETLINK_LCORE_ID,
+        VR_DPDK_FWD_LCORE_ID, # 10
     };
 
 PS: Lots of other details concerning DPDK vrouter can also be seen into following files :
@@ -719,7 +730,7 @@ PS: Lots of other details concerning DPDK vrouter can also be seen into followin
 - Logical cores with number 10 and above are forwarding logical cores.
 
 lcore numbers 10 and above are used for forwarding purpose and defined with CPU affinity value.
-This value is set into _contrail-vrouter-dpdk.ini_ configuration file.
+This value is set into `contrail-vrouter-dpdk.ini` configuration file.
 
     command=/bin/taskset *_<CPU Affinity>_* /usr/bin/contrail-vrouter-dpdk ….
 
@@ -731,7 +742,7 @@ For instance 0x000154000154 CPU affinity is giving following mapping :
 it means Host CPU numbers 2, 4, 6, 8, 26, 28, 30 and 32 are used for vrouter forwarding logical cores.
 
 When the router boots up, it displays a message about its logical cores numbering.
-For instance, we can get into _contrail-vrouter-dpdk-stdout.log_ file, such a message :
+For instance, we can get into `contrail-vrouter-dpdk-stdout.log` file, such a message :
 
     VROUTER: --lcores "(0-2)@(0-47),(8-9)@(0-47),*10@2,11@4,12@6,13@8,14@26,15@28,16@30,17@32*"
     EAL: Detected 48 lcore(s)
@@ -880,6 +891,8 @@ To enable vfio-pci driver change physical_uio_driver in
 
 === Contrail DPDK vrouter architecture
 
+some text needed
+
 ==== Contrail DPDK vRouter packet walk-through
 
 .Contrail DPDK vRouter architecture
@@ -893,7 +906,7 @@ image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.
 - 1 to 1 mapping between thread and queue
 - It is providing descriptors where packets have to be copied to host memory (memory allocated by hugepage). 
 - That packet movement to memory is done using NIC DMA (Direct Memory Access processor). 
-- Each forwarding thread is pinned to its dedicated CPU core (named DPDK _lcore_). 
+- Each forwarding thread is pinned to its dedicated CPU core (named DPDK `lcore`). 
 - The number of NIC queues is dependent on the number of CPU cores which are
   specified by coremask in Contrail DPDK vRouter configuration
   (_contrail-vrouter-dpdk.ini file_). 
@@ -939,6 +952,8 @@ When the traffic is coming from the underlay network, encapsulated packets are
 received DPDK compute Physical interface which is bound to vrouter vif 0/0:
 
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image,width=708,height=289]
+
+===== ping: ingress fowarding process
 
 Incoming packets are processed in 3 steps :
 
@@ -1058,6 +1073,8 @@ vRouter forwarding threads are also responsible for polling virtio interface que
 The decision which thread will poll which virtio queue is made by Contrail DPDK vRouter.
 If VM uses multiqueue then more vRouter forwarding threads (CPU cores) will be engaged in receiving packets from a single VM.
 
+===== ping: egress forwarding steps
+
 .DPDK Contrail vRouter packet walk-through from DPDK guest to NIC
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image28.png[image,width=604,height=321]
 
@@ -1105,15 +1122,25 @@ traffic on a given polling core to all other forwarding cores :
 
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
 
-It can be easily shown using a traffic generator to send a "single UDP" flow onto a virtual instance.
-When single UDP flow is reaching the vrouter, RX port packets and RX packets counters on vif 0/N have the same values for distinct lcores.
+It can be easily shown using a traffic generator to send a "single UDP" flow
+onto a virtual instance.
+
+When single UDP flow is reaching the vrouter, `RX port` and `RX`
+packets counters on vif 0/N have the same values for distinct lcores.
+
 Here the VM incoming traffic is polled by core 13 and processed by core 11:
 
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image23.png[image,width=708,height=260]
 
-Table above has been made using real single flow traffic seen on each vif 0/0 and vif 0/3 interface (vNIC) with _vif --get_ command (cf appendixes)
+Table above has been made using real single flow traffic seen on each vif 0/0
+and vif 0/3 interface (vNIC) with `vif --get` command (cf appendixes)
+
+ping: it looks `RX port` means pulled packet from NIC; `RX` means "processed"
+("forwarded").
 
 ===== vNIC queues - Polling Core Assignment (R1910)
+
+*ping: very confused*
 
 vNIC queues are assigned to logical cores in the following way:
 
@@ -1181,9 +1208,15 @@ In this example, the vSRX is only enabling 4 queues:
 |                    |All non-IPv4/IPv6 packets (i.e. L2 packets)  |Processed by polling core
 |====
 
-Note that whenever the polling core performs a hash to distribute the packet to a processing core, the polling core will never select itself to process the packet.
-The selection of available processing cores for each polling core can be seen in the /var/log/containers/contrail/contrail-vrouter-dpdk.log file.
-It mentions MPLSoGRE, but this applies to all packets that are distributed via hashing by the polling core:
+Note that whenever the polling core performs a hash to distribute the packet to
+a processing core, the polling core will never select itself to process the
+packet.
+
+The selection of available processing cores for each polling core can be seen
+in the `/var/log/containers/contrail/contrail-vrouter-dpdk.log` file.
+
+It mentions MPLSoGRE, but this applies to all packets that are distributed via
+hashing by the polling core:
 
     2020-01-07 13:08:01,403 VROUTER: Lcore 10: distributing MPLSoGRE packets to [11,12,13,14,15]
     2020-01-07 13:08:01,403 VROUTER: Lcore 12: distributing MPLSoGRE packets to [10,11,13,14,15]
@@ -1192,21 +1225,25 @@ It mentions MPLSoGRE, but this applies to all packets that are distributed via h
     2020-01-07 13:08:01,404 VROUTER: Lcore 13: distributing MPLSoGRE packets to [10,11,12,14,15]
     2020-01-07 13:08:01,404 VROUTER: Lcore 15: distributing MPLSoGRE packets to [10,11,12,13,14]
 
-*Non DPDK VM*
+==== *Non DPDK VM* on DPDK vrouter
 
-When sending packets from NIC to non-DPDK VM, DPDK vRouter raises an interrupt in the guest.
-This is an additional step after copying the packet to that VM.
-The interrupt is only needed because the VM is not polling for packets.
-The vRouter writes to a file descriptor, which tells the kernel to raise an interrupt to non-DPDK VM.
-The file descriptor is sent by Qemu to vrouter when the VM is spawned.
-Also note that an Interrupt is raised for a burst of packets, not for every packet.
+* When sending packets from NIC to non-DPDK VM, DPDK vRouter raises an interrupt in the guest.
+* This is an additional step after copying the packet to that VM.
+* The interrupt is only needed because the VM is not polling for packets.
+* The vRouter writes to a file descriptor, which tells the kernel to raise an interrupt to non-DPDK VM.
+* The file descriptor is sent by Qemu to vrouter when the VM is spawned.
+* Also note that an Interrupt is raised for a burst of packets, not for every packet.
 
-To avoid interrupts raised by DPDK vRouter (required to raise packet processing by QEMU/KVM) that influence packets processing Juniper recommends to only connect DPDK VMs and DPDK interfaces to DPDK vRouter.
+To avoid interrupts raised by DPDK vRouter (required to raise packet processing
+by QEMU/KVM) that influence packets processing Juniper recommends to only
+connect DPDK VMs and DPDK interfaces to DPDK vRouter.
 
 Putting non-DPDK VMs on a DPDK node is affecting performance of both VM and vRouter:
 
-- VM performance is impacted because each interrupt raised would cause a "VMExit" (it has a very bad impact on performance)
-- vRouter performance is also impacted since it needs to do additional work of "raising an interrupt" after it enqueues the packet to the vNIC Ring.
+- VM performance is impacted because each interrupt raised would cause a
+  "VMExit" (it has a very bad impact on performance)
+- v****Router performance is also impacted since it needs to do additional work of
+  "raising an interrupt" after it enqueues the packet to the vNIC Ring.
 
 As a result of these, the performance numbers would be the similar as that of kernel vRouter.
 
@@ -1220,147 +1257,152 @@ changes to process the packets.
 KVM module that actually provides a wait-notify mechanism between the guest and
 the backend (vRouter)
 
-. virtual machine is setting a flag "VRING_AVAIL_F_NO_INTERRUPT" into VirtIO
+. virtual machine is setting a flag `VRING_AVAIL_F_NO_INTERRUPT` into VirtIO
 ring by which vRouter will be aware it needs to notify the Guest VM that a
 packet has been delivered (this flag is not set when VM is using DPDK).
 
-. once the vRouter gets hold of this fd, all it needs to do is to enqueue the packets to the virtio ring and write to that fd.
+. once the vRouter gets hold of this fd, all it needs to do is to enqueue the
+packets to the virtio ring and write to that fd.
 
 . KVM injects this event to the VM as an interrupt.
 In this process, the VM needs a 'VMExit'
 
-. VMExit latency is very high (around 10K clock cycles). This is further compounded by the NAPI latency.
-It has a very bad impact on VM performance.
-vRouter performance is also impacted due to the extra work of writing to the fd (which interrupts the guest).
+. VMExit latency is very high (around 10K clock cycles). This is further
+compounded by the NAPI latency. It has a very bad impact on VM performance.
+vRouter performance is also impacted due to the extra work of writing to the fd
+(which interrupts the guest).
 
-===== Supported NICs
+==== Supported NICs
 
 [cols=",,,,,",options="header",]
 |====
-|*NICs* |*Ubuntu - KVM* |*Ubuntu - DPDK* |*Redhat - KVM* |*Redhat - DPDK* |*vCenter - ESX*
-|Intel 82599/X520 "Niantic" - 10G |Yes |Yes |Yes |Yes |Yes
-|Intel X710 "Fortville" - 10G/25G/40G |Yes |Yes |Yes |Yes |Not tested
-|Broadcom bnxt 2x25G |Yes |Yes |Not tested |Not tested |Not tested
-a|
-Mellanox
-
-2x25G
-
-|Yes |Yes |Not tested |Not tested |Not tested
-|Netronome |3.1.x only |No |No |No |No
+|*NICs*                              |*Ubuntu - KVM*|*Ubuntu - DPDK*|*Redhat - KVM*|*Redhat - DPDK*|*vCenter - ESX*
+|Intel 82599/X520 "Niantic" - 10G    |Yes           |Yes            |Yes           |Yes            |Yes
+|Intel X710 "Fortville" - 10G/25G/40G|Yes           |Yes            |Yes           |Yes            |Not tested
+|Broadcom bnxt 2x25G                 |Yes           |Yes            |Not tested    |Not tested     |Not tested
+|Mellanox 2x25G                      |Yes           |Yes            |Not tested    |Not tested     |Not tested
+|Netronome                           |3.1.x only    |No             |No            |No             |No
 |====
 
-These are the guidelines from Intel with regard to Intel NIC X710 (in order not to bump into a known issue that impacts data plane)
+These are the guidelines from Intel with regard to Intel NIC X710 (in order not
+to bump into a known issue that impacts data plane)
 
-- Do not use a single PCI NIC for non-DPDK and DPDK interfaces (having i40e kernel driver used together with i40e PMD driver for interfaces on the same PCI NIC cause problems)
-- Upgrade NIC FW to 6.01 and i40e kernel driver to 2.4.6 (all necessary information you find in that document, table 9. https://www.intel.com/content/dam/www/public/us/en/documents/release-notes/xl710-ethernet-controller-feature-matrix.pdf[[.underline]#https://www.intel.com/content/dam/www/public/us/en/documents/release-notes/xl710-ethernet-controller-feature-matrix.pdf#]) +
-NOTE: If your server manufacturer has no support for the latest firmware please contact him asap (i.e. The latest Lenovo server firmware includes 5.05 for X710 NICs)
-- LLDP is supported from 6.01 NIC FW but Intel also suggested to disable (ethtool –set-priv-flags <interface name> disable-fw-lldp on)
+- Do not use a single PCI NIC for non-DPDK and DPDK interfaces (having i40e
+  kernel driver used together with i40e PMD driver for interfaces on the same
+  PCI NIC cause problems)
+- Upgrade NIC FW to 6.01 and i40e kernel driver to 2.4.6 (all necessary
+  information you find in that document, table 9.
+  https://www.intel.com/content/dam/www/public/us/en/documents/release-notes/xl710-ethernet-controller-feature-matrix.pdf
+- LLDP is supported from 6.01 NIC FW but Intel also suggested to disable
+  (`ethtool -set-priv-flags <interface name> disable-fw-lldp on`)
 
-Redhat supports 1.6.27 i40 kernel driver version.
-Canonical supports 1.4.25 i40e kernel version.
+NOTE: If your server manufacturer has no support for the latest firmware please
+contact him asap (i.e. The latest Lenovo server firmware includes 5.05 for X710
+NICs)
 
-
+* Redhat supports 1.6.27 i40 kernel driver version.
+* Canonical supports 1.4.25 i40e kernel version.
 
 ==== Contrail related linux packages
 
-===== Ubuntu
+.Ubuntu
 
 [cols=",",options="header",]
 |====
-|*Package name* |*Description*
-|contrail-dpdk-kernel-modules-dkms |Contrail DPDK 17.02 library in DKMS format
-|contrail-vrouter-dpdk |Core vRouter DPDK binary
-|contrail-vrouter-dpdk-init a|
-DPDK compute-node startup and monitoring scripts like:
-
-contrail-vrouter-dpdk.ini
-
-dpdk_nic_bind.py
-
-if-vhost0
-
+|*Package name*                   |*Description*
+|contrail-dpdk-kernel-modules-dkms|Contrail DPDK 17.02 library in DKMS format
+|contrail-vrouter-dpdk            |Core vRouter DPDK binary
+|contrail-vrouter-dpdk-init a     |DPDK compute-node startup and monitoring scripts like:
+                                   contrail-vrouter-dpdk.ini +
+                                   dpdk_nic_bind.py +
+                                   if-vhost0 +
 |====
 
-===== Redhat
+.Redhat
 
 [cols=",",options="header",]
 |====
-|*Package name* |*Description*
-|dpdk |RHEL DPDK package
-|contrail-vrouter-dpdk |Core vRouter DPDK binary
-|contrail-vrouter-dpdk-init a|
-DPDK compute-node startup and monitoring scripts like:
-
-contrail-vrouter-dpdk.ini
-
-dpdk_nic_bind.py
-
-if-vhost0
-
+|*Package name*              |*Description*
+|dpdk                        |RHEL DPDK package
+|contrail-vrouter-dpdk       |Core vRouter DPDK binary
+|contrail-vrouter-dpdk-init a|DPDK compute-node startup and monitoring scripts like: +
+                              contrail-vrouter-dpdk.ini +
+                              dpdk_nic_bind.py +
+                              if-vhost0
 |====
 
-Note: info how to deploy with Director with Openstack Newton https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton[[.underline]#https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton#]
+[NOTE]
+====
+* info how to deploy with Director with Openstack Newton
+https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton[[.underline]#https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton#]
 
-Note2: DPDK version used by the vrouter can be checked into dpdk vrouter log files :
+* DPDK version used by the vrouter can be checked into dpdk vrouter log files :
 
-$ vi /var/log/containers/contrail/contrail-vrouter-dpdk.log
+    $ vi /var/log/containers/contrail/contrail-vrouter-dpdk.log
+    ...
+    2019-04-19 16:30:41,411 VROUTER: vRouter version: \{"build-info": [\{"build-time": "2019-04-11 23:47:32.407280", "build-hostname": "rhel-7-builder-juniper-contrail-ci-c-0000225573.novalocal", "build-user": "zuul", "build-version": "5.1.0"}]}
+    2019-04-19 16:30:41,411 VROUTER: DPDK version: *DPDK 18.05.1*
+    ...
+====
 
-...
-
-2019-04-19 16:30:41,411 VROUTER: vRouter version: \{"build-info": [\{"build-time": "2019-04-11 23:47:32.407280", "build-hostname": "rhel-7-builder-juniper-contrail-ci-c-0000225573.novalocal", "build-user": "zuul", "build-version": "5.1.0"}]}
-
-2019-04-19 16:30:41,411 VROUTER: DPDK version: *DPDK 18.05.1*
-
-...
-
-===== Nova / Qemu / Libvirt
+.Nova / Qemu / Libvirt
 
 It is required to have Contrail qemu / libvirt / nova packages installed on DPDK nodes in order to:
 
 - Support multiqueue (Multiqueue support is available from Mitaka release)
 - Not lose connectivity to VMs when restarting DPDK vrouter
 
-PS: This limitation is removed.It is possible to use qemu and nova upstream packages with contrail-nova-vif-driver.
+NOTE: This limitation is removed. It is possible to use qemu and nova upstream
+packages with `contrail-nova-vif-driver`.
 Starting from OpenStack Pike release, no patch is required.
-libvirt is the only package needed if we want multiqueue.
+*libvirt is the only package needed if we want multiqueue*.
 
 == Configuration description
 
+some texts needed
+
 === Compute node memory and huge pages
+
+some texts needed
 
 ==== Huge pages configuration
 
-DPDK vrouter is using hugepages.
-Huge pages need to be configured before it can be used.
-Only smaller (2MB) pages can be configured using sysctl.
-1GB pages are strongly recommended, so the only consistent way of configuration is to add parameters to linux kernel.
+- DPDK vrouter is using hugepages.
+- Huge pages need to be configured before it can be used.
+- Only smaller (2MB) pages can be configured using `sysctl`.
+- 1GB pages are strongly recommended, so the only consistent way of configuration is to add parameters to linux kernel.
+- Allocating huge pages should be done based on the prediction of how many VMs
+  (their amount of memory) will be used on a hypervisor + 2GB for vRouter for
+  default configuration.
+- Of course some memory need to be left for operating system and other processes.
 
-*NOTE*: When using 2MB hugepages, the amount configured cannot be bigger than 32768.
+NOTE: When using 2MB hugepages, the amount configured cannot be bigger than 32768.
 If more pages are configured, vrouter-dpdk will not start.
 This is a limitation of DPDK library.
 
-Allocating huge pages should be done based on the prediction of how many VMs (their amount of memory) will be used on a hypervisor + 2GB for vRouter for default configuration.
-Of course some memory need to be left for operating system and other processes.
-
-*NOTE*: In RHEL environment, to make vrouter-dpdk work with 1G hugepages, a small amount of 2MB hugepages needs to be declared too (128 pages is enough).
+NOTE: In RHEL environment, to make vrouter-dpdk work with 1G hugepages, a small
+amount of 2MB hugepages needs to be declared too (128 pages is enough).
 
 The following kernel parameters configure huge pages:
 
-[cols="",]
-|====
-|default_hugepagesz=1GB hugepagesz=1G hugepages=40 hugepagesz=2M hugepages=40
-|====
+    default_hugepagesz=1GB hugepagesz=1G hugepages=40 hugepagesz=2M hugepages=40
 
-default_hugepagesz defines which huge page size is a default (this size will appear in /proc/meminfo, and this size will be mounted by default when pagesize mounting option will not be used)
+`default_hugepagesz`:: defines which huge page size is a default (this size will
+appear in `/proc/meminfo`, and this size will be mounted by default when pagesize
+mounting option will not be used)
 
-hugepagesz followed by hugepages defines size and amount respectively and the pair can be repeated to configure different sizes of huge pages.
+`hugepagesz`:: followed by hugepages defines size and amount respectively and
+the pair can be repeated to configure different sizes of huge pages.
 
-After adding the configuration to a kernel and rebooting server, the number of allocated huge pages can be checked from command line.
-The most common way of doing it is to check /proc/meminfo.
+After adding the configuration to a kernel and rebooting server, the number of
+allocated huge pages can be checked from command line.
+
+The most common way of doing it is to check `/proc/meminfo`.
 This is not a good way, because it shows only one (default) huge page size.
 
-Since it is possible to configure multiple sizes of hugepages, the only source of information is /sys filesystem (for each numa node and each size - total/free):
+Since it is possible to configure multiple sizes of hugepages, the only source
+of information is `/sys` filesystem (for each numa node and each size -
+total/free):
 
     # cat /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
     # cat /sys/devices/system/node/node0/hugepages/hugepages-2048kB/free_hugepages
@@ -1371,13 +1413,14 @@ Since it is possible to configure multiple sizes of hugepages, the only source o
     # cat /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
     # cat /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/free_hugepages
 
-To finish configuration of hugepages, hugetlbfs pseudo filesystem needs to be mounted.
+To finish configuration of hugepages, `hugetlbfs` pseudo filesystem needs to be mounted.
 The following line needs to be added to /etc/fstab:
 
     hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)
 
 As mentioned before, DPDK vRouter needs its own hugepages.
-The DPDK library auto-detects the huge pages from the hugetlbfs mount point.
+The DPDK library auto-detects the huge pages from the `hugetlbfs` mount point.
+
 2GB for vRouter are based on setup provided in configuration file.
 
     /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini
@@ -1385,10 +1428,12 @@ The DPDK library auto-detects the huge pages from the hugetlbfs mount point.
     [program:contrail-vrouter-dpdk]
     command=/usr/bin/taskset 0x154000000154 /usr/bin/contrail-vrouter-dpdk --no-daemon --vr_flow_entries=2000000 --vdev "eth_bond_bond0,mode=4,xmit_policy=l34,socket_id=0,mac=90:e2:ba:c5:79:90,slave=0000:01:00.0,slave=0000:01:00.1,slave=0000:02:00.0,slave=0000:02:00.1" *--socket-mem 1024,1024*
 
---socket-mem 1024,1024 - means allocate 1GB memory (in huge pages) per NUMA
-node for vRouter (here we assume 2 NUMA nodes). Even if vrouter is only pinned
-on a single node, memory has to be allocated on both as virtual machines are
-pinned on all nodes and thus will require memory on each.
+`--socket-mem 1024,1024`:: means allocate 1GB memory (in huge pages) per NUMA
+node for vRouter (here we assume 2 NUMA nodes). 
+
+NOTE: Even if vrouter is only pinned on a single node, memory has to be
+allocated on both as virtual machines are pinned on all nodes and thus will
+require memory on each.
 
 ==== Hugepage memory and NUMA sockets
 
@@ -1398,16 +1443,17 @@ If you are using 2 or more ports from different NICs, it is best to ensure that 
 
 In order to allocate memory on the first NUMA socket, we are using option with only one parameter:
 
---socket-mem <value>
+    --socket-mem <value>
 
 In order to allocate memory on the NUMA0 and NUMA1 socket, we are using option with only two parameters:
 
---socket-mem <value>,<value>
+    --socket-mem <value>,<value>
 
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image31.png[image,width=443,height=466]
 
-PS: On a 2 NUMA nodes we have to allocate memory on each of them even if vRouter is only pinned on a single one.
-Indeed Virtual machines are pinned on both and require memory on each.
+NOTE: On a 2 NUMA nodes we have to allocate memory on each of them even if
+vRouter is only pinned on a single one.  Indeed Virtual machines are pinned on
+both and require memory on each.
 
 We can get all PCI Ethernet devices installed on the host using the following command :
 
@@ -1439,90 +1485,106 @@ Using numactl we can get CPU IDs on each NUMA socket:
     0: 10 21
     1: 21 10
 
-PS: When DPDK vrouter is used, OpenStack flavors must have _hw:mem_page_size_ property (cf OpenStack configuration section).
+When DPDK vrouter is used, OpenStack flavors must have `hw:mem_page_size`
+property (cf OpenStack configuration section).
 
-==== Contrail vrouter and Single Hugepage size (Kubernetes)
+==== Contrail vrouter and Single Hugepage size (Kubernetes) (ping:VERY confusing)
 
-Currently Kubernetes in not supporting to be run on compute nodes configured with multiple huge page size.
+- Currently Kubernetes in not supported to be run on compute nodes configured
+  with multiple huge page size. If a worker node is configured with both 2M and
+  1GB hugepage size, Kubelet will fail to start.
 
-If a worker node is configured with both 2M and 1GB hugepage size, Kubelet will fail to start.
+- by default, Contrail vrouter assumes that provided hugepages are 2Mb.
 
-Contrail DPDK vrouter is able to run with a single Hugepage size and does not required to get both 2M and 1G pages allocated.
-But per default, Contrail vrouter assumes that provided hugepages are 2Mb.
+- Contrail DPDK vrouter is able to run with a single Hugepage size and does not
+  required to get both 2M and 1G pages allocated.
 
-If only 1G huge pages are configured on the compute node, pagesize parameter must be specified into huge page table mount point in order for the vrouter to be aware that only 1G huge pages are available on the compute node :.
+If only 1G huge pages are configured on the compute node, `pagesize` parameter
+must be specified into huge page table mount point in order for the vrouter to
+be aware that only 1G huge pages are available on the compute node:
 
 Cf: https://github.com/Juniper/contrail-vrouter/blob/R1908/dpdk/vr_dpdk_table_mem.c#L80-L84
 
-If this parameter is not present in the mountpoint, Contrail vrouter is assuming that 2MB hugepages are available, and will requests 2M huge pages.
-If only 1GB huge pages are available onto the compute node, vrouter will fail to start.
+If this parameter is not present in the mountpoint, Contrail vrouter is
+assuming that 2MB hugepages are available, and will requests 2M huge pages.
 
-[.underline]#Hugepage size not specified in mount point#
+If only 1GB huge pages are available onto the compute node, vrouter will fail
+to start.
 
-When huge pages mount point is configured without pagesize parameter, vrouter will request 2M hugepages allocation.
+.Hugepage size not specified in mount point
 
-/etc/fstab:
+When huge pages mount point is configured without `pagesize` parameter, vrouter
+will request 2M hugepages allocation.
 
-[cols="",]
-|====
-|hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)
-|====
+    #/etc/fstab:
+    hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)
 
-# cat /proc/mounts | grep hugepage
+    # cat /proc/mounts | grep hugepage
+    hugetlbfs /dev/hugepages hugetlbfs rw,seclabel,relatime 0 0
 
-hugetlbfs /dev/hugepages hugetlbfs rw,seclabel,relatime 0 0
+.1G hugepage size not specified in mount point
 
-[.underline]#1G hugepage size not specified in mount point#
-
-Here we have specified huge pages mount with pagesize=1G parameter.
+Here we have specified huge pages mount with `pagesize=1G` parameter.
 vrouter will request 1G hugepages allocation at startup.
 
-/etc/fstab:
+    /etc/fstab:
+    hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel,pagesize=1G)
 
-[cols="",]
-|====
-|hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel,pagesize=1G)
-|====
-
-# cat /proc/mounts | grep hugepage
-
-hugetlbfs /dev/hugepages hugetlbfs rw,seclabel,relatime,pagesize=1G 0 0
+    # cat /proc/mounts | grep hugepage
+    hugetlbfs /dev/hugepages hugetlbfs rw,seclabel,relatime,pagesize=1G 0 0
 
 === Compute node processing and CPU allocation
 
+some text needed
+
 ==== Physical CPU cores allocation planning
 
-When planning physical CPU cores allocation, the following aspects need to be taken into account:
+When planning physical CPU cores allocation, the following aspects need to be
+taken into account:
 
 - hyperthreading enabled or not
 - numa topology
 - number of cores assigned to vrouter for 2 kinds of tasks:
-*- forwarding threads (packet processing purpose)
-*- control and service threads (vrouter management purpose)
+  * forwarding threads (packet processing purpose)
+  * control and service threads (vrouter management purpose)
 - number of cores left for system processes
 - number of cores allocated to VMs
 
-*WARNING:* A proper definition and configuration of CPU partitioning is key for optimal performance.
+WARNING: A proper definition and configuration of CPU partitioning is key for optimal performance.
 A bogus implementation is indeed the main source of transient packet drops even at moderate throughput.
 
 ==== Hyper Threading
 
-If HT (Hyper Threading) is enabled, the first half of each numa node core are physical cores, and the second half their HT sibling.
-The best way to utilize all cores in the system, especially when using _hw:cpu_policy=dedicated_ (see link:#_vx1227[[.underline]#Linux kernel isolcpus option#]) is to *use both siblings when calculating mask for vrouter (and other resources line systemd)*. In that case, both siblings for each core used for VM pinning can be utilized.
+If HT (Hyper Threading) is enabled, the first half of each numa node core are
+physical cores, and the second half their HT sibling.
 
-With OpenStack Having a core without its sibling listed in _vcpu_pin_set_ variable in _nova.conf_ file and _hw:cpu_policy=dedicated_ set in flavor properties used to spawn an instance leads to a scheduling error (variable ‘sibling_set’ referenced before assignment).
+The best way to utilize all cores in the system, especially when using
+`hw:cpu_policy=dedicated` (see <<CPU assignment and isolation mechanisms>>) to
+*use both siblings when calculating mask for vrouter (and other resources line
+systemd)*. In that case, both siblings for each core used for VM pinning can be
+utilized.
+
+With OpenStack Having a core without its sibling listed in `vcpu_pin_set`
+variable in `nova.conf` file and `hw:cpu_policy=dedicated` set in flavor
+properties used to spawn an instance leads to a scheduling error (variable
+`sibling_set` referenced before assignment).
 
 ==== CPU assignment and isolation mechanisms
 
-Tasks to be run by an operating system must be spread across available CPUs.
-These tasks into a multi-threading environment are often made of several processes which are also made of several threads. +
-In order to run all these processes and threads on the CPU offered by the node, the Operating System is using a scheduler to place each single one onto a given CPU.
-There are two styles of scheduling, cooperative and preemptive.
-By default, RedHat Linux is using a cooperative mode. +
-Cf: https://medium.com/traveloka-engineering/cooperative-vs-preemptive-a-quest-to-maximize-concurrency-power-3b10c5a920fe[[.underline]#https://medium.com/traveloka-engineering/cooperative-vs-preemptive-a-quest-to-maximize-concurrency-power-3b10c5a920fe#]
+- Tasks to be run by an operating system must be spread across available CPUs.
+- These tasks into a multi-threading environment are often made of several
+  processes which are also made of several threads.
+- In order to run all these processes and threads on the CPU offered by the
+  node, the Operating System is using a scheduler to place each single one onto
+  a given CPU.
+- There are two styles of scheduling, cooperative and preemptive.
+- By default, RedHat Linux is using a cooperative mode https://medium.com/traveloka-engineering/cooperative-vs-preemptive-a-quest-to-maximize-concurrency-power-3b10c5a920fe
 
-In order to get a CPU booked for a subset of tasks, we have to inform the Operating System scheduler not to use these CPUs for all the tasks it has to run.
-These CPUs are told: _"isolated"_ because they are no more used to process all tasks.
+In order to get a CPU booked for a subset of tasks, we have to inform the
+Operating System scheduler not to use these CPUs for all the tasks it has to
+run.
+
+These CPUs are told: `"isolated"` because they are no more used to process all tasks.
 In order to get a CPU isolated several mechanisms can be used:
 
 - remove this CPU from the "common" CPU list used to process all tasks
@@ -1530,122 +1592,170 @@ In order to get a CPU isolated several mechanisms can be used:
 - participate or not to interrupt processing
 
 RedHat Linux is currently supporting 2 different CPU isolation methods.
-They are _isolcpus_ and _tuned CPU partitioning_, They can be used either independently or simultaneously.
+They are `isolcpus` and `tuned CPU partitioning`, They can be used either
+independently or simultaneously.
 
-A first method, *_isolcpus_* kernel parameter, has been proposed to keep CPUs away from linux scheduler. +
-This isolation mechanism will:
+.*isolcpus*
+A first method, *_isolcpus_* kernel parameter, has been proposed to keep CPUs
+away from linux scheduler. This isolation mechanism will:
 
 - remove isolated CPUs from the "common" CPU list used to process all tasks
-- change the scheduling algorithm from cooperative to preemptive
+- change the scheduling algorithm from `cooperative` to `preemptive`
 - perform CPU isolation at the system boot
 
-The main drawbacks of using _isolcpus_ are :
+ping: talk about both algorithm.
+
+The main drawbacks of using `isolcpus` are :
 
 - it requires manual placement of processes on isolated cpus.
 - it is not possible to rearrange the CPU isolation rules after the system startup
 - it is not possible to move process from one isolated cpu to another.
 
+.*tuned CPU partitioning*
 A second method, *_tuned CPU partitioning_*, has been proposed more recently.
-since almost all processes are started by systemd, physical CPU cores assignment can be configured in a different way:
+since almost all processes are started by `systemd`, physical CPU cores
+assignment can be configured in a different way:
 
-- _CPUAffinity_ parameter in /etc/systemd/system.conf; it will restrict all processes spawned by systemd to the list of cores.
-Note that from RHEL 7.5, CPUAffinity is natively integrated in _tuned’s cpu-partitioning profile_ (more information on this topic is provided later in this section).
-- _isolated_cores_: is removing a set of CPU from the "common" CPU list used to process all tasks
+- `CPUAffinity` parameter in `/etc/systemd/system.conf`; it will restrict all
+  processes spawned by systemd to the list of cores.
+- Note that from RHEL 7.5, `CPUAffinity` is natively integrated in _tuned’s
+  cpu-partitioning profile_ (more information on this topic is provided later
+  in this section).
+- `isolated_cores`: is removing a set of CPU from the "common" CPU list used to
+  process all tasks
 
 This isolation mechanism will:
 
 - remove isolated CPUs from the "common" CPU list used to process all tasks
 - perform CPU isolation after the system boot using systemd.
 
-The main drawbacks of using _tuned partitioning_ are :
+The main drawbacks of using `tuned partitioning` are :
 
 - Some processes are started at the system boot before systemd is started.
-These processes are run before isolation rules are enforced and could break expected isolation rules.
+  These processes are run before isolation rules are enforced and could break
+  expected isolation rules.
 - Scheduling Algorithm is kept to cooperative mode which provides a lower isolation.
 
-In few words, tuned partitioning is more flexible and featureful than isolcpus, but is providing a lower CPU isolation.
+In few words, `tuned partitioning` is more flexible and featureful than isolcpus,
+but is providing a lower CPU isolation.
 This is why both mechanisms are often used altogether to enforce CPU isolation.
 
-*IMPORTANT NOTE:* if both tuned CPU partitioning profiles and isolcpus mechanisms are used *be careful to be consistent*. in the defined setup.
+IMPORTANT: if both tuned CPU partitioning profiles and isolcpus mechanisms are
+used, *be careful to be consistent* in the defined setup.
 
 ===== isolcpus mechanism configuration
 
-*WARNING*: before Contrail 20.03 release, it is not recommended to use such an isolation method.
-If used some packet drops could randomly occur and vrouter performances are not stable.
+WARNING: before Contrail 20.03 release, it is not recommended to use such an
+isolation method.  If used some packet drops could randomly occur and vrouter
+performances are not stable.
+
+ping: explain why?
 
 *_isolcpus_* is a kernel parameter.It has to be provisioned at the system startup.
-GRUB configuration has to be modified in order to take into consideration a new set of isolated CPU, and then, the system has to be restarted.
+GRUB configuration has to be modified in order to take into consideration a new
+set of isolated CPU, and then, the system has to be restarted.
 
-$ vi /etc/default/grub
+    $ vi /etc/default/grub
+    GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 crashkernel=auto rhgb quiet default_hugepagesz=1GB hugepagesz=1G hugepages=28 iommu=pt intel_iommu=on isolcpus=7,9-35,43,45-71"
+    $ grub2-mkconfig -o /etc/grub2.cfg
 
-GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 crashkernel=auto rhgb quiet default_hugepagesz=1GB hugepagesz=1G hugepages=28 iommu=pt intel_iommu=on isolcpus=7,9-35,43,45-71"
-
-$ grub2-mkconfig -o /etc/grub2.cfg
-
-When TripleO is used for Contrail and OpenStack installation, this grub configuration update is automatically done, using TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS environment variable to define i__solcpus__ value.
+When `TripleO` is used for Contrail and OpenStack installation, this grub
+configuration update is automatically done, using
+`TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS` environment variable to define _isolcpus_
+value.
 
 For instance :
 
-TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
-
-
+    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
 
 ===== Tuned CPU partitioning configuration
 
 Tuned cpu partitioning has to be installed onto the system:
 
-yum install tuned-profiles-cpu-partitioning
+    yum install tuned-profiles-cpu-partitioning
 
 Tuned is using CPU isolation information defined into cpu-partitioning-variables.conf and into system.conf:
 
-/etc/tuned/cpu-partitioning-variables.conf
+    /etc/tuned/cpu-partitioning-variables.conf
+    isolated_cores=7,9-35,43,45-71
+    /systemd/system.conf
+    CPUAffinity=0-6,8,36-42,44
 
-isolated_cores=7,9-35,43,45-71
-
-/systemd/system.conf
-
-CPUAffinity=0-6,8,36-42,44
-
-Tuned is not setting _isolcpus_ Kernel value, but _tuned.non_isolcpus_.
+Tuned is not setting `isolcpus` Kernel value, but `tuned.non_isolcpus`.
 
 ==== DPDK vrouter process and threads
 
 DPDK vrouter forwarding plane process is made up of several kinds of threads:
 
 - packet processing threads: used to perform packet switching
-- control and service threads: used for DPDK vrouter configuration (add/remove vif interfaces onto the vrouter, manage the communication with the vrouter agent for instance)
+- control and service threads: used for DPDK vrouter configuration (add/remove
+  vif interfaces onto the vrouter, manage the communication with the vrouter
+  agent for instance)
 
 Each set of threads is made up of several single threads:
 
-- *control threads* : eal-intr-thread, rte_mp_handle, rte_mp_async (they are generated by the DPDK library itself - DPDK setup management)
+- *control threads* : `eal-intr-thread`, `rte_mp_handle`, `rte_mp_async` (they are
+  generated by the DPDK library itself - DPDK setup management)
 - *service threads* : thread names are lcore 0 to 9. They each one has a specific role:
-*- lcore 0: vhost0
-*- lcore 1: timers
-*- lcore 2: Interrupts
-*- lcore 8: pkt0 (can be busy)
-*- lcore 9: Netlink (can be busy)
-- *processing threads* : thread names are lcore 10 and above.
-All the threads are used for packet processing (polling and forwarding)
+** lcore 0: vhost0
+** lcore 1: timers
+** lcore 2: Interrupts
+** lcore 8: pkt0 (can be busy)
+** lcore 9: Netlink (can be busy)
+- *processing threads* : thread names are lcore 10 and above.  All the threads
+  are used for packet processing (polling and forwarding)
 
-Service and Processing threads are _named lcore-slave-*<ID>*_. Contrail vRouter cores ID have a specific meaning defined in the following C enum data structure:
+.Service and Processing threads
+Service and Processing threads are named `lcore-slave-<ID>`. Contrail vRouter
+cores ID have a specific meaning defined in the following C enum data
+structure:
 
-    enum \{
+    enum {
+        VR_DPDK_KNITAP_LCORE_ID = 0,
+        VR_DPDK_TIMER_LCORE_ID,
+        VR_DPDK_UVHOST_LCORE_ID,
+        VR_DPDK_IO_LCORE_ID,        # 3
+        VR_DPDK_IO_LCORE_ID2,
+        VR_DPDK_IO_LCORE_ID3,
+        VR_DPDK_IO_LCORE_ID4,
+        VR_DPDK_LAST_IO_LCORE_ID,   # 7
+        VR_DPDK_PACKET_LCORE_ID,    # 8
+        VR_DPDK_NETLINK_LCORE_ID,
+        VR_DPDK_FWD_LCORE_ID,       # 10
+    };
+
+.ping: from https://github.com/Juniper/contrail-vrouter/blob/master/include/vr_dpdk.h
+[source,c]
+----
+/*
+ * DPDK LCore IDs
+ */
+enum {
     VR_DPDK_KNITAP_LCORE_ID = 0,
     VR_DPDK_TIMER_LCORE_ID,
     VR_DPDK_UVHOST_LCORE_ID,
-    VR_DPDK_IO_LCORE_ID, = 3
+    /*
+     * The actual number of IO lcores depends on the number of
+     * forwarding lcores.
+     */
+    VR_DPDK_IO_LCORE_ID,
     VR_DPDK_IO_LCORE_ID2,
     VR_DPDK_IO_LCORE_ID3,
     VR_DPDK_IO_LCORE_ID4,
-    VR_DPDK_LAST_IO_LCORE_ID, # 7
-    VR_DPDK_PACKET_LCORE_ID, # 8
+    VR_DPDK_LAST_IO_LCORE_ID,
+    /* [PACKET_ID..FWD_ID) lcores have TX queues, but no RX queues */
+    VR_DPDK_PACKET_LCORE_ID,
     VR_DPDK_NETLINK_LCORE_ID,
-    VR_DPDK_FWD_LCORE_ID, # 10
-    };
+    /* The actual number of forwarding lcores depends on affinity mask. */
+    VR_DPDK_FWD_LCORE_ID,
+};
+----
 
-We can find those names by running using the "ps" command with some additional arguments (this is from a compute node where vrouter is using 8 logical forwarding cores, 4 phy cores using HT siblings):
+We can find those names by running using the "ps" command with some additional
+arguments (this is from a compute node where vrouter is using 8 logical
+forwarding cores, 4 phy cores using HT siblings):
 
-    # ps -T -p `pidof contrail-vrouter-dpdk`
+    # ps -Tp `pidof contrail-vrouter-dpdk`
     PID SPID TTY TIME CMD
     *54490 54490 ? 02:46:12 contrail-vroute*
     *54490 54611 ? 00:02:33 eal-intr-thread*
@@ -1663,6 +1773,25 @@ We can find those names by running using the "ps" command with some additional a
     *54490 54623 ? 2-21:44:06 lcore-slave-17*
     *54490 54990 ? 00:00:00 lcore-slave-9*
 
+.ping: lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ ps -Tp `pidof contrail-vrouter-dpdk`
+    PID    SPID TTY          TIME CMD
+  46058   46058 ?        1-18:54:41 contrail-vroute
+  46058   46070 ?        00:00:00 rte_mp_handle
+  46058   46071 ?        00:00:00 rte_mp_async
+  46058   46073 ?        01:24:03 eal-intr-thread
+  46058   46074 ?        2-12:27:21 lcore-slave-1
+  46058   46075 ?        00:00:00 lcore-slave-2
+  46058   46076 ?        00:04:59 lcore-slave-8
+  46058   46077 ?        00:33:48 lcore-slave-9
+  46058   46078 ?        24-13:55:14 lcore-slave-10
+  46058   46079 ?        24-13:55:58 lcore-slave-11
+  46058   46080 ?        24-13:56:00 lcore-slave-12
+  46058   46536 ?        00:00:00 lcore-slave-9
+----
+
 Here we have :
 
 - *contrail-vrouter is main thread*
@@ -1670,11 +1799,12 @@ Here we have :
 - *lcore-slave-2 is uvhost (for qemu) thread*
 - l**core-slave-8 is pkt0 thread**
 - lcore-slave-9 is netlink thread (for nh/rt programming)
-- *lcore-slave-10 onwards are forwarding threads, the ones running at 100% as they are constantly polling the interfaces*
+- *lcore-slave-10 onwards are forwarding threads, the ones running at 100% as
+  they are constantly polling the interfaces*
 
 To list all lightweight processes created by contrail-vrouter-dpdk run following command:
 
-    # pstree -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" \{print $2}')
+    # pstree -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" {print $2}')
     contrail-vroute(6665)─┬─{contrail-vroute}(7800)
     ├─{contrail-vroute}(7801)
     ├─{contrail-vroute}(7802)
@@ -1686,10 +1816,27 @@ To list all lightweight processes created by contrail-vrouter-dpdk run following
     ├─{contrail-vroute}(7808)
     └─{contrail-vroute}(8200)
 
+.ping: lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ pstree -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" {print $2}')
+contrail-vroute(46058)─┬─{contrail-vroute}(46070)
+                       ├─{contrail-vroute}(46071)
+                       ├─{contrail-vroute}(46073)
+                       ├─{contrail-vroute}(46074)
+                       ├─{contrail-vroute}(46075)
+                       ├─{contrail-vroute}(46076)
+                       ├─{contrail-vroute}(46077)
+                       ├─{contrail-vroute}(46078)
+                       ├─{contrail-vroute}(46079)
+                       ├─{contrail-vroute}(46080)
+                       └─{contrail-vroute}(46536)
+----
+
 The following command can be used.
 It provides in the last column the CPU load generated by each thread:
 
-    ps -mo pid,tid,comm,psr,pcpu -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" \{print $2}')
+    ps -mo pid,tid,comm,psr,pcpu -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" {print $2}')
     PID TID COMMAND PSR %CPU
     161791 - contrail-vroute - 618
     - 161791 - 22 1.6
@@ -1707,6 +1854,26 @@ It provides in the last column the CPU load generated by each thread:
     - 161878 - 8 98.1
     - 161879 - 9 97.7
     - 162134 - 11 0.0
+
+.ping: lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ ps -mo pid,tid,comm,psr,pcpu -p $(ps -ef | awk '$8=="/usr/bin/contrail-vrouter-dpdk" {print $2}')
+    PID     TID COMMAND         PSR %CPU
+  46058       - contrail-vroute   -  317
+      -   46058 -                 4  7.2
+      -   46070 -                 3  0.0
+      -   46071 -                 3  0.0
+      -   46073 -                 4  0.2
+      -   46074 -                 4 10.2
+      -   46075 -                 4  0.0
+      -   46076 -                 4  0.0
+      -   46077 -                 4  0.0
+      -   46078 -                 1 99.9
+      -   46079 -                 2 99.9
+      -   46080 -                 3 99.9
+      -   46536 -                 4  0.0
+----
 
 Using *_pidstat_* command we can see that some vrouter threads are running at 100% CPU.
 Those are the forwarding threads, the ones pinned based on the configured coremask :
@@ -1739,43 +1906,97 @@ In the example above, we can notice:
 - *service threads* in green.
 - *control threads* in red.
 
-In order to list CPU cores assigned to contrail-vrouter-dpdk, we have to run taskset command for each lightweight process.
+.ping: prz lab
+[source, sh, linenums]
+----
+[root@overcloudmz5-compdpdk-1 ~]# pidstat -t -p `pidof contrail-vrouter-dpdk`
+Linux 3.10.0-957.27.2.el7.x86_64 (overcloudmz5-compdpdk-1.srelab1.englab.juniper.net)   05/06/2020      _x86_64_        (40 CPU)
+
+07:53:19 AM   UID      TGID       TID    %usr %system  %guest    %CPU   CPU  Command
+07:53:19 AM     0     15745         -  100.00  100.00    0.00  100.00     6  contrail-vroute
+07:53:19 AM     0         -     15745    0.68    0.62    0.00    1.29     6  |__contrail-vroute
+07:53:19 AM     0         -     15777    0.00    0.00    0.00    0.00     3  |__rte_mp_handle
+07:53:19 AM     0         -     15778    0.00    0.00    0.00    0.00     3  |__rte_mp_async
+07:53:19 AM     0         -     15780    0.01    0.01    0.00    0.02     6  |__eal-intr-thread
+07:53:19 AM     0         -     15781    1.21    1.00    0.00    2.21     6  |__lcore-slave-1
+07:53:19 AM     0         -     15782    0.00    0.00    0.00    0.00     6  |__lcore-slave-2
+07:53:19 AM     0         -     15783    0.00    0.00    0.00    0.00     6  |__lcore-slave-8
+07:53:19 AM     0         -     15784    0.03    0.00    0.00    0.03     6  |__lcore-slave-9
+07:53:19 AM     0         -     15785   55.21   44.79    0.00  100.00     1  |__lcore-slave-10
+07:53:19 AM     0         -     15786   56.77   42.18    0.00   98.95     6  |__lcore-slave-11
+07:53:19 AM     0         -     15787   54.10   45.89    0.00   99.99     3  |__lcore-slave-12
+07:53:19 AM     0         -     15788   55.25   44.75    0.00  100.00    21  |__lcore-slave-13
+07:53:19 AM     0         -     15789   57.25   42.75    0.00  100.00    22  |__lcore-slave-14
+07:53:19 AM     0         -     15790   54.27   45.73    0.00  100.00    23  |__lcore-slave-15
+07:53:19 AM     0         -     17452    0.00    0.00    0.00    0.00     6  |__lcore-slave-9
+----
+
+NOTE: `pidstat` command is not provided in default OS installation. It has to
+be installed with following command on RedHat system:
+
+    # yum install -y sysstat
+
+In order to list CPU cores assigned to contrail-vrouter-dpdk, we have to run
+`taskset` command for each lightweight process.
 
     # taskset -cp 21791
     pid 21666's current affinity list: 0-47
     # taskset -cp 21795
     pid 21795's current affinity list: 2
 
-PS: pidstat command is not provided in default OS installation.
-It has to be installed with following command on RedHat system:
-
-    # yum install -y sysstat
+.ping: lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ taskset -cp 46075
+pid 46075's current affinity list: 4
+[heat-admin@jnprctdpdk01 ~]$ taskset -cp 46076
+pid 46076's current affinity list: 4
+[heat-admin@jnprctdpdk01 ~]$ taskset -cp 46074
+pid 46074's current affinity list: 4
+[heat-admin@jnprctdpdk01 ~]$ taskset -cp 46078
+pid 46078's current affinity list: 1
+[heat-admin@jnprctdpdk01 ~]$ taskset -cp 46079
+pid 46079's current affinity list: 2
+----
 
 ==== CPU assignment for DPDK vRouter
 
-In order to get DPDK vrouter threads pinned to a subset of CPUs on each compute node we have to define:
+In order to get DPDK vrouter threads pinned to a subset of CPUs on each compute
+node we have to define:
 
-- vrouter dpdk cores used for *_packet processing_* (polling and forwarding threads) in *_CPU_LIST_* +
-(or coremask - cf further explanations) within following file in:
-*- /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini (up to 4.1)
-*- /etc/sysconfig/network-scripts/ifcfg-vhost0 (from 5.0 to higher)
+- vrouter dpdk cores used for *_packet processing_* (polling and forwarding
+  threads) in *_CPU_LIST_* (or `coremask`) within following file in:
+* `/etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini` (up to 4.1)
+* `/etc/sysconfig/network-scripts/ifcfg-vhost0` (from 5.0 to higher)
 
-- vrouter dpdk cores used for *_vrouter management_* (services threads) in *_SERVICE_CORE_MASK_* within following file: /etc/sysconfig/network-scripts/ifcfg-vhost0 (from 20.03 to higher)
-- vrouter dpdk cores used for *_vrouter management_* (DPDK control threads) in *_DPDK_CTRL_THREAD_MASK_* within following file: /etc/sysconfig/network-scripts/ifcfg-vhost0 (from 20.03 to higher)
+- vrouter dpdk cores used for *_vrouter management_* (services threads) in
+  *_SERVICE_CORE_MASK_* within file
+  `/etc/sysconfig/network-scripts/ifcfg-vhost0` (from 20.03 to higher)
+- vrouter dpdk cores used for *_vrouter management_* (DPDK control threads) in
+  *_DPDK_CTRL_THREAD_MASK_* within
+  file`/etc/sysconfig/network-scripts/ifcfg-vhost0` (from 20.03 to higher)
 
-These values: CPU_LIST, DPDK_CTRL_THREAD_MASK and SERVICE_CORE_MASK are CPU masks used for CPU pinning with taskset command.
+These values: `CPU_LIST`, `DPDK_CTRL_THREAD_MASK` and `SERVICE_CORE_MASK` are
+CPU masks used for CPU pinning with taskset command.
 
-===== CPU assignment for DPDK vRouter packet processing threads
+===== packet processing threads
 
-vRouter *_CPU_LIST_* (also named *_coremask_* in some configuration files) variable is allowing to define which core CPU will be allocated for router forwarding and polling processing threads.
+vRouter *_CPU_LIST_* (also named *_coremask_* in some configuration files)
+variable is allowing to define which core CPU will be allocated for router
+forwarding and polling processing threads.
 
 vrouter forwarding and polling processings are CPU intensive.
-vrouter logical threads named logica core ID 10 to logical core 10 + N - 1 (with N = Number of allocated polling and forwarding cores) are used for forwarding and polling processing.
-These threads have to be pinned to some well defined CPU in order to avoid the vrouter to starve the full node CPU capacity.
+vrouter logical threads named logica core ID 10 to logical core 10 + N - 1
+(with N = Number of allocated polling and forwarding cores) are used for
+forwarding and polling processing.
+These threads have to be pinned to some well defined CPU in order to avoid the
+vrouter to starve the full node CPU capacity.
 A maximum of 54 forwarding CPU can be allocated to a vrouter (logical core ID: 10 to 63).
 
-Below is an example of a configuration of a 2 socket system, each processor with 2*18 physical cores, with HT enabled.
-The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are dedicated for vRouter (i.e. 8 logical cores thanks to Hyper Threading).
+Below is an example of a configuration of a 2 socket system, each processor
+with 2*18 physical cores, with HT enabled.
+The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are
+dedicated for vRouter (i.e. 8 logical cores thanks to Hyper Threading).
 
     NUMA node0 CPU(s):
     PHY cores: *0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34*
@@ -1786,14 +2007,23 @@ The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are ded
 
 We are planning CPU assignment as follows:
 
-- 4 cores for Operating System processes and vrouter agent/dpdk lightweight threads: *red* *0, 1, 3, 5, 36, 37, 39, 41*
-- 4 physical cores for vRouter DPDK forwarding threads (in same NUMA 0), *blue*: *2, 4, 6, 8* with HT siblings *38, 40, 42, 44*. Do not allocate physical Core 0 (e.g. here 0 and 36) for Vrouter DPDK forwarding threads.
+- 4 cores for Operating System processes and vrouter agent/dpdk lightweight
+  threads: *red* *0, 1, 3, 5, 36, 37, 39, 41*
+- 4 physical cores for vRouter DPDK forwarding threads (in same NUMA 0),
+  *blue*: *2, 4, 6, 8* with HT siblings *38, 40, 42, 44*. Do not allocate
+  physical Core 0 (e.g. here 0 and 36) for Vrouter DPDK forwarding threads.
 - The rest of the cores are for Nova vcpu_pin_set, *black*: 7,9-35, 43,45-71.
-For optimal performance it is recommended that a single VMs is executed on a same NUMA (unless it can efficiently leverage kvm/pinning information)
 
-vRouter *CPU_LIST* (aka coremask) calculation based on the assumption above: vCPUs 2, 4, 6, 8, 38, 40, 42, 44 are allocated for vRouter, which maps to b0001 0101 0100 0000 0000 0000 0000 0000 0000 0001 0101 0100 in binary.
+For optimal performance it is recommended that a single VMs is executed on a
+same NUMA (unless it can efficiently leverage kvm/pinning information)
 
-This translates to a hex mask 0x154000000154 that must be configured in the /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini file (see below example for Contrail 4.1 release).
+vRouter *CPU_LIST* (aka coremask) calculation based on the assumption above:
+vCPUs 2, 4, 6, 8, 38, 40, 42, 44 are allocated for vRouter, which maps to b0001
+0101 0100 0000 0000 0000 0000 0000 0000 0001 0101 0100 in binary.
+
+This translates to a hex mask 0x154000000154 that must be configured in the
+`/etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini` file (see
+below example for Contrail 4.1 release).
 
     [root@overcloud-contraildpdk-16 ~]# cat /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini
     [program:contrail-vrouter-dpdk]
@@ -1811,23 +2041,25 @@ After modifying this file, the vrouter must be restarted to take changes into ac
 
     systemctl restart supervisor-vrouter
 
-*NOTE:* Some processors have different layout of cores in each numa node.
-The most popular is the first half being a part of numa 0 and the second half a part of numa 1. But there are processors, where even cores are a part of numa 0 and odd cores a part of numa
+NOTE: Some processors have different layout of cores in each numa node.  The
+most popular is the first half being a part of numa 0 and the second half a
+part of numa 1. But there are processors, where even cores are a part of numa 0
+and odd cores a part of numa
 
-*NOTE2:* When using 5.0 and later version of contrail vrouter, hex mask 0x154000000154, must be configured into CPU_LIST variable in /etc/sysconfig/network-scripts/ifcfg-vhost0 file: +
-CPU_LIST=**0x154000000154**
+NOTE: When using 5.0 and later version of contrail vrouter, hex mask
+0x154000000154, must be configured into CPU_LIST variable in
+`/etc/sysconfig/network-scripts/ifcfg-vhost0` file: `CPU_LIST=0x154000000154`
 
-After modifying this file, the vrouter vhost0 interface must be restarted to take changes into account:
+After modifying this file, the vrouter vhost0 interface must be restarted to
+take changes into account:
 
     $ ifdown vhost0
     $ ifup vhost0
 
-===== CPU assignment for DPDK vRouter service and control threads
+===== service and control threads <= 19.12
 
-====== contrail version <= 19.12
-
-For contrail release 19.12 and earlier, Control and Service threads are not assigned to any CPU.
-Consequently, these threads can use any available CPU.
+For contrail release 19.12 and earlier, Control and Service threads are not
+assigned to any CPU.  Consequently, these threads can use any available CPU.
 
 We can get all contrail-vrouter-dpdk assignments using taskset with -a option :
 
@@ -1850,47 +2082,84 @@ We can get all contrail-vrouter-dpdk assignments using taskset with -a option :
     *pid 21802's current affinity list : 44*
     *pid 29401's current affinity list : 0-71*
 
-In the previous example, we can notice that threads are assigned to a given CPU set according following rules :
+.ping: lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ taskset -cap `pidof contrail-vrouter-dpdk`
+pid 46058's current affinity list: 4
+pid 46070's current affinity list: 4
+pid 46071's current affinity list: 4
+pid 46073's current affinity list: 4
+pid 46074's current affinity list: 4
+pid 46075's current affinity list: 4
+pid 46076's current affinity list: 4
+pid 46077's current affinity list: 4
+pid 46078's current affinity list: 1
+pid 46079's current affinity list: 2
+pid 46080's current affinity list: 3
+pid 46536's current affinity list: 4
+----
 
-- *processing threads* have a CPU affinity restricted to a single one CPU (these are 2,4,6,8,38,40,42 and 44). Consequently each is placed on a single CPU.
-- *service threads* have a CPU affinity with all available CPUs.
-They can use any CPU..
+In the previous example, we can notice that threads are assigned to a given CPU
+set according following rules :
+
+- *processing threads* have a CPU affinity restricted to a single one CPU
+  (these are 2,4,6,8,38,40,42 and 44). Consequently each is placed on a single
+  CPU.
+- *service threads* have a CPU affinity with all available CPUs. They can use
+  any CPU..
 - *control threads* have CPU affinity with almost all available CPUs.
-This is the default DPDK library behavior (DPDK is keeping only CPU that are not booked for vrouter DPDK processing threads - previous example these are 3-7,18-71).
+This is the default DPDK library behavior (DPDK is keeping only CPU that are
+not booked for vrouter DPDK processing threads - previous example these are
+3-7,18-71).
 
-PS: It’s possible for a Contrail release R1912 (and earlier) to apply a patch in order to be able to use a specific _SERVICE_CORE_LIST_ parameter.
-This parameter allows to pin both service and control threads onto a specific CPU list.
-In order to get the new parameter available, we have to apply the following procedure on all the DPDK compute node :
+NOTE: It’s possible for a Contrail release R1912 (and earlier) to apply a patch
+in order to be able to use a specific `SERVICE_CORE_LIST` parameter.
+This parameter allows to pin both service and control threads onto a specific
+CPU list.
+In order to get the new parameter available, we have to apply the following
+procedure on all the DPDK compute node :
 
-    # mkdir -p /tmp/vrouter_patch
-    # cd /tmp/vrouter_patch
-    # curl -o patched-r1912-archive.tar.gz \
-    'https://review.opencontrail.org/changes/Juniper%2Fcontrail-container-builder~55730/revisions/1/archive?format=tgz'
-    # tar xvzf ./patched-r1912-archive.tar.gz containers/vrouter/base/network-functions-vrouter-dpdk containers/vrouter/agent-dpdk/entrypoint.sh --strip 3
-    # mv ./network-functions-vrouter-dpdk /etc/sysconfig/network-scripts/network-functions-vrouter-dpdk
-    # X=$(docker images --format "\{\{.Repository}}:\{\{.Tag}}" | grep contrail-vrouter-agent-dpdk)
-    # cat <<EOF > Dockerfile
-    # FROM $\{X}
-    # COPY ./entrypoint.sh /entrypoint.sh
-    # EOF
-    # docker build . -t $\{X}
+[source, sh, linenums]
+----
+# mkdir -p /tmp/vrouter_patch
+# cd /tmp/vrouter_patch
+# curl -o patched-r1912-archive.tar.gz \
+'https://review.opencontrail.org/changes/Juniper%2Fcontrail-container-builder~55730/revisions/1/archive?format=tgz'
+# tar xvzf ./patched-r1912-archive.tar.gz containers/vrouter/base/network-functions-vrouter-dpdk containers/vrouter/agent-dpdk/entrypoint.sh --strip 3
+# mv ./network-functions-vrouter-dpdk /etc/sysconfig/network-scripts/network-functions-vrouter-dpdk
+# X=$(docker images --format "\{\{.Repository}}:\{\{.Tag}}" | grep contrail-vrouter-agent-dpdk)
+# cat <<EOF > Dockerfile
+# FROM $\{X}
+# COPY ./entrypoint.sh /entrypoint.sh
+# EOF
+# docker build . -t $\{X}
+----
 
-SERVICE_CORE_LIST has been split into two variables into Contrail 20.03 and later releases:
+`SERVICE_CORE_LIST` has been split into two variables into Contrail 20.03 and
+later releases:
 
-- DPDK_CTRL_THREAD_MASK
-- SERVICE_CORE_MASK
+- `DPDK_CTRL_THREAD_MASK`
+- `SERVICE_CORE_MASK`
 
 In order to be used, you’ll have to follow explanation in next section given
-for SERVICE_CORE_MASK (just replace in you configuration SERVICE_CORE_MASK with
-SERVICE_CORE_LIST when using this patch)
+for `SERVICE_CORE_MASK` (just replace in you configuration `SERVICE_CORE_MASK` with
+`SERVICE_CORE_LIST` when using this patch)
 
-====== vRouter control and service threads pinning - contrail version >= 20.03
+===== service and control threads pinning >= 20.03
 
-Since Contrail 20.03 release it is possible to assign Control and Service threads to a given CPU list.
-vRouter *_SERVICE_CORE_MASK_* variable is allowing to define which core CPU will be allocated for vrouter service threads. *_DPDK_CTRL_THREAD_MASK_* variable is allowing to define which core CPU will be allocated for vrouter control threads.
+Since Contrail 20.03 release it is possible to assign Control and Service
+threads to a given CPU list.
+vRouter *_SERVICE_CORE_MASK_* variable is allowing to define which core CPU
+will be allocated for vrouter service threads. *_DPDK_CTRL_THREAD_MASK_*
+variable is allowing to define which core CPU will be allocated for vrouter
+control threads.
 
-Below is an example of a configuration of a 2 socket system, each processor with 2*18 physical cores, with HT enabled.
-The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are dedicated for vRouter (i.e. 8 logical cores thanks to Hyper Threading).
+Below is an example of a configuration of a 2 socket system, each processor
+with 2*18 physical cores, with HT enabled.
+
+The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are
+dedicated for vRouter (i.e. 8 logical cores thanks to Hyper Threading).
 
     NUMA node0 CPU(s):
     PHY cores: *0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34*
@@ -1901,11 +2170,19 @@ The network adapter in PCI-E bus is attached to NUMA 0. 4 physical cores are ded
 
 We are planning CPU assignment as follows:
 
-- 4 cores for Operating System processes and vrouter agent/dpdk lightweight threads: *red* *0, 1, 3, 5, 36, 37, 39, 41.* DPDK control threads will also be pinned on these CPUs.
-- 4 physical cores for vRouter DPDK vrouter forwarding threads (in same NUMA 0), *blue*: *2, 4, 6, 8* with HT siblings *38, 40, 42, 44*. Do not allocate physical Core 0 (e.g. here 0 and 36) for Vrouter DPDK threads.
-- 1 physical core for vRouter DPDK vrouter service threads (in same NUMA 0), *green*: *10* with HT sibling *46*.
-- The rest of the cores are for Nova vcpu_pin_set, *black*: 7,9,11-35, 43,45,47-71.
-For optimal performance it is recommended that each VM be executed on a same NUMA (unless it can efficiently leverage kvm/pinning information).
+- 4 cores for Operating System processes and vrouter agent/dpdk lightweight
+  threads: *red* *0, 1, 3, 5, 36, 37, 39, 41.* DPDK control threads will also
+  be pinned on these CPUs.
+- 4 physical cores for vRouter DPDK vrouter forwarding threads (in same NUMA
+  0), *blue*: *2, 4, 6, 8* with HT siblings *38, 40, 42, 44*. Do not allocate
+  physical Core 0 (e.g. here 0 and 36) for Vrouter DPDK threads.
+- 1 physical core for vRouter DPDK vrouter service threads (in same NUMA 0),
+  *green*: *10* with HT sibling *46*.
+- The rest of the cores are for Nova vcpu_pin_set, *black*: 7,9,11-35,
+  43,45,47-71.
+
+For optimal performance it is recommended that each VM be executed on a same
+NUMA (unless it can efficiently leverage kvm/pinning information).
 
 vRouter service cores mask calculation based on the assumption above: vCPUs 10,
 46 are allocated for vRouter, which maps to b0100 0000 0000 0000 0000 0000 0000
@@ -1917,14 +2194,17 @@ file:
 
     SERVICE_CORE_MASK=**0x400000000400**
 
-vRouter DPDK control threads mask calculation based on the assumption above: vCPUs 0,1,3,5,36,37,39,41 are allocated for vRouter, which maps to binary:
+vRouter DPDK control threads mask calculation based on the assumption above:
+vCPUs 0,1,3,5,36,37,39,41 are allocated for vRouter, which maps to binary:
 
     b0000 0010 1011 0000 0000 0000 0000 0000 0000 0000 0010 1011
 
-This translates to a hex mask 0x2B00000002B that must be configured into *DPDK_CTRL_TREAD_MASK* variable in /etc/sysconfig/network-scripts/ifcfg-vhost0 file: +
-DPDK_CTRL_THREAD_MASK=**0x2B00000002B**
+This translates to a hex mask 0x2B00000002B that must be configured into
+*DPDK_CTRL_TREAD_MASK* variable in /etc/sysconfig/network-scripts/ifcfg-vhost0
+file: DPDK_CTRL_THREAD_MASK=**0x2B00000002B**
 
-After file has been updated, the vrouter vhost0 interface must be restarted to take changes into account:
+After file has been updated, the vrouter vhost0 interface must be restarted to
+take changes into account:
 
     $ ifdown vhost0
     $ ifup vhost0
@@ -1950,26 +2230,45 @@ We can get all contrail-vrouter-dpdk assignments using taskset with -a option :
     *pid 21802's current affinity list : 44*
     *pid 29401's current affinity list : 10,46*
 
-In the previous example, we can notice that threads are assigned to a given CPU set according following rules :
+In the previous example, we can notice that threads are assigned to a given CPU
+set according following rules :
 
-- *processing threads* have a CPU affinity restricted to a single one CPU (these are 2,4,6,8,38,40,42 and 44). Consequently each is placed on a single CPU.
-- *service threads* have CPU affinity restricted to only 2 CPUs (they are 10,46).
-- *control threads* have a CPU affinity restricted to the same CPUs assigned for Operation System (they are 0,1,3,5,36,37,39,41).
+- *processing threads* have a CPU affinity restricted to a single one CPU
+  (these are 2,4,6,8,38,40,42 and 44). Consequently each is placed on a single
+  CPU.
+- *service threads* have CPU affinity restricted to only 2 CPUs (they are
+  10,46).
+- *control threads* have a CPU affinity restricted to the same CPUs assigned
+  for Operation System (they are 0,1,3,5,36,37,39,41).
 
 ==== CPUs assigned to vrouter - Provisioning concerns
 
-Currently *only CPU assigned to packet processing threads* (*CPU_LIST / COREMASK*) can be managed with provisioning tools.
-Since version 20.03, we can also manage CPU assigned to control and service threads (*DPDK_CTRL_THREAD_MASK* and *SERVICE_CORE_MASK*) with provisioning tools.
+Currently *only CPU assigned to packet processing threads* (*CPU_LIST /
+COREMASK*) can be managed with provisioning tools.
 
-Contrail can be installed through different tools: Contrail Cloud, Contrail Networking integrated with RHOSP and TripleO deployer or Juniper Contrail Ansible Deployer to name some.
+Since version 20.03, we can also manage CPU assigned to control and service
+threads (*DPDK_CTRL_THREAD_MASK* and *SERVICE_CORE_MASK*) with provisioning
+tools.
 
-===== CPUs assigned to control and service threads (control and service cores) - 20.03 and later release
+Contrail can be installed through different tools: Contrail Cloud, Contrail
+Networking integrated with RHOSP and TripleO deployer or Juniper Contrail
+Ansible Deployer to name some.
 
-When setting up the environment we will have to specify the CPU assignment for service threads.
-For RSHOP and Ansible deployer installation be sure to include the service mask within quotes within configuration files.
+===== control and service threads >= 20.03
 
-When deploying via *Ansible deployer*, file instances.yaml has to include SERVICE_CORE_MASK and DPDK_CTRL_THREAD_MASK variables with quotes in order to avoid the given value to be converted into a decimal number leading to wrong core assignment.
-So, we have to use SERVICE_CORE_MASK=”0x400000000400” instead of SERVICE_CORE_MASK=0x400000000400 and DPDK_CTRL_THREAD_MASK=”0x2B00000002B” instead of SERVICE_CORE_MASK=0x2B00000002B
+When setting up the environment we will have to specify the CPU assignment for
+service threads.
+For RSHOP and Ansible deployer installation be sure to include the service mask
+within quotes within configuration files.
+
+When deploying via *Ansible deployer*, file instances.yaml has to include
+SERVICE_CORE_MASK and DPDK_CTRL_THREAD_MASK variables with quotes in order to
+avoid the given value to be converted into a decimal number leading to wrong
+core assignment.
+
+So, we have to use SERVICE_CORE_MASK=”0x400000000400” instead of
+SERVICE_CORE_MASK=0x400000000400 and DPDK_CTRL_THREAD_MASK=”0x2B00000002B”
+instead of SERVICE_CORE_MASK=0x2B00000002B
 
     compute_dpdk_1:
     provider: bms
@@ -2012,15 +2311,22 @@ Or, globally for all roles:
     SERVICE_CORE_MASK: ”0x400000000400”
     DPDK_CTRL_THREAD_MASK: ”0x2B00000002B”
 
-*/!\*: If ContrailSettings is defined at role level, it will hide all ContrailSettings values defined globally.
-Each ContrailSettings parameters expected at role level have to be redefined even if defined at the global level.
+NOTE: If `ContrailSettings` is defined at role level, it will hide all
+`ContrailSettings` values defined globally.
+Each `ContrailSettings` parameters expected at role level have to be redefined
+even if defined at the global level.
 
-===== CPUs assigned to packet processing threads (forwarding cores)
+===== packet processing threads (forwarding cores)
 
-When setting up the environment we will have to specify the CPU assignment for packet processing threads.
-For RSHOP and Ansible deployer installation be sure to include the core mask within quotes within configuration files.
+When setting up the environment we will have to specify the CPU assignment for
+packet processing threads.
+For RSHOP and Ansible deployer installation be sure to include the core mask
+within quotes within configuration files.
 
-When deploying via *Ansible deployer*, file instances.yaml has to include CPU_CORE_MASK variable with quotes in order to avoid the given value to be converted into a decimal number leading to wrong core assignment.
+When deploying via *Ansible deployer*, file instances.yaml has to include
+CPU_CORE_MASK variable with quotes in order to avoid the given value to be
+converted into a decimal number leading to wrong core assignment.
+
 So, we have to use CPU_CORE_MASK=”0x154000000154” instead of CPU_CORE_MASK=0x154000000154.
 
 Here is an example when installing Contrail via Ansible deployer:
@@ -2037,7 +2343,9 @@ Here is an example when installing Contrail via Ansible deployer:
     DPDK_UIO_DRIVER: uio_pci_generic
     HUGE_PAGES: 60000
 
-You can connect onto a DPDK compute node and read the vrouter environment file (which is on the host OS, not inside a container) in order to check that the correct value has been configured by the deployer.
+You can connect onto a DPDK compute node and read the vrouter environment file
+(which is on the host OS, not inside a container) in order to check that the
+correct value has been configured by the deployer.
 
 If you see something like this, things are correct:
 
@@ -2061,6 +2369,7 @@ Next, "re-create" containers by running:
 This time DPDK will be pinned as desired.
 
 When *TripleO* is used, CPU_LIST has to be included into the Contrail NIC template configuration file (_<tripleo-root-dir>_/network/config/contrail/contrail-dpdk-nic-config.yaml}. Quotes have also to be used into TripleO Yaml files in order to avoid the value to be converted into decimal.
+
 In TripleO CPU_LIST=”0x154000000154” have to be used to get vrouter processing threads assigned onto 2.4.6,8,38,40,42 and 44 CPU cores.
 
 Here is a Contrail NIC template configuration example when installing Contrail via TripleO deployer:
@@ -2079,327 +2388,297 @@ Here is a Contrail NIC template configuration example when installing Contrail v
     cpu_list: ”0x154000000154”
     …
 
-*NOTE*: If more that 54 forwarding cores are selected with CPU_CORE_MASK (or cpu_list), vrouter startup will fail with following message into contrrail-vrouter-dpdk.log file: _"Error configuring lcores: number of forwarding cores exceeds maximum of 54" ._
+NOTE: If more that 54 forwarding cores are selected with CPU_CORE_MASK (or
+cpu_list), vrouter startup will fail with following message into
+`contrail-vrouter-dpdk.log` file: `"Error configuring lcores: number of forwarding cores exceeds maximum of 54" .`
 
 === CPU pinning and isolation
 
-==== CPU isolation configuration (tuned and isolcpus) - RedHat
+some text
+
+==== tuned and isolcpus - RedHat
 
 First we are enforcing CPU isolation rules in order to keep CPUs assigned to vRouter and Nova out of the system scheduler :
 
-{empty}1. Tuned: Prevent CPUs for Nova and vRouter in /etc/tuned/cpu-partitioning-variables.conf
+1. Tuned: Prevent CPUs for Nova and vRouter in /etc/tuned/cpu-partitioning-variables.conf
 
-[cols="",]
-|====
-a|
+[source, sh, linenums]
+----
 cat /etc/tuned/cpu-partitioning-variables.conf
+isolated_cores=2-35,38-71
+----
 
-*isolated_cores=2-35,38-71*
+2. Isolcpus: Edit grub configuration in order to add isolcpus (and edit grub to hugepages)
 
-|====
-
-{empty}2. Isolcpus: Edit grub configuration in order to add isolcpus (and edit grub to hugepages)
-
-[cols="",]
-|====
-a|
+[source, sh, linenums]
+----
 cat /etc/default/grub
-
 GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 crashkernel=auto rhgb quiet default_hugepagesz=1GB hugepagesz=1G hugepages=128 hugepagesz=2M hugepages=40 *isolcpus=2-35,38-71*
+----
 
-|====
+3. apply isolation changes :
 
-{empty}3. apply isolation changes :
+[source, sh, linenums]
+----
+$ systemctl restart tuned
+$ grub2-mkconfig -o /boot/grub2/grub.cfg
+$ reboot
+----
 
-# systemctl restart tuned
+==== isolcpus - Ubuntu
 
-# grub2-mkconfig -o /boot/grub2/grub.cfg
+On Ubuntu OS, isolcpus mechanism is used in order to keep CPUs assigned to
+vRouter and Nova out of the system scheduler :
 
-# reboot
-
-==== CPU isolation configuration (isolcpus) - Ubuntu
-
-On Ubuntu OS, isolcpus mechanism is used in order to keep CPUs assigned to vRouter and Nova out of the system scheduler :
-
-[cols="",]
-|====
-|Kernel parameter isolcpus=2-35,38-71 in /etc/default/grub, run update-grub and restart the node.
-|====
-
-
+    Kernel parameter isolcpus=2-35,38-71 in /etc/default/grub, 
+    run update-grub and restart the node.
 
 ==== Operating system scheduler CPU assignment (CPUAffinity) - RedHat
 
-{empty}1. CPUs assigned to the system scheduler are defined using tuned partitioning mechanism :
+1. CPUs assigned to the system scheduler are defined using tuned partitioning mechanism :
 
-[cols="",]
-|====
-a|
+[source, sh, linenums]
+----
 vi /systemd/system.conf
-
 ...
-
 CPUAffinity=0-1,36-37
+----
 
-|====
+2. then we apply tuned configuration changes :
 
-{empty}2. then we apply tuned configuration changes :
-
+[source, sh, linenums]
+----
 # systemctl restart tuned
+----
 
 ==== Nova CPU assignment (vcpu_pin_set)
 
-Cores to be used by Nova to run VMs is defined into _vcpu_pin_set_ variable (in DEFAULT section in /etc/nova/nova.conf file).
+Cores to be used by Nova to run VMs is defined into _vcpu_pin_set_ variable (in
+DEFAULT section in /etc/nova/nova.conf file).
 
-{empty}1. We are enforcing Nova CPU assignment :
+1. We are enforcing Nova CPU assignment :
 
-[cols="",]
-|====
-a|
+[source, sh, linenums]
+----
 # openstack-config --set /etc/nova/nova.conf DEFAULT vcpu_pin_set 4-47
-
 # cat /etc/nova/nova.conf | grep vcpu_pin_set
-
 vcpu_pin_set=3,5,7,9,11-35,39,41,43,45,47-71
+----
 
-|====
+2. In order to get these changes taken into consideration, nova compute service
+   has to be restarted:
 
-{empty}2. In order to get these changes taken into consideration, nova compute service has to be restarted:
+When OpenStack Kolla is used:
 
-[cols="",]
-|====
-a|
-When OpenStack Kolla is used: +
-# docker restart nova_compute
+    # docker restart nova_compute
 
-When OpenStack Kolla is not used: +
-# service nova-compute restart (Ununtu) +
-# service openstack-nova-compute restart (RHEL)
+When OpenStack Kolla is not used:
 
-|====
+    # service nova-compute restart (Ununtu) +
+    # service openstack-nova-compute restart (RHEL)
 
-PS: Optionally, property _hw:cpu_policy=dedicated_ can be set in any openstack flavor definition to disable VCPUs migration from one physical core to another.
-The advantage of this approach is that for flavors without the *_hw:cpu_policy=dedicated_* property (the default value will be set *_hw:cpu_policy=prefered_*), VMs will be balanced between cpus.
-With _isolcpus_ set, all VMs without the above property will end up executing on the first cpu from the list.
+NOTE: Optionally, property _hw:cpu_policy=dedicated_ can be set in any
+openstack flavor definition to disable VCPUs migration from one physical core
+to another.
+
+The advantage of this approach is that for flavors without the
+*_hw:cpu_policy=dedicated_* property (the default value will be set
+*_hw:cpu_policy=prefered_*), VMs will be balanced between cpus.
+
+With `isolcpus` set, all VMs without the above property will end up executing
+on the first cpu from the list.
 
 ==== vRouter CPU assignment (CPU_LIST, SERVICE_CORE_MASK and DPDK_CTRL_THREAD_MASK)
 
-{empty}1. Configure vrouter CPU_LIST (only CPU 2,4,6,8 are used: mask=0x154):
+1. Configure vrouter CPU_LIST (only CPU 2,4,6,8 are used: mask=0x154):
 
-[cols="",]
-|====
-a|
-vi /etc/sysconfig/network-scripts/ifcfg-vhost0
-
-[...] CPU_LIST=0x154
-
-|====
+    vi /etc/sysconfig/network-scripts/ifcfg-vhost0
+    [...] CPU_LIST=0x154
 
 PS: CPU 38,40,42 and 44 are not selected and won’t receive any task to process.
 
-{empty}2. Configure vrouter SERVICE_CORE_MASK:
+2. Configure vrouter SERVICE_CORE_MASK:
 
-[cols="",]
-|====
-a|
-vi /etc/sysconfig/network-scripts/ifcfg-vhost0
+    vi /etc/sysconfig/network-scripts/ifcfg-vhost0
+    [...] SERVICE_CORE_MASK=0x400000000400
 
-[...] SERVICE_CORE_MASK=0x400000000400
+3. Configure vrouter DPDK_CTRL_THREAD_MASK:
 
-|====
+    vi /etc/sysconfig/network-scripts/ifcfg-vhost0
+    [...] DPDK_CTRL_THREAD_MASK=0x2B00000002B
 
-{empty}3. Configure vrouter DPDK_CTRL_THREAD_MASK:
+4. We apply vrouter configuration changes :
 
-[cols="",]
-|====
-a|
-vi /etc/sysconfig/network-scripts/ifcfg-vhost0
-
-[...] DPDK_CTRL_THREAD_MASK=0x2B00000002B
-
-|====
-
-{empty}4. We apply vrouter configuration changes :
-
-# ifdown vhost0
-
-# ifup vhost0
+    # ifdown vhost0
+    # ifup vhost0
 
 ==== Check CPU pinning on all processes
 
-In order to check actual CPU used to run a process and the CPU pinning rule bound to each process, following command can be used :
+In order to check actual CPU used to run a process and the CPU pinning rule
+bound to each process, following command can be used :
 
-$ ps -eT -o psr,tid,comm,pid,ppid,cmd,pcpu,stat | awk '$3 != "ps" \{ cmd="taskset -cp " $2 "| sed \"s/^pid .*s current affinity list://\" | tr -d \" \" | tr -d \"\\n\" "; cmd | getline affin; printf( "%6s %s \n", affin, $0) }' 2> /dev/null | more
+    $ ps -eT -o psr,tid,comm,pid,ppid,cmd,pcpu,stat | awk '$3 != "ps" \{ cmd="taskset -cp " $2 "| sed \"s/^pid .*s current affinity list://\" | tr -d \" \" | tr -d \"\\n\" "; cmd | getline affin; printf( "%6s %s \n", affin, $0) }' 2> /dev/null | more
+    PSR TID COMMAND PID PPID CMD %CPU STAT
+    0-47 0 1 systemd 1 0 /usr/lib/systemd/systemd -- 0.0 Ss
+    0-47 0 2 kthreadd 2 0 [kthreadd] 0.0 S
+    0 0 4 kworker/0:0H 4 2 [kworker/0:0H] 0.0 S<
+    0 0 6 ksoftirqd/0 6 2 [ksoftirqd/0] 0.0 S
+    0 0 7 migration/0 7 2 [migration/0] 0.0 S
+    0-47 8 8 rcu_bh 8 2 [rcu_bh] 0.0 S
 
-PSR TID COMMAND PID PPID CMD %CPU STAT
+In the first column we can read the *_CPU pinning_* put onto the process with
+taskset command, in the second one (PSR), we can see the *_actual CPU_* used by
+the process.
 
-0-47 0 1 systemd 1 0 /usr/lib/systemd/systemd -- 0.0 Ss
-
-0-47 0 2 kthreadd 2 0 [kthreadd] 0.0 S
-
-0 0 4 kworker/0:0H 4 2 [kworker/0:0H] 0.0 S<
-
-0 0 6 ksoftirqd/0 6 2 [ksoftirqd/0] 0.0 S
-
-0 0 7 migration/0 7 2 [migration/0] 0.0 S
-
-0-47 8 8 rcu_bh 8 2 [rcu_bh] 0.0 S
-
-In the first column we can read the *_CPU pinning_* put onto the process with taskset command, in the second one (PSR), we can see the *_actual CPU_* used by the process.
+.ping: from lab
+[source, sh, linenums]
+----
+[heat-admin@jnprctdpdk01 ~]$ ps -eT  -o psr,tid,comm,pid,ppid,cmd,pcpu,stat  | awk '$3 != "ps" { cmd="taskset -cp " $2 "| sed \"s/^pid .*
+s current affinity list://\" | tr -d \" \" | tr -d \"\\n\" "; cmd | getline affin;  printf( "%6s %s \n", affin, $0)  }' 2> /dev/null
+       PSR     TID COMMAND             PID    PPID CMD                         %CPU STAT
+  0,15  15       1 systemd               1       0 /usr/lib/systemd/systemd --  0.1 Ss
+  0,15  15       2 kthreadd              2       0 [kthreadd]                   0.0 S
+     0   0       4 kworker/0:0H          4       2 [kworker/0:0H]               0.0 S<
+  0-15  15       5 kworker/u32:0         5       2 [kworker/u32:0]              0.0 S
+     0   0       6 ksoftirqd/0           6       2 [ksoftirqd/0]                0.0 S
+     0   0       7 migration/0           7       2 [migration/0]                0.0 S
+  0,15  15       8 rcu_bh                8       2 [rcu_bh]                     0.0 S
+  0,15  15       9 rcu_sched             9       2 [rcu_sched]                  0.1 S
+    15  15      10 lru-add-drain        10       2 [lru-add-drain]              0.0 S<
+     1   1      11 migration/1          11       2 [migration/1]                0.0 S
+     1   1      12 ksoftirqd/1          12       2 [ksoftirqd/1]                0.0 S
+     1   1      13 kworker/1:0          13       2 [kworker/1:0]                0.0 S
+     1   1      14 kworker/1:0H         14       2 [kworker/1:0H]               0.0 S<
+  0,15   0      15 rcuob/1              15       2 [rcuob/1]                    0.0 S
+----
 
 === vNIC performance
 
 ==== CPU assigned for Multiqueue and virtIO
 
-When multiqueue is used on a Guest VM, the vrouter will only be able to sustain guest vNIC configured with a number of queue below or equal to the number for processing core allocated to the vrouter.
-In the ideal scenario, each multiqueue vNIC is configured with the same number of queue than the number of CPU allocated to vrouter for packet processing.
+When multiqueue is used on a Guest VM, the vrouter will only be able to sustain
+guest vNIC configured with a number of queue below or equal to the number for
+processing core allocated to the vrouter.
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image40.png[Screen Shot 2017-11-13 at 10.54.12.png,width=524,height=255]
+In the ideal scenario, each multiqueue vNIC is configured with the same number
+of queue than the number of CPU allocated to vrouter for packet processing.
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image40.png[Screen Shot 2017-11-13 at 10.54.12.png,width=624,height=355]
 
 ==== Single queue virtIO
 
-The network performance does not scale as the number of vCPUs increases. +
-Guest cannot transmit or retrieve packets in parallel as virtio-net have only one TX and RX.
+The network performance does not scale as the number of vCPUs increases.
+
+Guest cannot transmit or retrieve packets in parallel as virtio-net have only
+one TX and RX.
 virtio-net drivers must be synchronized before sending and receiving packets.
 
-It is useless to assign more CPU to vrouter in order to increase packet processing rate, as only one vrouter CPU is used to poll the single vNIC queue.
-Moreover, all vrouter CPU could have a packet to transmit to the vNIC single queue which is becoming a congestion point.
-If we add more CPU, we increase the pressure on the vNIC single queue and it could lead to jitter and even packet drop (buffer overflow).
+It is useless to assign more CPU to vrouter in order to increase packet
+processing rate, as only one vrouter CPU is used to poll the single vNIC queue.
+
+Moreover, all vrouter CPU could have a packet to transmit to the vNIC single
+queue which is becoming a congestion point.
+
+If we add more CPU, we increase the pressure on the vNIC single queue and it
+could lead to jitter and even packet drop (buffer overflow).
 
 ==== Multiqueue virtIO
 
-In the case of DPDK vrouter, the support for multiqueue virtio is available from Contrail 3.1 onwards.
+In the case of DPDK vrouter, the support for multiqueue virtio is available
+from Contrail 3.1 onwards.
 
-The difference with non-DPDK is that vRouter runs in the user space instead of host kernel.
+The difference with non-DPDK is that vRouter runs in the user space instead of
+host kernel.
 Also there is a vhost userspace process wherein the vRouter copies packets to/from the VM.
 
 Every queue inside the VM maps to a virtio ring on the host user space.
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image41.png[Screen Shot 2017-11-10 at 16.32.08.png,width=423,height=220]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image41.png[Screen Shot 2017-11-10 at 16.32.08.png,width=523,height=320]
 
 Some of the offload capabilities, e.g. GRO (Generic Receive Offload), is not supported with multiqueue virtio on DPDK vrouter in Contrail 3.2.
 
 ==== DPDK Multiqueue packet walk-through
 
-In this case vRouter runs as a multi-core process that exists on all assigned cores.
-There is also a scale-out approach to packet processing using multiple cores so the performance of one VM is NOT limited by the performance of 1 core.
+In this case vRouter runs as a multi-core process that exists on all assigned
+cores.
+
+There is also a scale-out approach to packet processing using multiple cores so
+the performance of one VM is NOT limited by the performance of 1 core.
 
 A vRouter might have more cores than there are queues in the VM.
 Queues can only be shared when the vRouter cores send to the VM queue.
-When receiving from the queue, exactly one vRouter core will read from a queue (*_i.e. receive queues are not shared, in order to prevent packet reordering_*).
-
-
+When receiving from the queue, exactly one vRouter core will read from a queue
+(*_i.e. receive queues are not shared, in order to prevent packet
+reordering_*).
 
 ==== vNIC queues queue size configuration (RedHat OpenStack)
 
 vNIC queues are not configured by Contrail vRouter, they are managed by OpenStack.
 
-Rqueue Size are defined at OpenStack level (using libvirt) : /etc/nova/nova.conf
+Rqueue Size are defined at OpenStack level (using libvirt) : `/etc/nova/nova.conf`
 
-# Configure virtio rx queue size.
+    # Configure virtio rx queue size.
+    # This option is only usable for virtio-net device with vhost and
+    # vhost-user backend.
+    Available only with QEMU/KVM.
+    Requires libvirt
 
-#
+    # v2.3 QEMU v2.7. (integer value)
+    # Possible values:
+    # 256 - <No description provided>
+    # 512 - <No description provided>
+    # 1024 - <No description provided>
+    #rx_queue_size=<None>
 
-# This option is only usable for virtio-net device with vhost and
+    # Configure virtio tx queue size.
+    # This option is only usable for virtio-net device with vhost-user
+    # backend.
+    Available only with QEMU/KVM.
+    Requires libvirt v3.7 QEMU
 
-# vhost-user backend.
-Available only with QEMU/KVM.
-Requires libvirt
-
-# v2.3 QEMU v2.7. (integer value)
-
-# Possible values:
-
-# 256 - <No description provided>
-
-# 512 - <No description provided>
-
-# 1024 - <No description provided>
-
-#rx_queue_size=<None>
-
-# Configure virtio tx queue size.
-
-#
-
-# This option is only usable for virtio-net device with vhost-user
-
-# backend.
-Available only with QEMU/KVM.
-Requires libvirt v3.7 QEMU
-
-# v2.10. (integer value)
-
-# Possible values:
-
-# 256 - <No description provided>
-
-# 512 - <No description provided>
-
-# 1024 - <No description provided>
-
-#tx_queue_size=<None>
+    # v2.10. (integer value)
+    # Possible values:
+    # 256 - <No description provided>
+    # 512 - <No description provided>
+    # 1024 - <No description provided>
+    #tx_queue_size=<None>
 
 Nova configuration file values are provisioned with TripleO.
-vNIC queues size can be defined using _NovaLibvirtRxQueueSize_ and _NovaLibvirtRxQueueSize_ environment parameters.
+
+vNIC queues size can be defined using `NovaLibvirtRxQueueSize` and
+`NovaLibvirtRxQueueSize` environment parameters.
 By default they are configured with a 512 value.
 
-Nova configuration file is configured with _<tripleo templates root dir>_/puppet/services/nova-compute.yaml file:
+Nova configuration file is configured with `<tripleo templates root
+dir>`/puppet/services/nova-compute.yaml file:
 
-NovaLibvirtRxQueueSize:
+    NovaLibvirtRxQueueSize:
+       description: >
+         virtio-net RX queue size. Valid values are 256, 512, 1024
+       default: 512
+       type: number
+       constraints:
+         - allowed_values: [ 256, 512, 1024 ]
+       tags:
+         - role_specific
+     NovaLibvirtTxQueueSize:
+       description: >
+         virtio-net TX queue size. Valid values are 256, 512, 1024
+       default: 512
+       type: number
+       constraints:
+         - allowed_values: [ 256, 512, 1024 ]
 
-description: >
+Using virsh dumpxml command, we can verify queue size configured by Nova with
+libvirt :
 
-virtio-net RX queue size.
-Valid values are 256, 512, 1024
-
-default: 512
-
-type: number
-
-constraints:
-
-- allowed_values: [ 256, 512, 1024 ]
-
-tags:
-
-- role_specific
-
-NovaLibvirtTxQueueSize:
-
-description: >
-
-virtio-net TX queue size.
-Valid values are 256, 512, 1024
-
-default: 512
-
-type: number
-
-constraints:
-
-- allowed_values: [ 256, 512, 1024 ]
-
-Using virsh dumpxml command, we can verify queue size configured by Nova with libvirt :
-
-[cols="",]
-|====
-a|
-virsh dumpxml [vm id]
-
-...
-
-<interface type='ethernet'>
-
-<model type='virtio'/>
-
-<driver name='vhost' queues='5' rx_queue_size='1024' tx_queue_size='1024'/>
-
-</interface>
-
-...
-
-|====
+    virsh dumpxml [vm id]
+    ...
+    <interface type='ethernet'>
+        <model type='virtio'/>
+        <driver name='vhost' queues='5' rx_queue_size='1024' tx_queue_size='1024'/>
+    </interface>
+    ...
 
 ==== multiQ vNIC and number of queues size configured (RedHat OpenStack)
 
@@ -2407,300 +2686,199 @@ Nova is configuring automatically the number of queues of each vNIC.
 There is no way to manually define the number of queues to be created for each vNIC.
 We can only change the number of queues of a given vNIC after the virtual instance has been started, using some Linux commande into the virtual machine whose vNIC configuration has to be modified (cf next section).
 
-Nova is using vif.py script to create instance virtual interfaces (https://github.com/openstack/nova/blob/master/nova/virt/libvirt/vif.py)
+Nova is using vif.py script to create instance virtual interfaces
+(https://github.com/openstack/nova/blob/master/nova/virt/libvirt/vif.py)
 
 Number of configured queues for a vif is depending on:
 
 - Compute node kernel release
 - Number of vCPU configured onto the virtual instance
 
-When a Linux Kernel 3.x is used (RHOSP 13), a maximum of 8 queues are configured by Nova for each vif.
+.kernel 3.x
+When a Linux Kernel 3.x is used (RHOSP 13), a maximum of 8 queues are
+configured by Nova for each vif.
 
-- when an instance is configured with 8 or less vCPUs: the number of queues configured on its multiqueues vif is equal to the number of vCPU.
-- when an instance is configured with more than 8 vCPUs: the number of queues configured on its multiqueues vif is equal 8
+- when an instance is configured with 8 or less vCPUs: the number of queues
+  configured on its multiqueues vif is equal to the number of vCPU.
+- when an instance is configured with more than 8 vCPUs: the number of queues
+  configured on its multiqueues vif is equal 8
 
-When a Linux Kernel 4.x is used (RHOSP 16), the same algorithm is used but using 256 instead of 8 as a maximum of queues to be configured by each vif.
+.kernel 4.x
+When a Linux Kernel 4.x is used (RHOSP 16), the same algorithm is used but
+using 256 instead of 8 as a maximum of queues to be configured by each vif.
 
+[source, sh, linenums]
+----
 $ vi /usr/lib/python2.7/site-packages/nova/virt/libvirt/vif.py
-
 ...
-
-def _get_max_tap_queues(self):
-
-# NOTE(kengo.sakai): In kernels prior to 3.0,
-
-# multiple queues on a tap interface is not supported.
-
-# In kernels 3.x, the number of queues on a tap interface
-
-# is limited to 8. From 4.0, the number is 256.
-
-# See: https://bugs.launchpad.net/nova/+bug/1570631
-
-kernel_version = int(os.uname()[2].split(".")[0])
-
-if kernel_version <= 2:
-
-return 1
-
-elif kernel_version == 3:
-
-return 8
-
-elif kernel_version == 4:
-
-return 256
-
-else:
-
-return None
-
+    def _get_max_tap_queues(self):
+        # NOTE(kengo.sakai): In kernels prior to 3.0,
+        # multiple queues on a tap interface is not supported.
+        # In kernels 3.x, the number of queues on a tap interface
+        # is limited to 8. From 4.0, the number is 256.
+        # See: https://bugs.launchpad.net/nova/+bug/1570631
+        kernel_version = int(os.uname()[2].split(".")[0])
+        if kernel_version <= 2:
+            return 1
+        elif kernel_version == 3:
+            return 8
+        elif kernel_version == 4:
+            return 256
+        else:
+            return None
 ...
+----
 
 ==== Enable Multiqueue on OpenStack instances
 
-To enable multiqueue with DPDK in a Glance image, we add metadata hw_vif_multiqueue_enabled="true":
+To enable multiqueue with DPDK in a Glance image, we add metadata
+hw_vif_multiqueue_enabled="true":
 
-[cols="",]
-|====
-|openstack image set --property hw_vif_multiqueue_enabled="true" [image name or ID]
-|====
+    openstack image set --property hw_vif_multiqueue_enabled="true" [image name or ID]
 
 Number of queues to be created can’t be specified with Glance metadata.
 Currently, the number of queues will match the number of vCPUs, defined for the instance.
 
 Using virsh dumpxml command, we can verify how many queues have been created by libvirt :
 
-[cols="",]
-|====
-a|
-virsh dumpxml [vm id]
-
-...
-
-<interface type='ethernet'>
-
-<model type='virtio'/>
-
-<driver name='vhost' queues='5'/>
-
-</interface>
-
-...
-
-|====
+    virsh dumpxml [vm id]
+    ...
+    <interface type='ethernet'>
+    <model type='virtio'/>
+    <driver name='vhost' queues='5'/>
+    </interface>
+    ...
 
 Here, 5 queues have been allocated to the vNIC.
 
-===== How to change the number of queues for an OpenStack instances vNIC
+==== How to change the number of queues for an OpenStack instances vNIC
 
 Inside an guest instantiated guest with multiqueues enabled, the NIC channel setup can be checked and changed as needed with the commands below.
 
 In order to see the current number of queues we have to use :
 
-[cols="",]
-|====
-|ethtool -l [nic name]
-|====
+    ethtool -l [nic name]
 
 In order to change the number of queues we have to use :
 
-[cols="",]
-|====
-|ethtool -L [nic name] combined [number of queues]
-|====
+    ethtool -L [nic name] combined [number of queues]
 
 For instance, below we are configuring 4 logical queues on eth0 vNIC :
 
-ethtool -L eth0 combined 4
+    ethtool -L eth0 combined 4
 
-This should be done during interface initialization, for example in a "pre-up" action in /etc/network/interfaces.
-But it seems to be possible to change this configuration on a running interface without disruption.
+This should be done during interface initialization, for example in a "pre-up"
+action in /etc/network/interfaces.
+But it seems to be possible to change this configuration on a running interface
+without disruption.
 
-PS: above commands have to be issued *inside each virtual machine*.
-
-
+NOTE: above commands have to be issued *inside each virtual machine*.
 
 ==== Multiqueue and known limitations
 
-===== [.underline]#Number of queues on VM instances#:
+===== Number of queues on VM instances
 
-Number of queues configured on virtual instances collected by the vrouter *must be below or equal to the number of queues configured on the vrouter* (aka number of CPU assigned to vrouter for packet processing).
+Number of queues configured on virtual instances collected by the vrouter *must
+be below or equal to the number of queues configured on the vrouter* (aka
+number of CPU assigned to vrouter for packet processing).
 
-If more queues are configured on the instance side than on the vrouter side, following messages will be seen into the vrouter dpdk logs :
+If more queues are configured on the instance side than on the vrouter side,
+following messages will be seen into the vrouter dpdk logs :
 
-2019-09-24 16:36:50,011 VROUTER: Adding vif 8 (gen.
-37) virtual device tap66e68bc1-a9
+    2019-09-24 16:36:50,011 VROUTER: Adding vif 8 (gen.
+    37) virtual device tap66e68bc1-a9
+    2019-09-24 16:36:50,012 VROUTER: lcore 12 TX to HW queue 0
+    2019-09-24 16:36:50,012 VROUTER: lcore 13 TX to HW queue 1
+    2019-09-24 16:36:50,012 VROUTER: lcore 8 TX to HW queue 2
+    2019-09-24 16:36:50,012 VROUTER: lcore 9 TX to HW queue 3
+    2019-09-24 16:36:50,012 VROUTER: lcore 10 TX to HW queue 4
+    2019-09-24 16:36:50,012 VROUTER: lcore 11 TX to HW queue 5
+    2019-09-24 16:36:50,012 VROUTER: lcore 12 RX from HW queue 0
+    2019-09-24 16:36:50,012 VROUTER: lcore 13 RX from HW queue 1
+    2019-09-24 16:36:50,012 VROUTER: lcore 10 RX from HW queue 2
+    2019-09-24 16:36:50,012 VROUTER: lcore 11 RX from HW queue 3
+    2019-09-24 16:36:50,012 UVHOST: Adding vif 8 virtual device tap66e68bc1-a9
+    2019-09-24 16:36:50,012 UVHOST: vif (server) 8 socket tap66e68bc1-a9 FD is 173
+    ….
+    2019-09-24 16:37:46,692 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 0 ready state 1
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 1 ready state 1
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 2 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 3 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 4 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 5 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 6 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 7 ready state 0
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable TX queue 4 (only 4 queues)
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable RX queue 4 (only 4 queues)
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable TX queue 5 (only 4 queues)
+    2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
+    2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable RX queue 5 (only 4 queues)
+    ….
+    019-09-24 16:40:58,250 UVHOST: vr_uvhm_set_vring_enable: Can not enable TX queue 7 (only 4 queues)
+    2019-09-24 16:40:58,250 UVHOST: Client _tap3c0c41f1-66: handling message 18
+    2019-09-24 16:40:58,250 UVHOST: vr_uvhm_set_vring_enable: Can not enable RX queue 7 (only 4 queues)
 
-2019-09-24 16:36:50,012 VROUTER: lcore 12 TX to HW queue 0
-
-2019-09-24 16:36:50,012 VROUTER: lcore 13 TX to HW queue 1
-
-2019-09-24 16:36:50,012 VROUTER: lcore 8 TX to HW queue 2
-
-2019-09-24 16:36:50,012 VROUTER: lcore 9 TX to HW queue 3
-
-2019-09-24 16:36:50,012 VROUTER: lcore 10 TX to HW queue 4
-
-2019-09-24 16:36:50,012 VROUTER: lcore 11 TX to HW queue 5
-
-2019-09-24 16:36:50,012 VROUTER: lcore 12 RX from HW queue 0
-
-2019-09-24 16:36:50,012 VROUTER: lcore 13 RX from HW queue 1
-
-2019-09-24 16:36:50,012 VROUTER: lcore 10 RX from HW queue 2
-
-2019-09-24 16:36:50,012 VROUTER: lcore 11 RX from HW queue 3
-
-2019-09-24 16:36:50,012 UVHOST: Adding vif 8 virtual device tap66e68bc1-a9
-
-2019-09-24 16:36:50,012 UVHOST: vif (server) 8 socket tap66e68bc1-a9 FD is 173
-
-….
-
-2019-09-24 16:37:46,692 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 0 ready state 1
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 1 ready state 1
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 2 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 3 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 4 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 5 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 6 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: setting vring 7 ready state 0
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable TX queue 4 (only 4 queues)
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable RX queue 4 (only 4 queues)
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable TX queue 5 (only 4 queues)
-
-2019-09-24 16:37:46,693 UVHOST: Client _tap66e68bc1-a9: handling message 18
-
-2019-09-24 16:37:46,693 UVHOST: vr_uvhm_set_vring_enable: Can not disable RX queue 5 (only 4 queues)
-
-….
-
-019-09-24 16:40:58,250 UVHOST: vr_uvhm_set_vring_enable: Can not enable TX queue 7 (only 4 queues)
-
-2019-09-24 16:40:58,250 UVHOST: Client _tap3c0c41f1-66: handling message 18
-
-2019-09-24 16:40:58,250 UVHOST: vr_uvhm_set_vring_enable: Can not enable RX queue 7 (only 4 queues)
-
-Here we have a vrouter configured with 4 forwarding cores (= 4 queues) but the collected VM is configured with 8 queues.
+Here we have a vrouter configured with 4 forwarding cores (= 4 queues) but the
+collected VM is configured with 8 queues.
 Queues 4 to 7 won’t be processed by the vrouter.
 
-===== [.underline]#Indirect descriptors are not supported#:
+===== Indirect descriptors are not supported
 
 Contrail does not support indirect buffer descriptors (VIRTIO_RING_F_INDIRECT_DESC). +
-Cf: https://spp-tmp.readthedocs.io/en/stable/rel_notes/release_16_11.html[[.underline]#https://spp-tmp.readthedocs.io/en/stable/rel_notes/release_16_11.html#]
+Cf: https://spp-tmp.readthedocs.io/en/stable/rel_notes/release_16_11.html
 
 So, indirect_desc field is set to false in QEMU interface setup :
 
-[heat-admin@xxxx ~]$ sudo docker exec -it c149193e4a14 virsh qemu-monitor-command 1 --hmp info qtree
-
-bus: main-system-bus
-
-type System
-
-dev: kvm-ioapic, id ""
-
-gpio-in "" 24
-
-gsi_base = 0 (0x0)
-
-mmio 00000000fec00000/0000000000001000
-
-dev: i440FX-pcihost, id ""
-
-pci-hole64-size = 2147483648 (2 GiB)
-
-short_root_bus = 0 (0x0)
-
-x-pci-hole64-fix = true
-
-bus: pci.0
-
-type PCI
-
-...
-
-dev: virtio-net-pci, id "net1"
-
-ioeventfd = true
-
-vectors = 18 (0x12)
-
-virtio-pci-bus-master-bug-migration = false
-
-...
-
-bar 1: mem at 0xfebd2000 [0xfebd2fff]
-
-bar 6: mem at 0xffffffffffffffff [0x3fffe]
-
-bus: virtio-bus
-
-type virtio-pci-bus
-
-dev: virtio-net-device, id ""
-
-csum = true
-
-…
-
-rx_queue_size = 1024 (0x400)
-
-tx_queue_size = 1024 (0x400)
-
-host_mtu = 0 (0x0)
-
-x-mtu-bypass-backend = true
-
-speed = -1 (0xffffffffffffffff)
-
-duplex = ""
-
-indirect_desc = false
-
-event_idx = false
-
-notify_on_empty = false
-
-any_layout = false
-
-iommu_platform = false
-
-__com.redhat_rhel6_ctrl_guest_workaround = false
-
-...
+    [heat-admin@xxxx ~]$ sudo docker exec -it c149193e4a14 virsh qemu-monitor-command 1 --hmp info qtree
+    bus: main-system-bus
+    type System
+    dev: kvm-ioapic, id ""
+    gpio-in "" 24
+    gsi_base = 0 (0x0)
+    mmio 00000000fec00000/0000000000001000
+    dev: i440FX-pcihost, id ""
+    pci-hole64-size = 2147483648 (2 GiB)
+    short_root_bus = 0 (0x0)
+    x-pci-hole64-fix = true
+    bus: pci.0
+    type PCI
+    ...
+    dev: virtio-net-pci, id "net1"
+    ioeventfd = true
+    vectors = 18 (0x12)
+    virtio-pci-bus-master-bug-migration = false
+    ...
+    bar 1: mem at 0xfebd2000 [0xfebd2fff]
+    bar 6: mem at 0xffffffffffffffff [0x3fffe]
+    bus: virtio-bus
+    type virtio-pci-bus
+    dev: virtio-net-device, id ""
+    csum = true
+    …
+    rx_queue_size = 1024 (0x400)
+    tx_queue_size = 1024 (0x400)
+    host_mtu = 0 (0x0)
+    x-mtu-bypass-backend = true
+    speed = -1 (0xffffffffffffffff)
+    duplex = ""
+    indirect_desc = false
+    event_idx = false
+    notify_on_empty = false
+    any_layout = false
+    iommu_platform = false
+    __com.redhat_rhel6_ctrl_guest_workaround = false
+    ...
 
 === IRQ setup
 
@@ -2713,11 +2891,11 @@ In RHEL, tuned’s cpu-partitioning profile leverages IRQ CPU affinity (_isolate
 
 First, stop irqbalance daemon :
 
-# systemctl stop irqbalance
+    # systemctl stop irqbalance
 
 Then, remove irqbalance from system startup :
 
-# systemctl disable irqbalance
+    # systemctl disable irqbalance
 
 *_Exclude CPUs from IRQ Balancing_*
 
@@ -2725,33 +2903,19 @@ The /etc/sysconfig/irqbalance configuration file contains a parameter named _IRQ
 
 The following mask excludes CPUs 8 to 15 as well as CPU 33 from IRQ balancing:
 
-IRQBALANCE_BANNED_CPUS=00000001,0000ff00
+    IRQBALANCE_BANNED_CPUS=00000001,0000ff00
 
-PS: If you are running a system with up to 64 CPU cores, separate each group of eight hexadecimal digits with a comma.
+NOTE: If you are running a system with up to 64 CPU cores, separate each group
+of eight hexadecimal digits with a comma.
 
 ==== Unsupported features
 
-[arabic]
-. {blank}
-+
-____
-QoS is not supported (Marking is supported with DPDK vrouter.
-Hardware queueing is not).
-____
-. {blank}
-+
-____
-Jumbo frames for DPDK VMs in 3.2.8 and 4.0.1 (*).
-____
-. {blank}
-+
-____
-Jumbo frames for non-DPDK VMs on DPDK nodes in 3.2.8 and 4.0.1 (*)
-____
+- QoS is not supported (Marking is supported with DPDK vrouter. Hardware
+  queueing is not).
+- Jumbo frames for DPDK VMs in 3.2.8 and 4.0.1 (*).
+- Jumbo frames for non-DPDK VMs on DPDK nodes in 3.2.8 and 4.0.1 (*)
 
 (*) these features are requiring mergeable buffers to be supported.
-
-
 
 == Deployment considerations
 
@@ -2842,7 +3006,7 @@ It does not mean that other configurations are not allowed but some performance 
 *- core siblings are not used for physical core allocated to packet processing threads +
 (cf: vRouter CPU capacity planning section)
 
-- CPU allocated to DPDK vrouter and Nova are properly isolated with both _tuned partitioning_ and _isolcpus_ mechanisms (contrail 20.03 and later version).
+- CPU allocated to DPDK vrouter and Nova are properly isolated with both `tuned partitioning` and `isolcpus` mechanisms (contrail 20.03 and later version).
 
 */!\*: When using a Contrail Release 19.12 or earlier, some erratic drops can be seen when CPU isolation rules are enforced either on vrouter and or nova allocated CPUs.
 For these versions the bests results are reached when no isolation mechanisms are enforced.
@@ -3975,7 +4139,7 @@ vRouter parameters can be checked with :
 
 $ docker exec contrail_vrouter_agent vrouter --info | more
 
-PS: It’s also possible to define vrouter option values into *_VROUTER_MODULE_OPTIONS_* environment variable into _/etc/sysconfig/network-scripts/ifcfg-vhost0_ file.
+PS: It’s also possible to define vrouter option values into *_VROUTER_MODULE_OPTIONS_* environment variable into `/etc/sysconfig/network-scripts/ifcfg-vhost0` file.
 
 For instance, we can add the following line to this file to decrease the Next Hop limit:
 
@@ -4223,7 +4387,7 @@ $ ifdown vhost0
 
 $ ifup vhost0
 
-PS: _/etc/sysconfig/network-scripts/network-functions-vrouter-kernel-env_ can also be used.
+PS: `/etc/sysconfig/network-scripts/network-functions-vrouter-kernel-env` can also be used.
 
 
 
@@ -4425,13 +4589,13 @@ command=/bin/taskset *<CPU 8 cores affinity>* /usr/bin/contrail-vrouter-dpdk
 
 DPDK fine tuning setup has first to be defined before Contrail rollout into the used OpenStack Contrail deployment tools.
 
-For instance, if TripleO is used, specific parameters have to be defined into _ContrailDpdkOptions_ variable.
+For instance, if TripleO is used, specific parameters have to be defined into `ContrailDpdkOptions` variable.
 This variable is used to fulfill _DPDK_COMMAND_ADDITIONAL_ARGS_ environment variable for DPDK vrouter container instance.
 If Ansible is used, _DPDK_COMMAND_ADDITIONAL_ARGS_ parameter can be used.
 
 [.underline]#For instance with TripleO# :
 
-An environment file (_<tripleO root dir>_/environments/contrail/contrail-service.yaml) has to be used to declare _ContrailDpdkOptions_ value.
+An environment file (_<tripleO root dir>_/environments/contrail/contrail-service.yaml) has to be used to declare `ContrailDpdkOptions` value.
 With TripleO there are two possibilities:
 
 First : declare this parameter at global level (same value for any DPDK roles):
@@ -4484,13 +4648,13 @@ CPU_CORE_MASK: ”0x154000000154”
 
 *DPDK_COMMAND_ADDITIONAL_ARGS:* "*--yield_option 0 …*"
 
-When contrail 5.0 or later release is used, dpecified valuers for these parameters will be put into _/etc/sysconfig/network-scripts/ifcfg-vhost0_ config file on each DPDK compute node..
+When contrail 5.0 or later release is used, dpecified valuers for these parameters will be put into `/etc/sysconfig/network-scripts/ifcfg-vhost0` config file on each DPDK compute node..
 
 
 
 ==== DPDK vouter parameters configuration onto the compute node (5.0 and later versions)
 
-Since Contrail 5.0 release and later, Contrail is containerized and DPDK parameters are no more defined into contrail-vrouter-dpdk.ini file but are installed by _/bin/bash /entrypoint.sh_ into contrail-vrouter-agent-dpdk container.
+Since Contrail 5.0 release and later, Contrail is containerized and DPDK parameters are no more defined into contrail-vrouter-dpdk.ini file but are installed by `/bin/bash /entrypoint.sh` into contrail-vrouter-agent-dpdk container.
 
 At the startup, DPDK vrouter container which will run /bin/bash /entrypoint.sh, which is applying specific DPDK configuration defined into _DPDK_COMMAND_ADDITIONAL_ARGS_ environment variable.
 
@@ -4499,7 +4663,7 @@ In this file we can override _DPDK_COMMAND_ADDITIONAL_ARGS_ value defined into t
 
 [.underline]#Example# :
 
-We are adding new specific TX and RX ring size (256 bytes instead of 128 bytes default value) and using a specific CPU mask into _network-functions-vrouter-dpdk-env file_ :
+We are adding new specific TX and RX ring size (256 bytes instead of 128 bytes default value) and using a specific CPU mask into `network-functions-vrouter-dpdk-env file` :
 
 $ vi /etc/sysconfig/network-scripts/network-functions-vrouter-dpdk-env
 
@@ -4509,7 +4673,7 @@ DPDK_COMMAND_ADDITIONAL_ARGS="--dpdk_rxd_sz 256 --dpdk_txd_sz 256"
 
 CPU_LIST=0x154
 
-PS: Specific DPDK fine tuning could also be defined into _/etc/sysconfig/network-scripts/ifcfg-vhost0_ file instead of _/etc/sysconfig/network-scripts/network-functions-vrouter-dpdk-env_ file.
+PS: Specific DPDK fine tuning could also be defined into `/etc/sysconfig/network-scripts/ifcfg-vhost0` file instead of `/etc/sysconfig/network-scripts/network-functions-vrouter-dpdk-env` file.
 
 $ vi /etc/sysconfig/network-scripts/ifcfg-vhost0
 
@@ -4753,7 +4917,7 @@ Use dpdk_nic_bind.py command to verify proper binding of NICs to proper Linux dr
 
 ==== vRouter vif queues setup
 
-When the router boots up, it displays a message about its logical cores numbering and pNIC and vNIC queues logical core pinning into _contrail-vrouter-dpdk-stdout.log_ file.
+When the router boots up, it displays a message about its logical cores numbering and pNIC and vNIC queues logical core pinning into `contrail-vrouter-dpdk-stdout.log` file.
 
 First vif to be initialized, is physical NIC, vif 0/0 :
 
@@ -5573,7 +5737,7 @@ $ sudo -i
 
 Keep note the path of the last command :
 
-# docker cp __<contrail-vrouter-dpdk.debug path>/__contrail-vrouter-dpdk.debug _<contrail-vrouter-dpdk name or ID>_:/usr/bin
+# docker cp __<contrail-vrouter-dpdk.debug path>/__contrail-vrouter-dpdk.debug `<contrail-vrouter-dpdk name or ID>`:/usr/bin
 
 Here for instance, our dpdk vrouter agent container name is contrail-vrouter-agent-dpdk and its ID: 3920ca0aac69
 
@@ -5583,7 +5747,7 @@ Here for instance, our dpdk vrouter agent container name is contrail-vrouter-age
 
 3 - run gdb on to contrail vrouter dpdk binary
 
-# docker exec -it _<contrail-vrouter-dpdk name or ID>_ bash
+# docker exec -it `<contrail-vrouter-dpdk name or ID>` bash
 
 (container)# ps -eaf | grep contrail-vrouter-dpdk
 
@@ -5591,7 +5755,7 @@ Keep note the process ID: <DPDK PID>
 
 (container)# gdb /usr/bin/contrail-vrouter-dpdk
 
-GDB will load both _contrail-vrouter-dpdk_ and _contrail-vrouter-dpdk.debug_ binary files.
+GDB will load both `contrail-vrouter-dpdk` and `contrail-vrouter-dpdk.debug` binary files.
 
 4 - attach to the current running dpdk process
 
@@ -5606,7 +5770,7 @@ GDB will load both _contrail-vrouter-dpdk_ and _contrail-vrouter-dpdk.debug_ bin
 === Faulty vrouter deployment troubleshooting
 
 Some typical root cause of a faulty OpenStack contrail deployment failure is a network misconfiguration onto compute nodes.
-Openstack is using _os-net-config_ to perform network configuration onto network hosts.
+Openstack is using `os-net-config` to perform network configuration onto network hosts.
 
 _os-net-config_ CLI is using YAML or JSON file formats.
 By default os-net-config uses a YAML config file located at /etc/os-net-config/config.yaml.

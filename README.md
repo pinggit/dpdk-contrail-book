@@ -198,32 +198,235 @@ coauthors:  (as of March 17)
     * Static mapping of queues
     * Run-to-completion
 
-## lab resources (from Laurent)
+## dpdk lab (Laurent)
 
-    If needed you can use following labs:
+If needed you can use following labs:
+
     19.12.L1:     10.85.32.6
     19.10:        10.85.224.2
 
     User:         root
     Password:     contrail123
 
-    From any of the hypervisor, run:
+From any of the hypervisor, run:
+
     ./ssh_director.sh
     Password:           contrail123
 
-    You’ll be in director node.
+You’ll be in director node.
+or:
 
+    [root@dl6 ~]# ssh stack@192.168.122.3
+    stack@192.168.122.3's password:
+    Last login: Wed Apr 29 08:30:48 2020 from 192.168.122.1
 
-    Don’t worry if you break one of them, I can easily rebuild it.
-    Normally a demo project with 4 Cirros VM should be deployed.
-    1 or 2 computes are DPDK, 1 or 2 othera are in Kernel mode.
+    [stack@tripleo-director ~]$ source stackrc
+    (undercloud) [stack@tripleo-director ~]$ openstack server list
+    +--------------------------------------+--------------+--------+------------------------+----------------+---------------------+
+    | ID                                   | Name         | Status | Networks               | Image          | Flavor              |
+    +--------------------------------------+--------------+--------+------------------------+----------------+---------------------+
+    | bc4d12bc-97f4-4c58-b04f-48efa13012ef | jnprct01     | ACTIVE | ctlplane=192.168.24.11 | overcloud-full | control             |
+    | dfb7ac79-5438-4f39-a056-cf71596c863d | jnprcc01     | ACTIVE | ctlplane=192.168.24.21 | overcloud-full | contrail-controller |
+    | 5e17284b-13ab-49ad-8091-e42b26766d4f | jnprctdpdk01 | ACTIVE | ctlplane=192.168.24.71 | overcloud-full | contrail-dpdk       |
+    | c8bc39ec-8e4d-4e4b-83e8-8d6e3fcfe8c3 | jnprcp01     | ACTIVE | ctlplane=192.168.24.61 | overcloud-full | compute-kernel      |
+    +--------------------------------------+--------------+--------+------------------------+----------------+---------------------+
 
-    Best regards,
-    Laurent DURAND
+Don’t worry if you break one of them, I can easily rebuild it.
+Normally a demo project with 4 Cirros VM should be deployed.
+1 or 2 computes are DPDK, 1 or 2 othera are in Kernel mode.
+
+Best regards,
+Laurent DURAND
 
 For more details on how to reach GUI or any node, have a look into:
 https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
 
+
+## dpdk lab
+
+### login
+
+    [4/30 9:06 AM] Przemyslaw Grygiel
+        please login to 10.87.5.122 root/c0ntrail
+        tmux attach -t  ping 
+
+    [contrail@5a3s21-node2 ~]# su contrail
+    [contrail@5a3s21-node2 ~]$ ssh undercloud
+    Last login: Mon Apr 27 02:53:39 2020 from 192.168.122.1
+
+    [stack@undercloud ~]$ . overcloudrc
+    (overcloud) [stack@undercloud ~]$ openstack server list
+    ^Bc+--------------------------------------+-----------------+--------+-----------------------------------------------------------------+------------------+-----------------+
+    | ID                                   | Name            | Status | Networks                                                        | Image            | Flavor          |
+    +--------------------------------------+-----------------+--------+-----------------------------------------------------------------+------------------+-----------------+
+    | 5a16ffad-f74b-4f36-aa51-aff4023e9d4c | traffic-swap    | ACTIVE | damian=192.168.1.105, 10.87.14.133                              | jtf-tests-ubuntu | jtf-tests-small |
+    | 4bfeb455-9947-4150-b665-cf5efbbf8112 | traffic-gen     | ACTIVE | damian=192.168.1.104, 10.87.14.132                              | jtf-tests-ubuntu | jtf-tests-small |
+    | b596906b-da5e-4d52-aadf-2e965a0809b8 | perf-test1-jump | ACTIVE | perf-test1-control=192.168.0.106                                | rapidVM-1908     | perf-test1-jump |
+    | 897f238c-7bfb-41bd-acce-589c093263a1 | perf-test1-gen  | ACTIVE | perf-test1-control=192.168.0.104; perf-test1-data=192.168.1.104 | rapidVM-1908     | perf-test1-gen  |
+    | 91c9a818-bb36-481d-9440-5d078f218047 | perf-test1-swap | ACTIVE | perf-test1-control=192.168.0.105; perf-test1-data=192.168.1.105 | rapidVM-1908     | perf-test1-swap |
+    +--------------------------------------+-----------------+--------+-----------------------------------------------------------------+------------------+-----------------+
+
+    (overcloud) [stack@undercloud ~]$ . stackrc
+
+    (undercloud) [stack@undercloud ~]$ openstack server list
+    +--------------------------------------+---------------------------+--------+-------------------------+----------------+---------------------------+
+    | ID                                   | Name                      | Status | Networks                | Image          | Flavor                    |
+    +--------------------------------------+---------------------------+--------+-------------------------+----------------+---------------------------+
+    | 1f8396da-e6ad-4465-97fd-0696d104c0ef | overcloudmz5-afxctrl-2    | ACTIVE | ctlplane=192.168.213.52 | overcloud-full | AppformixController       |
+    | 453b5d01-0717-4237-a808-33ee1897dd3b | overcloudmz5-ctrl-1       | ACTIVE | ctlplane=192.168.213.61 | overcloud-full | Controller                |
+    | 52f29456-8f03-4b29-a8c1-cb515751c161 | overcloudmz5-compkernel-1 | ACTIVE | ctlplane=192.168.213.82 | overcloud-full | ComputeKernel             |
+    | 59b57917-f00e-4f49-bafd-dfee5f512808 | overcloudmz5-ca-0         | ACTIVE | ctlplane=192.168.213.81 | overcloud-full | ContrailAnalytics         |
+    | 743e62e1-637d-4758-8788-0b838274b6cf | overcloudmz5-compkernel-3 | ACTIVE | ctlplane=192.168.213.91 | overcloud-full | ComputeKernel             |
+    | 28f22824-338e-4efa-b838-81bfedda240a | overcloudmz5-afxctrl-0    | ACTIVE | ctlplane=192.168.213.57 | overcloud-full | AppformixController       |
+    | 89c8205f-579d-476c-b186-0a50a8640385 | overcloudmz5-compdpdk-1   | ACTIVE | ctlplane=192.168.213.70 | overcloud-full | ComputeDpdk               |
+    | a162ebef-4543-449a-992d-5bf85ae15b13 | overcloudmz5-cc-1         | ACTIVE | ctlplane=192.168.213.58 | overcloud-full | ContrailController        |
+    | 7d2f4d0b-7477-4557-9e1f-202df84eb293 | overcloudmz5-afxctrl-1    | ACTIVE | ctlplane=192.168.213.67 | overcloud-full | AppformixController       |
+    | b66f61ca-5df2-4a02-bdf4-72643270c046 | overcloudmz5-ctrl-2       | ACTIVE | ctlplane=192.168.213.93 | overcloud-full | Controller                |
+    | 75fc95df-2a5d-40be-acc6-aa345eaa7b15 | overcloudmz5-cadb-2       | ACTIVE | ctlplane=192.168.213.59 | overcloud-full | ContrailAnalyticsDatabase |
+    | 7e62f96b-39d0-4926-a479-f6a484e185c9 | overcloudmz5-cc-0         | ACTIVE | ctlplane=192.168.213.65 | overcloud-full | ContrailController        |
+    | b023371a-00cc-4c73-8a15-de95ae89ec31 | overcloudmz5-compdpdk-3   | ACTIVE | ctlplane=192.168.213.68 | overcloud-full | ComputeDpdk               |
+    | dc416154-5384-4ba1-a9b0-144c1f58ebde | overcloudmz5-compkernel-2 | ACTIVE | ctlplane=192.168.213.73 | overcloud-full | ComputeKernel             |
+    | 849d68d3-0121-4369-bd53-39b88d7f7fd5 | overcloudmz5-ctrl-0       | ACTIVE | ctlplane=192.168.213.75 | overcloud-full | Controller                |
+    | 8998d326-6205-4f68-b7d3-e7b229a97b1c | overcloudmz5-compkernel-4 | ACTIVE | ctlplane=192.168.213.60 | overcloud-full | ComputeKernel             |
+    | 0fb20bf6-2cae-42e8-86f4-98d521bca661 | overcloudmz5-ca-1         | ACTIVE | ctlplane=192.168.213.63 | overcloud-full | ContrailAnalytics         |
+    | 69b317b6-a20a-44e2-915d-9f9de86a7d25 | overcloudmz5-compdpdk-2   | ACTIVE | ctlplane=192.168.213.51 | overcloud-full | ComputeDpdk               |
+    | b6bb4e2f-7ddd-422f-9a97-4b9326bb2d80 | overcloudmz5-compkernel-0 | ACTIVE | ctlplane=192.168.213.55 | overcloud-full | ComputeKernel             |
+    | d359aeff-6570-4034-841c-b0477611125b | overcloudmz5-compdpdk-0   | ACTIVE | ctlplane=192.168.213.64 | overcloud-full | ComputeDpdk               |
+    | cd99dc8c-b60c-418a-9359-88f0bb75b11a | overcloudmz5-cc-2         | ACTIVE | ctlplane=192.168.213.77 | overcloud-full | ContrailController        |
+    | 25678ff0-ee2c-420a-a0c4-1e91f08bc52e | overcloudmz5-cadb-1       | ACTIVE | ctlplane=192.168.213.56 | overcloud-full | ContrailAnalyticsDatabase |
+    | 3558aeeb-97de-4c4c-b632-1a74775232ae | overcloudmz5-cadb-0       | ACTIVE | ctlplane=192.168.213.54 | overcloud-full | ContrailAnalyticsDatabase |
+    | 0eece455-5967-4167-9c77-588b38fa70e4 | overcloudmz5-ca-2         | ACTIVE | ctlplane=192.168.213.62 | overcloud-full | ContrailAnalytics         |
+    +--------------------------------------+---------------------------+--------+-------------------------+----------------+---------------------------+
+
+    (undercloud) [stack@undercloud ~]$ openstack server list --name dpdk
+    +--------------------------------------+-------------------------+--------+-------------------------+----------------+-------------+
+    | ID                                   | Name                    | Status | Networks                | Image          | Flavor      |
+    +--------------------------------------+-------------------------+--------+-------------------------+----------------+-------------+
+    | 89c8205f-579d-476c-b186-0a50a8640385 | overcloudmz5-compdpdk-1 | ACTIVE | ctlplane=192.168.213.70 | overcloud-full | ComputeDpdk |
+    | b023371a-00cc-4c73-8a15-de95ae89ec31 | overcloudmz5-compdpdk-3 | ACTIVE | ctlplane=192.168.213.68 | overcloud-full | ComputeDpdk |
+    | 69b317b6-a20a-44e2-915d-9f9de86a7d25 | overcloudmz5-compdpdk-2 | ACTIVE | ctlplane=192.168.213.51 | overcloud-full | ComputeDpdk |
+    | d359aeff-6570-4034-841c-b0477611125b | overcloudmz5-compdpdk-0 | ACTIVE | ctlplane=192.168.213.64 | overcloud-full | ComputeDpdk |
+    +--------------------------------------+-------------------------+--------+-------------------------+----------------+-------------+
+
+### iperf VM@dpdk-1
+
+    (undercloud) [stack@undercloud ~]$ ssh 192.168.213.70
+    Warning: Permanently added '192.168.213.70' (ECDSA) to the list of known hosts.
+    Last login: Thu Apr 30 05:58:07 2020 from 192.168.213.1
+
+    [root@overcloudmz5-compdpdk-1 heat-admin]# ssh root@169.254.0.5
+    root@169.254.0.5's password:
+    Last failed login: Tue May  5 14:07:07 UTC 2020 from 192.168.0.2 on ssh:notty
+    There was 1 failed login attempt since the last successful login.
+    Last login: Thu Apr 30 12:58:33 2020 from 192.168.0.2
+
+    [root@perf-test1-jump ~]# cd /root/prox/helper-scripts/rapid
+
+    [root@perf-test1-jump rapid]# ./runrapid.py --runtime 5
+    Using 'rapid.env' as name for the environment
+    Using 'basicrapid.test' for test case definition
+    Using 'machine.map' for machine mapping
+    Runtime: 5
+    Latency percentile measured at 99%
+    Connected to PROX on 192.168.0.104
+    Connected to PROX on 192.168.0.105
+    warmuptest
+    flowsizetest
+    +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | UDP,    64 bytes, different number of flows by randomizing SRC & DST UDP port.                                                                                                             |
+    +--------+------------------+-------------+-------------+-------------+------------------------+----------+----------+----------+-----------+-----------+-----------+-----------+-------+----+
+    | Flows  | Speed requested  | Gen by core | Sent by NIC | Fwrd by SUT | Rec. by core           | Avg. Lat.|99 Pcentil| Max. Lat.|   Sent    |  Received |    Lost   | Total Lost|L.Ratio|Time|
+    +--------+------------------+-------------+-------------+-------------+------------------------+----------+----------+----------+-----------+-----------+-----------+-----------+-------+----+
+    |  16384 | 18.8%  2.805 Mpps|  2.805 Mpps |  2.805 Mpps |  2.805 Mpps | 1.9 Gb/s |  2.805 Mpps |   331 us |>  146 us |  2705 us |  23372284 |  23372283 |         1 |       NA  |  0.00 |  6 |
+    |        |  Latency accuracy issue?:  33%                                                                                                                                           |
+    +--------+------------------+-------------+-------------+-------------+------------------------+----------+----------+----------+-----------+-----------+-----------+-----------+-------+----+
+    Waiting for child process 'PROX Testing on TestM1' to complete ...
+    Child process 'PROX Testing on TestM1' completed successfully
+    Child process 'PROX Testing on TestM2' completed successfully
+
+### recvr VM@dpdk-3
+
+    [stack@undercloud ~]$ ssh 192.168.213.68
+    Warning: Permanently added '192.168.213.68' (ECDSA) to the list of known hosts.
+    Last login: Thu Apr 30 06:03:33 2020 from 192.168.213.1
+    [heat-admin@overcloudmz5-compdpdk-3 ~]$
+    [heat-admin@overcloudmz5-compdpdk-3 ~]$
+    [heat-admin@overcloudmz5-compdpdk-3 ~]$ sudo -i
+    [root@overcloudmz5-compdpdk-3 ~]# virsh list
+     Id    Name                           State
+    ----------------------------------------------------
+     1     instance-000005ed              running
+
+    [root@overcloudmz5-compdpdk-3 ~]# vif --get 3 --rate
+
+### runrapid.py
+
+    [root@perf-test1-jump rapid]# ./runrapid.py -h
+    usage: runrapid    [--version] [-v]
+                       [--env ENVIRONMENT_NAME]
+                       [--test TEST_NAME]
+                       [--map MACHINE_MAP_FILE]
+                       [--runtime TIME_FOR_TEST]
+                       [--configonly False|True]
+                       [--log DEBUG|INFO|WARNING|ERROR|CRITICAL]
+                       [-h] [--help]
+
+    Command-line interface to runrapid
+
+    optional arguments:
+      -v,  --version                Show program's version number and exit
+      --env ENVIRONMENT_NAME        Parameters will be read from ENVIRONMENT_NAME. Default is rapid.env.
+      --test TEST_NAME              Test cases will be read from TEST_NAME. Default is basicrapid.test.
+      --map MACHINE_MAP_FILE        Machine mapping will be read from MACHINE_MAP_FILE. Default is machine.map.
+      --runtime                     Specify time in seconds for 1 test run
+      --configonly                  If this option is specified, only upload all config files to the VMs, do not run the tests
+      --log                         Specify logging level for log file output, default is DEBUG
+      --screenlog                   Specify logging level for screen output, default is INFO
+      -h, --help                    Show help message and exit.
+
+    [root@perf-test1-jump rapid]# cat basicrapid.test
+    [DEFAULT]
+    name = BasicSwapTesting
+    number_of_tests = 2
+    total_number_of_test_machines = 2
+    prox_socket = true
+    prox_launch_exit = true
+    lat_percentile = 99
+    tasks=[0]
+
+    [TestM1]
+    name = Generator
+    config_file = gen.cfg
+    dest_vm = 2
+    gencores = [3,2]
+    latcores = [4,5,6,7]
+
+    [TestM2]
+    name = Swap
+    config_file = swap.cfg
+    cores = [2,3,4,5,6]
+
+    [BinarySearchParams]
+    drop_rate_threshold = 0.1
+    lat_perc_threshold = 300
+    lat_avg_threshold = 1000
+    lat_max_threshold = 20000
+    accuracy = 0.1
+    startspeed = 100
+
+    [test1]
+    test=warmuptest
+    flowsize=512
+    packetsize=64
+    warmupspeed=1
+    warmuptime=2
+
+    [test2]
+    test=flowsizetest
+    packetsizes=[64]
+    # the number of flows in the list need to be powers of 2, max 2^20
+    # Select from following numbers: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524280, 1048576
+    flows=[16384]
 
 ## tools
 
