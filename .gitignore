@@ -3,7 +3,7 @@ misc
 #https://github.com/github/gitignore/blob/master/Global/MicrosoftOffice.gitignore
 *.tmp
 
-*.html
+#*.html
 
 # Word temporary
 ~$*.doc*
