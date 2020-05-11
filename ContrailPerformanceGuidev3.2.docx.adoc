@@ -5,6 +5,7 @@
 :pygments-style: manni
 :pygments-linenums-mode: inline
 :title: contrail performance guide
+//https://htmlpreview.github.io/?https://gist.githubusercontent.com/pinggit/19990e2a56dedc947847a2b7890c7329/raw/2822894c6958329d181c022838191fa85e7e053c/ContrailPerformanceGuidev3.2.docx.html
 
 = Conrail Performance Guide v3.2
 

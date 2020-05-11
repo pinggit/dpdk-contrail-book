@@ -241,6 +241,8 @@ Laurent DURAND
 For more details on how to reach GUI or any node, have a look into:
 https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
 
+also see "dpdk performance tests.pptx"
+https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g7dfd0123ae_1_300
 
 ## dpdk lab
 
