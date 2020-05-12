@@ -446,211 +446,19 @@ Direct Memory Access (DMA) allows PCI devices to read (write) data from (to)
 memory without CPU intervention. This is a fundamental requirement for high
 performance devices.
 
-==== Contrail and DPDK
-
-Contrail vRouter is using DPDK library to improve packet processing performance.
-
-When using contrail vrouter without DPDK, vRouter dataplane process is running
-into Linux Kernel.
-
-.vRouter in kernel with VM application not DPDK aware
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[Picture1.png,width=330,height=288]
-//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[vrouter in kernel with VM]
-
-When using contrail vrouter with DPDK, vRouter dataplane is running into Linux user space.
-
-.vRouter DPDK with VM application DPDK aware.
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image35.png[Picture1.png,width=336,height=272]
-
-.vRouter DPDK with VM application not DPDK aware.
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image36.png[image,width=453,height=312]
-
-Contrail DPDK vrouter as any DPDK application is based on queue management.
-
-Queue packets processing consists in :
-
-- queues: in a network interface
-- pthreads (lcore): for packet enqueue or dequeue (packet polling)
-- descriptor rings (TX/RX): for packet transfer between interface queue and host memory (mbuf)
-- memory spaces (mempool)
-
-.muf, queue, ring, lcore
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image26.png[image,width=491,height=206]
-
-For each vrouter interface one or several queues are managed.
-3 kinds of interfaces are connected onto the vrouter :
-
-- _Physical interface card_ (usually a bond) : vif 0/0
-- _Internal processing interfaces_ (pkt0) : vif 0/2
-- _Virtual Machine Interfaces_ : vif 0/n
-- ping: vhost0 ?
-
-Two kinds of interfaces have to be taken in consideration :
-
-- _vrouter physical interface card_ : one TX queue and one RX queue are created
-  for each CPU pinned to vrouter.  Onto vrouter virtual machine.
-- _vrouter virtual machine interface_ : one or several queues could be
-  implemented for each virtual NIC. It depends if the given virtual machine is
-  supporting multi-queue or not.
-
-In the diagram below we have a first overview of vrouter packet processing for
-an external packet to be sent to virtual machine instances.
-
-[[packet-processing]] 
-.vrouter packet processing (first overview)
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image25.png[image,width=293,height=363]
-
-==== VM and DPDK (VirtIO)
-
-In order to get good network performances, virtual instances (especially VNF -
-Virtual Network Function) are implementing DPDK. 4 topologies are possible:
-
-- vrouter in Kernel mode collecting VNF with a network in Kernel Mode
-- vrouter in Kernel mode collecting VNF running DPDK
-- vrouter in DPDK mode collecting VNF with a network in Kernel Mode
-- vrouter in DPDK mode collecting VNF running DPDK
-
-An all DPDK stack, used both at vrouter level and at VNF level, is providing the best performance.
-
-.vrouter 4 topologies
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image16.png[image,width=618,height=513]
-
-ping: why vhost0?
-
-.PMD
-When DPDK is used into the virtual instance, vNIC driver (virtio-net) used for
-packet processing in Kernel space is replaced by a virtio Poll Mode Driver
-(virtio-net PMD) in order to perform packet processing in Virtual Instance user
-space.
-
-==== ping:packet processing steps
-
-There are 4 main steps in packet processing :
-
-- *step one*: incoming packets are put into RX queues by the network interface card.
-- *step two:* each CPU (c1 to c4) is polling its allocated queue in order to
-  put each packet into host memory in order to be processed.
-- *step three:* packet processing is achieved by a forwarding thread.  This
-  forwarding thread could be performed onto any CPU allocated to vrouter.
-- *step four:* after being processed, packet is copied onto virtual machine TX interface queues.
-
-[NOTE]
-====
-- these 4 steps are performed for VxLAN and MPLSoUDP.
-- For MPLSoGRE, it's different.
-
-since RSS (hashing algorithm) computed by the NIC is giving a
-unique answer for most of the flows, there is no traffic spreading across CPU
-(step 2). 
-
-In this particular case there is only one polling CPU.
-
-A hash is calculated onto the incoming decapsulated packets (inner packet) in
-order to spread them on several "processing cores" (step 3).
-====
-
-==== DPDK threads and Contrail lcore numbering
-
-DPDK vrouter is a multi-threads application.
-
-There are 3 kinds of threads into a DPDK vrouter :
-
-- *control threads* : used for DPDK internal processing.  eal-intr-thread,
-  rte_mp_handle, rte_mp_async
-- *service threads* : used for connectivity between vrouter agent and vrouter
-  forwarding plane (DPDK vrouter). Thread names are lcore 0 to 9
-- *processing threads* : used for packet polling and processing (forwarding
-  plane), thread names are lcore 10 and above
-
-The term `lcore` refers to an EAL (Environment Abstraction Layer) thread, which
-is really a Linux/FreeBSD pthread (physical Thread). A numbering into the dpdk
-vrouter is used for lcores.
-
-This *_lcore numbering_* used in vrouter can be seen into source file (vr_dpdk.h).
-
-An enumeration is defining this numbering :
-
-    enum \{
-        VR_DPDK_KNITAP_LCORE_ID = 0,
-        VR_DPDK_TIMER_LCORE_ID,
-        VR_DPDK_UVHOST_LCORE_ID,
-        VR_DPDK_IO_LCORE_ID, = 3
-        VR_DPDK_IO_LCORE_ID2,
-        VR_DPDK_IO_LCORE_ID3,
-        VR_DPDK_IO_LCORE_ID4,
-        VR_DPDK_LAST_IO_LCORE_ID, # 7
-        VR_DPDK_PACKET_LCORE_ID, # 8
-        VR_DPDK_NETLINK_LCORE_ID,
-        VR_DPDK_FWD_LCORE_ID, # 10
-    };
-
-PS: Lots of other details concerning DPDK vrouter can also be seen into following files :
-
-    include/vr_dpdk.h
-    dpdk/dpdk_vrouter.c
-    dpdk/vr_dpdk_lcore.c
-
-0 to 9 lcore numbers are statically defined into the source code and can’t be configured by user.
-
-- The 3 first logical numbers (0 to 2) are used for "service lcores". 
-- The 5 next ones (3 to 7) are booked for IO lcores.
-- The 2 next ones (8 to 9) are "lcores with TX queues". 
-- Logical cores with number 10 and above are forwarding logical cores.
-
-lcore numbers 10 and above are used for forwarding purpose and defined with CPU affinity value.
-This value is set into `contrail-vrouter-dpdk.ini` configuration file.
-
-    command=/bin/taskset *_<CPU Affinity>_* /usr/bin/contrail-vrouter-dpdk ….
-
-For instance 0x000154000154 CPU affinity is giving following mapping :
-
-    32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
-     1  0  1  0  1  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  0  1  0  1  0  0
-
-it means Host CPU numbers 2, 4, 6, 8, 26, 28, 30 and 32 are used for vrouter forwarding logical cores.
-
-When the router boots up, it displays a message about its logical cores numbering.
-For instance, we can get into `contrail-vrouter-dpdk-stdout.log` file, such a message :
-
-    VROUTER: --lcores "(0-2)@(0-47),(8-9)@(0-47),*10@2,11@4,12@6,13@8,14@26,15@28,16@30,17@32*"
-    EAL: Detected 48 lcore(s)
-    *VROUTER: Using 8 forwarding lcore(s)*
-    VROUTER: Using 0 IO lcore(s)
-    VROUTER: Using 5 service lcores
-
-- First part of the message - `(0-2)@(0-N),(8-9)@(0-N)` - is always the same,
-  as this internal CPU logical numbering is statically defined in vrouter
-  source code.
-
-- N is the total number of CPU available in the compute onto which the vrouter
-  is running.
-
-- Last part of the message - `*10@2,11@4,12@6,13@8,14@26,15@28,16@30,17@32*` -
-  is depending on the CPU affinity.
-
-- Here 8 logical cores are used for forwarding purpose, they are numbered from
-  10 to 17. They are mapped one by one onto the host CPUs 2, 4, 6, 8, 26, 28,
-  30 and 32.
-
-This is this vrouter logical core numbering that has to be in dropstats command
-(not the real host CPU numbering)
-
-    $ dropstats –core 10
-
-A maximum of 16 polling cores is currently supported by Contrail as the maximum
-RX queue is currently 16:
-
-    #define VR_DPDK_MAX_NB_RX_QUEUES 16
-
 ==== DPDK and Poll Mode Drivers (PMD)
 
 When DPDK is used, Network interfaces are no more managed in Kernel space.
-Legacy NIC driver which is usually used to manage the NIC has to be replaced by a new driver which is able to run into user space.
-This new drive, called Poll Mode Driver (PMD) will be used to manage the network interface into user space with the DPDK library.
+Legacy NIC driver which is usually used to manage the NIC has to be replaced by
+a new driver which is able to run into user space.  This new drive, called Poll
+Mode Driver (PMD) will be used to manage the network interface into user space
+with the DPDK library.
 
 A Poll Mode Driver consists of APIs, provided through the BSD driver running in
 user space, to configure the devices and their respective queues.
-In addition, a PMD accesses the RX and TX descriptors directly without any interrupts (with the exception of Link Status Change interrupts) to quickly receive, process and deliver packets in the user’s application.
+In addition, a PMD accesses the RX and TX descriptors directly without any
+interrupts (with the exception of Link Status Change interrupts) to quickly
+receive, process and deliver packets in the user’s application.
 
 Some PMD are being used to manage physical interfaces :
 
@@ -664,8 +472,12 @@ Some PMD are being used to manage virtual interfaces :
 
 ==== Linux drivers for PMD
 
-In Linux user space environment, the DPDK application runs as a user-space application using the pthread library.
-PCI information about devices and address space is discovered through the `/sys` kernel interface and through kernel modules such as uio_pci_generic, igb_uio or vfio-pci.
+In Linux user space environment, the DPDK application runs as a user-space
+application using the pthread library.
+
+PCI information about devices and address space is discovered through the
+`/sys` kernel interface and through kernel modules such as uio_pci_generic,
+igb_uio or vfio-pci.
 
 Different PMDs may require different kernel drivers in order to work properly.
 Depending on the PMD being used, a corresponding kernel driver should be loaded and bound to the network ports.
@@ -675,7 +487,7 @@ Before loading, make sure that each NIC has been flashed with the latest version
 
 Supported NICs
 
-- Intel http://dpdk.org/browse/dpdk/tree/drivers/net/e1000/[[.underline]#igb#] (82575, 82576, 82580, I210, I211, I350, I354, DH89xx)
+- Intel http://dpdk.org/browse/dpdk/tree/drivers/net/e1000[[.underline]#igb#] (82575, 82576, 82580, I210, I211, I350, I354, DH89xx)
 - Intel http://dpdk.org/doc/guides/nics/ixgbe.html[[.underline]#ixgbe#] (82598, 82599, X520, X540, X550)
 - Intel http://dpdk.org/doc/guides/nics/i40e.html[[.underline]#i40e#] (X710, XL710, X722)
 
@@ -751,43 +563,305 @@ To enable vfio-pci driver change physical_uio_driver in
 
 *vRouter in parallel with SRIOV (VF support on VM)
 
-==== ping:dpdk version
+=== Contrail vrouter and DPDK
+
+Contrail vRouter is using DPDK library to improve packet processing performance.
+
+When using contrail vrouter without DPDK, vRouter dataplane process is running
+into Linux Kernel.
+
+.vRouter in kernel with VM application not DPDK aware
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[Picture1.png,width=330,height=288]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image32.png[vrouter in kernel with VM]
+
+When using contrail vrouter with DPDK, vRouter dataplane is running into Linux user space.
+
+.vRouter DPDK with VM application DPDK aware.
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image35.png[Picture1.png,width=336,height=272]
+
+.vRouter DPDK with VM application not DPDK aware.
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image36.png[image,width=453,height=312]
+
+Contrail DPDK vrouter as any DPDK application is based on queue management.
+
+Queue packets processing consists in :
+
+- queues: in a network interface
+- pthreads (lcore): for packet enqueue or dequeue (packet polling)
+- descriptor rings (TX/RX): for packet transfer between interface queue and host memory (mbuf)
+- memory spaces (mempool)
+
+.muf, queue, ring, lcore
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image26.png[image,width=491,height=206]
+
+For each vrouter interface one or several queues are managed.
+3 kinds of interfaces are connected onto the vrouter :
+
+- Physical interface card (usually a bond) : vif 0/0
+- Internal processing interfaces (pkt0) : vif 0/2
+- Virtual Machine Interfaces : vif 0/n
+- ping: vhost0 ?
+
+Two kinds of interfaces have to be taken in consideration :
+
+- vrouter physical interface card : one TX queue and one RX queue are created
+  for each CPU pinned to vrouter.  Onto vrouter virtual machine.
+- vrouter virtual machine interface : one or several queues could be
+  implemented for each virtual NIC. It depends if the given virtual machine is
+  supporting multi-queue or not.
+
+ping: very confusing. one Q per cpu? is Q in NIC or in CPU?
+
+In the diagram below we have a first overview of vrouter packet processing for
+an external packet to be sent to virtual machine instances.
+
+[[packet-processing]] 
+.vrouter packet processing (first overview)
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image25.png[image,width=293,height=363]
+
+==== VM and DPDK (VirtIO)
+
+In order to get good network performances, virtual instances (especially VNF -
+Virtual Network Function) are implementing DPDK. 4 topologies are possible:
+
+- vrouter in Kernel mode collecting VNF with a network in Kernel Mode
+- vrouter in Kernel mode collecting VNF running DPDK
+- vrouter in DPDK mode collecting VNF with a network in Kernel Mode
+- vrouter in DPDK mode collecting VNF running DPDK
+
+An all DPDK stack, used both at vrouter level and at VNF level, is providing the best performance.
+
+.vrouter 4 topologies
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image16.png[image,width=618,height=513]
+
+ping: why vhost0?
+
+.PMD
+When DPDK is used into the virtual instance, vNIC driver (virtio-net) used for
+packet processing in Kernel space is replaced by a virtio Poll Mode Driver
+(virtio-net PMD) in order to perform packet processing in Virtual Instance user
+space.
+
+==== vrouter packet processing steps
+
+There are 4 main steps in packet processing :
+
+- *step one*: incoming packets are put into RX queues by the network interface card.
+- *step two:* each CPU (c1 to c4) is polling its allocated queue in order to
+  put each packet into host memory in order to be processed.
+- *step three:* packet processing is achieved by a forwarding thread.  This
+  forwarding thread could be performed onto any CPU allocated to vrouter.
+- *step four:* after being processed, packet is copied onto virtual machine TX interface queues.
+
+[NOTE]
+====
+- these 4 steps are performed for VxLAN and MPLSoUDP.
+- For MPLSoGRE, it's different.
+
+since RSS (hashing algorithm) computed by the NIC is giving a
+unique answer for most of the flows, there is no traffic spreading across CPU
+(step 2). 
+
+In this particular case there is only one polling CPU.
+
+A hash is calculated onto the incoming decapsulated packets (inner packet) in
+order to spread them on several "processing cores" (step 3).
+====
+
+==== DPDK threads and Contrail lcore numbering
+
+DPDK vrouter is a multi-threads application.
+
+There are 3 kinds of threads into a DPDK vrouter :
+
+- *control threads* : used for DPDK internal processing.  eal-intr-thread,
+  rte_mp_handle, rte_mp_async
+- *service threads* : used for connectivity between vrouter agent and vrouter
+  forwarding plane (DPDK vrouter). Thread names are lcore 0 to 9
+- *processing threads* : used for packet polling and processing (forwarding
+  plane), thread names are lcore 10 and above
+
+ping: lcore 0-9 for "service threads + control thread", not only "service
+thread", right?
+
+The term `lcore` refers to an EAL (Environment Abstraction Layer) thread, which
+is really a Linux/FreeBSD pthread (physical Thread). A numbering into the dpdk
+vrouter is used for lcores.
+
+This *lcore numbering* used in vrouter can be seen into source file (vr_dpdk.h).
+
+An enumeration is defining this numbering :
+
+    enum \{
+        VR_DPDK_KNITAP_LCORE_ID = 0,
+        VR_DPDK_TIMER_LCORE_ID,
+        VR_DPDK_UVHOST_LCORE_ID,
+        VR_DPDK_IO_LCORE_ID, = 3
+        VR_DPDK_IO_LCORE_ID2,
+        VR_DPDK_IO_LCORE_ID3,
+        VR_DPDK_IO_LCORE_ID4,
+        VR_DPDK_LAST_IO_LCORE_ID, # 7
+        VR_DPDK_PACKET_LCORE_ID, # 8
+        VR_DPDK_NETLINK_LCORE_ID,
+        VR_DPDK_FWD_LCORE_ID, # 10
+    };
+
+NOTE: Lots of other details concerning DPDK vrouter can also be seen into
+following files :
+
+    include/vr_dpdk.h
+    dpdk/dpdk_vrouter.c
+    dpdk/vr_dpdk_lcore.c
+
+0 to 9 lcore numbers are statically defined into the source code and can’t be
+configured by user.
+
+- The 3 first logical numbers (0 to 2) are used for "service lcores". 
+- The 5 next ones (3 to 7) are booked for IO lcores.
+- The 2 next ones (8 to 9) are "lcores with TX queues". 
+- Logical cores with number 10 and above are forwarding logical cores.
+
+lcore numbers 10 and above are used for forwarding purpose and defined with CPU affinity value.
+This value is set into `contrail-vrouter-dpdk.ini` configuration file.
+
+    command=/bin/taskset *_<CPU Affinity>_* /usr/bin/contrail-vrouter-dpdk ….
+
+For instance 0x000154000154 CPU affinity is giving following mapping :
+
+    32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 09 08 07 06 05 04 03 02 01 00
+     1  0  1  0  1  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  0  1  0  1  0  0
+
+it means Host CPU numbers 2, 4, 6, 8, 26, 28, 30 and 32 are used for vrouter
+forwarding logical cores.
+
+.ping: 3.2 lab
+****
+[source, sh, linenums]
+----
+$ cat /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini
+[program:contrail-vrouter-dpdk]
+command=taskset 0xf /usr/bin/contrail-vrouter-dpdk --no-daemon --vdev "eth_bond_bond0,mode=4,xmit_policy=l34,socket_id=0,mac=5c:b9:01:8b:6f:3c,slave=0000:08:00.0,slave=0000:08:00.1" --vlan_tci "2004" --vlan_fwd_intf_name "bond0" --socket-mem 1024,1024
+----
+
+ping: how to print it in contrail5?
+
+`0xf` => cpu# 0~3 are pinned for forwarding.
+****
+
+When the router boots up, it displays a message about its logical cores numbering.
+For instance, we can get into `contrail-vrouter-dpdk-stdout.log` file, such a message :
+
+    VROUTER: --lcores "(0-2)@(0-47),(8-9)@(0-47),*10@2,11@4,12@6,13@8,14@26,15@28,16@30,17@32*"
+    EAL: Detected 48 lcore(s)
+    *VROUTER: Using 8 forwarding lcore(s)*
+    VROUTER: Using 0 IO lcore(s)
+    VROUTER: Using 5 service lcores
+
+- First part of the message - `(0-2)@(0-N),(8-9)@(0-N)` - is always the same,
+  as this internal CPU logical numbering is statically defined in vrouter
+  source code.
+
+- N is the total number of CPU available in the compute onto which the vrouter
+  is running.
+
+- Last part of the message - `*10@2,11@4,12@6,13@8,14@26,15@28,16@30,17@32*` -
+  is depending on the CPU affinity.
+
+- Here 8 logical cores are used for forwarding purpose, they are numbered from
+  10 to 17. They are mapped one by one onto the host CPUs 2, 4, 6, 8, 26, 28,
+  30 and 32.
+
+.ping: 3.2 lab
+****
+$ cat /var/log/contrail/contrail-vrouter-dpdk-stdout.log
+2019-09-27 11:09:58,126 VROUTER: EAL arguments:
+2019-09-27 11:09:58,126 VROUTER:            -n  "4"
+2019-09-27 11:09:58,126 VROUTER:  --socket-mem  "1024,1024"
+2019-09-27 11:09:58,126 VROUTER:        --vdev  "eth_bond_bond0,mode=4,xmit_policy=l34,socket_id=0,mac=5c:b9:01:8b:6f:3c,slave=0000:08:00.0,slave=0000:08:00.1"
+2019-09-27 11:09:58,126 VROUTER:      --lcores  "(0-2)@(0-47),(8-9)@(0-47),10@0,11@1,12@2,13@3"
+2019-09-27 11:09:58,126 EAL: Detected 48 lcore(s)
+****
+
+.ping: 19.08 lab
+****
+$ cat /var/log/containers/contrail/contrail-vrouter-dpdk.log
+2020-03-09 08:20:55,137 VROUTER: EAL arguments:
+2020-03-09 08:20:55,137 VROUTER:            -n  "4"
+2020-03-09 08:20:55,137 VROUTER:  --socket-mem  "1024,1024"
+2020-03-09 08:20:55,137 VROUTER:        --vdev  "eth_bond_bond0,mode=4,xmit_policy=l23,socket_id=0,mac=0c:c4:7a:b7:2c:f8,lacp_rate=1,slave=0000:02:00.0,slave=0000:02:00.1"
+2020-03-09 08:20:55,137 VROUTER:      --lcores  "(0-2)@(0-39),(8-9)@(0-39),10@1,11@2,12@3,13@21,14@22,15@23"
+2020-03-09 08:20:55,144 EAL: Detected 40 lcore(s)
+2020-03-09 08:20:55,144 EAL: Detected 2 NUMA nodes
+****
+
+This is this vrouter logical core numbering that has to be in dropstats command
+(not the real host CPU numbering)
+
+    $ dropstats –core 10
+
+A maximum of 16 polling cores is currently supported by Contrail as the maximum
+RX queue is currently 16:
+
+    #define VR_DPDK_MAX_NB_RX_QUEUES 16
+
+==== contrail dpdk version
 
 Starting from Contrail 3.2.5 DPDK library 17.02 is used.
-Earlier Contrail versions were based on DPDK library version 2.1 (https://www.juniper.net/documentation/en_US/contrail3.2/information-products/topic-collections/release-notes/jd0e36.html#jd0e185[[.underline]#https://www.juniper.net/documentation/en_US/contrail3.2/information-products/topic-collections/release-notes/jd0e36.html#jd0e185#]).
+Earlier Contrail versions were based on DPDK library version 2.1
+https://www.juniper.net/documentation/en_US/contrail3.2/information-products/topic-collections/release-notes/jd0e36.html#jd0e185
 
 Contrail DPDK library fork
 
-https://github.com/Juniper/contrail-dpdk[[.underline]#https://github.com/Juniper/contrail-dpdk#]
+https://github.com/Juniper/contrail-dpdk
 
 DPDK release notes
 
-http://dpdk.org/doc/guides-17.02/rel_notes/index.html[[.underline]#http://dpdk.org/doc/guides-17.02/rel_notes/index.html#]
+http://dpdk.org/doc/guides-17.02/rel_notes/index.html
+
+DPDK version used by the vrouter can be checked into dpdk vrouter log files :
+
+[source, sh, linenums]
+----
+$ vi /var/log/containers/contrail/contrail-vrouter-dpdk.log
+...
+2019-04-19 16:30:41,411 VROUTER: vRouter version: \{"build-info": [\{"build-time": "2019-04-11 23:47:32.407280", "build-hostname": "rhel-7-builder-juniper-contrail-ci-c-0000225573.novalocal", "build-user": "zuul", "build-version": "5.1.0"}]}
+2019-04-19 16:30:41,411 VROUTER: DPDK version: *DPDK 18.05.1*
+...
+----
+
+.ping: 3.2 lab
+[source, sh, linenums]
+----
+$ less /var/log/contrail/contrail-vrouter-dpdk-stdout.log | grep -i version | tail -2
+2019-09-27 11:09:58,103 VROUTER: vRouter version: {"build-info": [{"build-time": "2018-10-18 07:00:47.106457", "build-hostname": "ubuntu", "build-user": "contrail-builder", "build-version": "3.2.13.0"}]}
+2019-09-27 11:09:58,103 VROUTER: DPDK version: DPDK 17.02.0
+----
+
 
 === Contrail DPDK vrouter architecture
-
-some text 
 
 ==== Contrail DPDK vRouter packet walk-through
 
 .Contrail DPDK vRouter architecture
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.png[image,width=602,height=404]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.png[image,width=602,height=404]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image33.png[image]
 
-===== ping:forwarding thread
+===== vrouter forwarding thread
 
 - Contrail DPDK vRouter runs forwarding threads to poll NIC queues 
 - Forwarding threads are lcore ID 10 and above (cf appendix section for lcore/pthread numbering)
-- Forwarding threads in their infinity loops poll its queues on the NIC to check if there is packet or burst of packets to receive.
+- Forwarding threads in their infinity loops poll its queues on the NIC to
+  check if there is packet or burst of packets to receive.
 - 1 to 1 mapping between thread and queue
 - It is providing descriptors where packets have to be copied to host memory (memory allocated by hugepage). 
 - That packet movement to memory is done using NIC DMA (Direct Memory Access processor). 
 - Each forwarding thread is pinned to its dedicated CPU core (named DPDK `lcore`). 
 - The number of NIC queues is dependent on the number of CPU cores which are
   specified by coremask in Contrail DPDK vRouter configuration
-  (_contrail-vrouter-dpdk.ini file_). 
-- Contrail DPDK vRouter uses DPDK ethdev function to program the NIC.
+  (`contrail-vrouter-dpdk.ini` file). 
+- Contrail DPDK vRouter uses DPDK `ethdev` function to program the NIC.
 
-===== ping:service thread
+===== vrouter service thread
 
 Besides forwarding threads Contrail DPDK vRouter runs `service threads` :
 
@@ -807,8 +881,8 @@ Besides forwarding threads Contrail DPDK vRouter runs `service threads` :
 ====
 
 Physical NIC (usually an interface bond) itself spread packets across its
-queues using 5-tuple hashing function (_source IP, destination IP, source port,
-destination port and protocol_). 
+queues using 5-tuple hashing function (source IP, destination IP, source port,
+destination port and protocol). 
 Depending on overlay encapsulation protocol used, the incoming traffic is well
 balanced or not onto NIC card RX queues :
 
@@ -816,7 +890,8 @@ balanced or not onto NIC card RX queues :
   * A good hashing will be achieved with their UDP datagrams (several source
     port values are used for the same tunnel IP source and destination pair).
 - *MPLSoGRE encapsulation protocol* : not provide a good entropy.
-  * Packets from one SDN gateway will be placed only in a single queue, which is not an optimal host resource utilization.
+  * Packets from one SDN gateway will be placed only in a single queue, which
+    is not an optimal host resource utilization.
   * With a second gateway it is likely to have two NIC queues utilized.
 
 That is the reason Juniper recommends implementing MPLSoUDP on Juniper MXes (supported in Junos >=16.2).
@@ -826,9 +901,11 @@ That is the reason Juniper recommends implementing MPLSoUDP on Juniper MXes (sup
 When the traffic is coming from the underlay network, encapsulated packets are
 received DPDK compute Physical interface which is bound to vrouter vif 0/0:
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image,width=708,height=289]
+.ingress forwarding process
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image,width=708,height=289]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image15.png[image]
 
-===== ping: ingress fowarding process
+.ingress fowarding process
 
 Incoming packets are processed in 3 steps :
 
@@ -847,10 +924,13 @@ The packet arrives at a physical NIC (pNIC) encapsulated in a MPLSoGRE header
 (outer header). The pNIC computes a hash on the packet outer header
 
 - this hash is called "RSS hash" (Receive Side Scaling)
-- this hash is computed onto the encapsulated packet and does not take into account the header of the tenant packet (inner header)
+- this hash is computed onto the encapsulated packet and does not take into
+  account the header of the tenant packet (inner header)
 
-Based on the "RSS hash", the pNIC selects a queue and writes the packet to the queue (RX QUEUE into the previous diagram).
+Based on the "RSS hash", the pNIC selects a queue and writes the packet to the
+queue (RX QUEUE into the previous diagram).
 
+.RSS hash
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image24.png[image,width=664,height=165]
 
 Then incoming packet is dequeued by the polling logical core (step 1) :
@@ -862,7 +942,7 @@ Then incoming packet is dequeued by the polling logical core (step 1) :
   logical core in charge of that queue reads the packet header, computes a
   hash, and selects a vRouter processing logical core based on the hash.
 
-Hashing algorithm is in vr_dpdk_ethdev.c module (https://github.com/Juniper/contrail-vrouter/blob/R5.0/dpdk/vr_dpdk_ethdev.c#L873[[.underline]#https://github.com/Juniper/contrail-vrouter/blob/R5.0/dpdk/vr_dpdk_ethdev.c#L873#])
+Hashing algorithm is in `vr_dpdk_ethdev.c` module (https://github.com/Juniper/contrail-vrouter/blob/R5.0/dpdk/vr_dpdk_ethdev.c#L873)
 
 [NOTE]
 ====
@@ -874,13 +954,6 @@ ping: per <<packet-processing>> what is meant here is there are 2 hash:
 but for MPLSoGRE only 2nd hash happens.
 ====
 
-Then the forwarding logical core is processing the packet (step 2). Forwarding CPU is in charge to do :
-
-- flow lookup,
-- flow enforcement (switching, routing, NAT, packet transformation)
-- decapsulation,
-- packet delivery to VM RX queue (vRouter vif TX-QUEUE)
-
 ===== Forwarding core - second step of packet processing (MPLS over GRE)
 
 In a first stage polling CPU bound to the queue on which a packet has been
@@ -889,9 +962,17 @@ received, is triggering packet transfer from given NIC RX queue to mbuf.
 This CPU (here CPU 0) will also choose which CPU (forwarding CPU) will have to
 process the packet (decapsulation, routing, switching, etc).
 
-*So a hash will be calculated onto polling CPU on decapsulated packet in order
+So a hash will be calculated onto polling CPU on decapsulated packet in order
 to select a forwarding CPU (decapsulated packet should have a better entropy
-than encapsulated one with MPLS over GRE).*
+than encapsulated one with MPLS over GRE).
+
+Then the forwarding logical core is processing the packet (step 2). Forwarding
+CPU is in charge to do :
+
+- flow lookup,
+- flow enforcement (switching, routing, NAT, packet transformation)
+- decapsulation,
+- packet delivery to VM RX queue (vRouter vif TX-QUEUE)
 
 In the diagram below it is shown a situation where the polling CPU core is
 selecting another CPU for packet processing.
@@ -900,8 +981,8 @@ This would be the case for MPLSoGRE traffic, since the hash performed by the
 NIC is likely not efficient :
 
 .DPDK Contrail vRouter packet walk-through from NIC to DPDK guest
-
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image11.png[image,width=605,height=321]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image11.png[image,width=605,height=321]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image11.png[image]
 
 ===== Forwarding core - second step of packet processing (MPLS over UDP or VxLAN)
 
@@ -916,19 +997,22 @@ expected for incoming encapsulated traffic.
 *No hash is recalculated on the polling core, and each incoming packet will be
 processed on the same forwarding core than the polling one.*
 
-ping: this is the diff with MPLSoGRE
+ping: this is the diff with MPLSoGRE, where we see "an extra hop"
 
 In the diagram below, it is shown a situation where the polling CPU core is the
 same as the forwarding CPU, which will be the case for MPLSoUDP and VXLAN
 packets from the NIC:
 
 .DPDK Contrail vRouter packet walk-through from NIC to DPDK guest
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image34.png[image,width=605,height=321]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image34.png[image,width=605,height=321]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image34.png[image]
 
 When MPLS over UDP is used, there is internal traffic load balancing onto vrouter CPU.
 Incoming packets are processed with the same forwarding core as polling core :
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image4.png[image,width=708,height=276]
+.ingress MPLS over UDP traffic forwarding
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image4.png[image,width=708,height=276]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image4.png[image]
 
 It can be easily shown using a traffic generator to send a "single UDP" flow
 onto a virtual instance.
@@ -937,18 +1021,26 @@ When single UDP flow is reaching the vrouter, `RX port packets` and `RX packets`
 counters on vif 0/0 have the same values for a same lcore: Here the VM incoming
 traffic is polled and processed by core 12:
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.png[image,width=708,height=270]
+.UDP flow: polling CPU is same as forwarding CPU
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.png[image,width=708,height=270]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.png[image]
 
 Table above has been made using real single flow traffic seen on each vif 0/0
 and vif 0/3 interface (vNIC) with `vif --get` command (cf appendixes)
 
+ping: how is this neat output captured?
+
 ==== DPDK VM outgoing traffic
 
-vRouter forwarding threads are also responsible for polling virtio interface queues.
+vRouter forwarding threads are also responsible for polling `virtio` interface queues.
 The decision which thread will poll which virtio queue is made by Contrail DPDK vRouter.
-If VM uses multiqueue then more vRouter forwarding threads (CPU cores) will be engaged in receiving packets from a single VM.
 
-===== ping: egress forwarding steps
+If VM uses multiqueue then more vRouter forwarding threads (CPU cores) will be
+engaged in receiving packets from a single VM.
+
+ping: no 1x1 mapping between vNIC queue and forwarding threads? as with pNIC?
+
+===== egress traffic forwarding steps
 
 .DPDK Contrail vRouter packet walk-through from DPDK guest to NIC
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image28.png[image,width=604,height=321]
@@ -963,13 +1055,16 @@ encapsulation and packet delivery to NIC transmit queue.
 - A round robin algorithm (described in next section) is used to assign vNIC queues to logical cores.
 - vNIC sub-interfaces are sharing TX/RX queues with their parent interface. Hence the same logical core is polling these queues.
 
+ping: confusing: #2 and #3 statements are conflicting
+
 Then, the incoming packet is dequeued by the polling logical core (step 1) :
 
 - vRouter polling logical core in charge of that queue reads the packet header,
 - computes a hash, and selects a vRouter processing logical core based on the hash.
 
-Hashing algorithm is in vr_dpdk_ethdev.c module
+TIP: Hashing algorithm is in vr_dpdk_ethdev.c module
 https://github.com/Juniper/contrail-vrouter/blob/R5.0/dpdk/vr_dpdk_ethdev.c#L873
+
 RSS hashing depends on the packet type:
 
 - for non-UDP/TCP IP packets (except GRE), a 2-tuple is used for the hash:
@@ -980,12 +1075,13 @@ RSS hashing depends on the packet type:
   address and destination IP address followed by a hash for the source port and
   destination port
 - Ethernet information is not taken into consideration for hash computation:
-  ** VLAN tag (eg if a sub-interface is used), are not used for the hash
-  ** source and destination MAC addresses are not used for the hash
-- Non-IPv4/IPv6 packets (i.e. L2 packets) will not have a hash performed and
+  ** VLAN tag (eg if a sub-interface is used), are *not* used for the hash
+  ** source and destination MAC addresses are *not* used for the hash
+- Non-IPv4/IPv6 packets (i.e. L2 packets) will *not* have a hash performed and
   will be processed by their polling core.
 
-Then forwarding logical core is processing the packet (step 2). Forwarding CPU is in charge to do :
+Then forwarding logical core is processing the packet (step 2). Forwarding CPU
+is in charge to do :
 
 - flow lookup,
 - flow enforcement (switching, routing, NAT, packet transformation)
@@ -995,7 +1091,12 @@ Then forwarding logical core is processing the packet (step 2). Forwarding CPU i
 For VM incoming traffic a hash is calculated in order to rebalance received
 traffic on a given polling core to all other forwarding cores :
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
+ping: this is different than ingress traffic received from pNIC - only MPLSoGRE
+traffic will use a different forwarding thread than polling thread.
+
+.egress traffic coming from VM
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image]
 
 It can be easily shown using a traffic generator to send a "single UDP" flow
 onto a virtual instance.
@@ -1005,13 +1106,13 @@ packets counters on vif 0/N have the same values for distinct lcores.
 
 Here the VM incoming traffic is polled by core 13 and processed by core 11:
 
+.egress flow: polling CPU is different as forwarding CPU
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image23.png[image,width=708,height=260]
 
 Table above has been made using real single flow traffic seen on each vif 0/0
 and vif 0/3 interface (vNIC) with `vif --get` command (cf appendixes)
 
-ping: it looks `RX port` means pulled packet from NIC; `RX` means "processed"
-("forwarded").
+ping: `RX port` and `RX packet`, see <<Packet flow from a VM NIC to compute node Physical NIC - counters placement>> 
 
 ===== vNIC queues - Polling Core Assignment (R1910)
 
@@ -1034,13 +1135,6 @@ vNIC queues are assigned to logical cores in the following way:
 Log messages showing this process can be seen in the
 `/var/log/containers/contrail/contrail-vrouter-dpdk.log` file.
 
-*When interface is added and the queue to forwarding core mappings are made.*
-There are six forwarding cores in this setup. Only the first queue is actually
-enabled at this point.
-
-The remaining queues will use the mentioned forwarding cores if the VM chooses
-to enable them (i.e. it supports multiqueue):
-
     2020-01-22 13:53:28,385 VROUTER: lcore 11 RX from HW queue 0
     2020-01-22 13:53:28,385 VROUTER: lcore 12 RX from HW queue 1
     2020-01-22 13:53:28,385 VROUTER: lcore 13 RX from HW queue 2
@@ -1048,14 +1142,12 @@ to enable them (i.e. it supports multiqueue):
     2020-01-22 13:53:28,385 VROUTER: lcore 15 RX from HW queue 4
     2020-01-22 13:53:28,385 VROUTER: lcore 10 RX from HW queue 5
 
-*When a VM (in this case a vSRX) requests to enable some of its available
-queues.* The vrings here correspond to both transmit and receive queues.
+*When interface is added and the queue to forwarding core mappings are made.*
+There are six forwarding cores in this setup. Only the first queue is actually
+enabled at this point.
 
-The receive queues are the odd numbers.
-Divide them by 2 (discard the remainder) to get the queue number.
-i.e. vring 1 is queue 0. ready state 1 = enabled.
-ready state 0 = disabled.
-In this example, the vSRX is only enabling 4 queues:
+The remaining queues will use the mentioned forwarding cores if the VM chooses
+to enable them (i.e. it supports multiqueue).
 
     2020-01-22 14:02:44,060 UVHOST: Client _tap4966ea8d-49: setting vring 0 ready state 1
     2020-01-22 14:02:44,060 UVHOST: Client _tap4966ea8d-49: setting vring 1 ready state 1
@@ -1067,6 +1159,14 @@ In this example, the vSRX is only enabling 4 queues:
     2020-01-22 14:02:44,060 UVHOST: Client _tap4966ea8d-49: setting vring 7 ready state 1
     2020-01-22 14:02:44,061 UVHOST: Client _tap4966ea8d-49: setting vring 8 ready state 0
     2020-01-22 14:02:44,061 UVHOST: Client _tap4966ea8d-49: setting vring 9 ready state 0
+
+*When a VM (in this case a vSRX) requests to enable some of its available
+queues.* The vrings here correspond to both transmit and receive queues.
+
+The receive queues are the odd numbers. Divide them by 2 (discard the
+remainder) to get the queue number.  i.e. vring 1 is queue 0. ready state 1 =
+enabled.  ready state 0 = disabled.  In this example, the vSRX is only enabling
+4 queues:
 
 ===== Packet Flow Summary (Based on R1910)
 
@@ -1083,15 +1183,34 @@ In this example, the vSRX is only enabling 4 queues:
 |                    |All non-IPv4/IPv6 packets (i.e. L2 packets)  |Processed by polling core
 |====
 
-Note that whenever the polling core performs a hash to distribute the packet to
-a processing core, the polling core will never select itself to process the
+NOTE: whenever the polling core performs a hash to distribute the packet to a
+processing core, the polling core will never select itself to process the
 packet.
+
+ping: why diff between vNIC and pNIC? when pNIC got MPLSoUDP (just a UDP packet
+anyway), it do RSS hashing and put in differnet pNIC queue -> diff polling
+core, so polling core does not need to hash again and just processed it. why
+vNIC do it differently? vNIC got UDP packet from VM, it should again do hash
+and place it into different queue, so different polling core will just poll and
+process it. why distribute to other cores here?
+
+////
+[NOTE]
+===
+ping: rule of thumb in all cases:
+
+* distribute traffic between cores whenever possible
+  - pNIC: MPLSoGRE no good outer header hashing to different polling core, so
+    do inner header hashing and do distributing to other forwarding threads
+  - pNIC: MPLSoUDP/vXLAN good outer header hashing to different polling core,
+    so no need inner hashing and no distribution again
+  - vNIC: overlay IP good hashing to different polling core, 
+* distribute once only
+===
+////
 
 The selection of available processing cores for each polling core can be seen
 in the `/var/log/containers/contrail/contrail-vrouter-dpdk.log` file.
-
-It mentions MPLSoGRE, but this applies to all packets that are distributed via
-hashing by the polling core:
 
     2020-01-07 13:08:01,403 VROUTER: Lcore 10: distributing MPLSoGRE packets to [11,12,13,14,15]
     2020-01-07 13:08:01,403 VROUTER: Lcore 12: distributing MPLSoGRE packets to [10,11,13,14,15]
@@ -1099,6 +1218,9 @@ hashing by the polling core:
     2020-01-07 13:08:01,403 VROUTER: Lcore 11: distributing MPLSoGRE packets to [10,12,13,14,15]
     2020-01-07 13:08:01,404 VROUTER: Lcore 13: distributing MPLSoGRE packets to [10,11,12,14,15]
     2020-01-07 13:08:01,404 VROUTER: Lcore 15: distributing MPLSoGRE packets to [10,11,12,13,14]
+
+It mentions MPLSoGRE, but this applies to all packets that are distributed via
+hashing by the polling core:
 
 ==== *Non DPDK VM* on DPDK vrouter
 
@@ -1117,35 +1239,35 @@ Putting non-DPDK VMs on a DPDK node is affecting performance of both VM and vRou
 
 - VM performance is impacted because each interrupt raised would cause a
   "VMExit" (it has a very bad impact on performance)
-- v****Router performance is also impacted since it needs to do additional work of
+- vRouter performance is also impacted since it needs to do additional work of
   "raising an interrupt" after it enqueues the packet to the vNIC Ring.
 
-As a result of these, the performance numbers would be the similar as that of kernel vRouter.
+*As a result of these, the performance numbers would be the similar as that of kernel vRouter.*
 
 .Step by Step vif (vhost-user) setup and non DPDK VM packet processing:
 
 . When the VM is spawned, QEMU registers an fd (file descriptor) for the guest
-(irqfd) and passes to the backend (vRouter). The guest listens to this fd for
-changes to process the packets.
+  (irqfd) and passes to the backend (vRouter). The guest listens to this fd for
+  changes to process the packets.
 
 . registration mechanism for this fd is provided by KVM kernel module.  This is
-KVM module that actually provides a wait-notify mechanism between the guest and
-the backend (vRouter)
+  KVM module that actually provides a `wait-notify` mechanism between the guest
+  and the backend (vRouter)
 
 . virtual machine is setting a flag `VRING_AVAIL_F_NO_INTERRUPT` into VirtIO
-ring by which vRouter will be aware it needs to notify the Guest VM that a
-packet has been delivered (this flag is not set when VM is using DPDK).
+  ring by which vRouter will be aware it needs to notify the Guest VM that a
+  packet has been delivered (this flag is not set when VM is using DPDK).
 
 . once the vRouter gets hold of this fd, all it needs to do is to enqueue the
-packets to the virtio ring and write to that fd.
+  packets to the virtio ring and write to that fd.
 
-. KVM injects this event to the VM as an interrupt.
-In this process, the VM needs a 'VMExit'
+. KVM injects this event to the VM as an interrupt.  In this process, the VM
+  needs a 'VMExit'
 
 . VMExit latency is very high (around 10K clock cycles). This is further
-compounded by the NAPI latency. It has a very bad impact on VM performance.
-vRouter performance is also impacted due to the extra work of writing to the fd
-(which interrupts the guest).
+  compounded by the NAPI latency. It has a very bad impact on VM performance.
+  vRouter performance is also impacted due to the extra work of writing to the
+  fd (which interrupts the guest).
 
 ==== Supported NICs
 
@@ -1210,14 +1332,6 @@ NICs)
 ====
 * info how to deploy with Director with Openstack Newton
 https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton[[.underline]#https://github.com/Juniper/contrail-tripleo-heat-templates/tree/stable/newton#]
-
-* DPDK version used by the vrouter can be checked into dpdk vrouter log files :
-
-    $ vi /var/log/containers/contrail/contrail-vrouter-dpdk.log
-    ...
-    2019-04-19 16:30:41,411 VROUTER: vRouter version: \{"build-info": [\{"build-time": "2019-04-11 23:47:32.407280", "build-hostname": "rhel-7-builder-juniper-contrail-ci-c-0000225573.novalocal", "build-user": "zuul", "build-version": "5.1.0"}]}
-    2019-04-19 16:30:41,411 VROUTER: DPDK version: *DPDK 18.05.1*
-    ...
 ====
 
 .Nova / Qemu / Libvirt
@@ -1234,11 +1348,7 @@ Starting from OpenStack Pike release, no patch is required.
 
 == Configuration description
 
-some texts 
-
 === Compute node memory and huge pages
-
-some texts 
 
 ==== Huge pages configuration
 
@@ -2838,7 +2948,10 @@ vrouter, we can see a performance of 0.8 MPPS per lcore when siblings are used
 siblings are not used (1.2 MPPS at per physical CPU).
 
 ._Juniper QA tests - 2018_
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image19.png[image,width=601,height=337]
+//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image19.png[image,width=601,height=337]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image19.png[]
+
+ping: confusing. 2p2ht means 2 pcores, both enabled ht=>4lcores in use?
 
 [.underline]#Diagram legend#:
 
@@ -2910,14 +3023,14 @@ The best results will be achieved when:
   configurations are not allowed but some performance degradation can be
   observed (depends on traffic characteristic and NUMA allocation).
 - Contrail vrouter threads are correctly pinned (available since 20.03 version) :
-    * using CPU_LIST for packet processing threads
-    * using SERVICE_CORE_MASK and DPDK_CTRL_THREAD_MASK for control and service
+    * using `CPU_LIST` for packet processing threads
+    * using `SERVICE_CORE_MASK` and `DPDK_CTRL_THREAD_MASK` for control and service
       threads (only available since 20.03 version)
     * core siblings are not used for physical core allocated to packet
       processing threads (cf: vRouter CPU capacity planning section)
 
-- CPU allocated to DPDK vrouter and Nova are properly isolated with both `tuned
-  partitioning` and `isolcpus` mechanisms (contrail 20.03 and later version).
+- CPU allocated to DPDK vrouter and Nova are properly isolated with both `tuned partitioning` 
+  and `isolcpus` mechanisms (contrail 20.03 and later version).
 
 NOTE: When using a Contrail Release 19.12 or earlier, some erratic drops can be
 seen when CPU isolation rules are enforced either on vrouter and or nova
@@ -2945,8 +3058,7 @@ scenario with an optimal setup) :
 (*): these values are depending on the actual customer environment.
 Real figures could be different.
 
-[.underline]#Example - Scenario 1#:
-
+.Scenario 1:
 Let’s assume we want to be able to process 10 Gb/s of 512 bytes packet size in
 full duplex, we need 5 MPPS throughput at the vrouter level (2 x 10 x 1000 /
 512 / 8).
@@ -2954,26 +3066,24 @@ full duplex, we need 5 MPPS throughput at the vrouter level (2 x 10 x 1000 /
 So, we need at least 6 forwarding cores to be configured onto the vRouter (5 /
 0.9).
 
-[.underline]#Example - Scenario 2#: +
+.Scenario 2:
 We need to be able to process 12 MPPS of 64 bytes packets onto our vRouter (in
 full duplex mode: 6 MPPS RX + 6 MPPS TX). So we need at least 12 forwarding
 cores (12 / 1).
 
-*[.underline]#Second step: virtual instance DPDK support and multi queues capability#*
+.*[.underline]#Second step: virtual instance DPDK support and multi queues capability#*
 
 First topic to consider is to determine whether the virtual instances are using
 or not DPDK.  And, if DPDK is supported, do the virtual instances support
 multiQ vNIC ?
 
-case 1: [.underline]#not DPDK capable or are not supporting DPDK multiQ vNIC#:
-
+.not DPDK capable or not supporting DPDK multiQ vNIC
 It is preferable not to use more than 4 forwarding cores onto the vRouter.
 If more than 4 forwarding cores are used onto the vrouter, some drop can occur
 at virtIO queue level due to the traffic burst that will be generated by the
 usage of several forwarding cores to deliver packet into a single Q.
 
-case 2: [.underline]#DPDK capable multiQ vNIC#:
-
+.DPDK capable multiQ vNIC
 The number of vRouter forwarding cores to be used will depend on:
 
 - Linux Kernel release used onto the OpenStack compute node
@@ -2989,21 +3099,21 @@ The table below is providing the vRouter allocation rule to follow:
 |N >= 8            |>= 8                             |>= N
 |====
 
-[.underline]#Example - Scenario 1 and 2#:
-
+.Scenario 1 and 2
 Let’s assume we are using MultiQ vNIC virtual instances on RedHat OpenStack 13 platform.
 So, Linux Kernel 3.X will be used on compute nodes.
 These virtual instances will be configured with 12 vCPU.
 As Linux Kernel 3.X is used onto our compute nodes, each multiQ vNIC will be configured with 8 queues at maximum.
 So we need to use at least 8 forwarding cores to be configured onto the vRouter.
 
-*[.underline]#Last step: customer use case and sibling consideration#*
+.*[.underline]#Last step: customer use case and sibling consideration#*
 
 Then we have to take into consideration the purpose of the OpenStack Contrail platform.
 
-case 1: [.underline]#high network throughput per vNIC#
+.case1: high network throughput per vNIC
 
-If the customer is intending to use its OpenStack computes to host virtual instances requiring very high network throughput per vNIC.
+If the customer is intending to use its OpenStack computes to host virtual
+instances requiring very high network throughput per vNIC.
 It is sometimes preferable not to use siblings on forwarding cores.
 If sibling is not used, we could expect a 50% performance improvement per processing core.
 
@@ -3017,12 +3127,13 @@ If sibling is not used, we could expect a 50% performance improvement per proces
 (*): these values are depending on the actual customer environment.
 Real figures could be different.
 
-case 2: [.underline]#as many as possible virtual instances per compute node#
+.case 2: as many as possible virtual instances per compute node
 
-If the customer is willing to keep a better capacity on its compute nodes in order to start as many virtual instances as possible, it is preferable to use CPU siblings on forwarding cores.
+If the customer is willing to keep a better capacity on its compute nodes in
+order to start as many virtual instances as possible, it is preferable to use
+CPU siblings on forwarding cores.
 
-[.underline]#Example - Scenario 1#:
-
+.Scenario 1
 - We are using 2 x 12 physical CPU computes.
 - We need 5 Gb/s full duplex traffic throughput to be processed by Contrail vRouter (at least 6 forwarding core required). As we are using MultiQ Virtual instances with more than 8 vCPU onto Compute nodes running Linux 3.x Kernel, we have to allocate at least 8 forwarding cores onto Contrail vRouter. +
 - We do not foresee a higher network throughput expectation than the hypothesis taken for our current vRouter dimensioning.
@@ -3031,13 +3142,17 @@ If the customer is willing to keep a better capacity on its compute nodes in ord
 
 So, we will use a vRouter configuration with 8 forwarding cores configured onto 4 Physical CPUs on NUMA0.
 Our compute nodes are fitted with 12 Physical CPUs per NUMA.
-So, 8 Physical CPUs - 16 logical cores - will remain available for other purposes (7 allocated - 14 logical cores - to VM instances and 1 allocated - 2 logical cores to Linux Operating System for Hypervisor needs).
+So, 8 Physical CPUs - 16 logical cores - will remain available for other
+purposes (7 allocated - 14 logical cores - to VM instances and 1 allocated - 2
+logical cores to Linux Operating System for Hypervisor needs).
 
-[.underline]#Example - Scenario 2#:
-
+.Scenario 2
 We are using 2 x 12 physical CPU computes.
-We need 12 MPPS throughput on our vRouter (64 bytes packets) . At least 12 logical cores are required to get such a performance.
-As we are using MultiQ Virtual instances with more than 8 vCPU onto Compute nodes running Linux 3.x Kernel, we have to allocate at least 8 forwarding cores onto Contrail vRouter.
+We need 12 MPPS throughput on our vRouter (64 bytes packets) . At least 12
+logical cores are required to get such a performance.
+As we are using MultiQ Virtual instances with more than 8 vCPU onto Compute
+nodes running Linux 3.x Kernel, we have to allocate at least 8 forwarding cores
+onto Contrail vRouter.
 
 - If sibling is used we need to use 12 logical cores on our vRouter (6 Physical CPUs)
 - If sibling is not used we need 8 physical cores on our vRouter (8 physical CPUs)
@@ -3051,7 +3166,8 @@ So only 8 MPPS for the eight queues (4 MPPS RX + 4 MPPS TX).
 
 Siblings or not siblings :
 
-- If we need 12 MPPS on vRouter distributed on several vNIC, we could use only 6 physical cores with their siblings (12 logical cores in total).
+- If we need 12 MPPS on vRouter distributed on several vNIC, we could use only
+  6 physical cores with their siblings (12 logical cores in total).
 - If we need 12 MPPS for a single vNIC, it is preferable to use only 8 physical cores.
 We have a virtual instance which has *high network throughput requirements per vNIC*.
 
@@ -3104,6 +3220,7 @@ Onto a Contrail OpenStack platform we have following kind of processes that will
 - vRouter Agent (default is 2, this can be upgraded to 4 in high flow environment)
 - vrouter DPDK forwarding thread
 
+.CPU assignment typical setups
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
 
 We are defining 4 CPU groups:
@@ -3111,18 +3228,26 @@ We are defining 4 CPU groups:
 - CPUs used for DPDK vRouter packet processing (aka packet processing threads)
 - CPUs used for DPDK vRouter control and management (service threads)
 - CPUs used by VNF (aka CPU managed by Nova)
-- CPUs used by the Operating System and any other task not listed above and DPDK vRouter initial setup (DPDK control threads).
+- CPUs used by the Operating System and any other task not listed above and
+  DPDK vRouter initial setup (DPDK control threads).
 
 We are applying these allocation rules to get the best performance as possible:
 
-- When Hyper Threading is used, we will book both physical CPUs and their sibling ones for DPDK vRouter packet processing threads.
-- Only physical CPUs will be used and assigned to vRouter packet processing threads.
-Sibling CPUs are unused.
-- All CPUs assigned to DPDK vRouter packet processing threads must be taken onto the same NUMA.
+- When Hyper Threading is used, we will book both physical CPUs and their
+  sibling ones for DPDK vRouter packet processing threads.
+- Only physical CPUs will be used and assigned to vRouter packet processing
+  threads. Sibling CPUs are unused.
+- All CPUs assigned to DPDK vRouter packet processing threads must be taken
+  onto the same NUMA.
 
-vRouter assigned CPUs and Nova assigned CPU will be isolated from in order to prevent them from being used by any other application (or any Operating System task). Both isolcpu and tuned partitioning mechanisms will be used to get the best isolation as possible.
+vRouter assigned CPUs and Nova assigned CPU will be isolated from in order to
+prevent them from being used by any other application (or any Operating System
+task). Both isolcpu and tuned partitioning mechanisms will be used to get the
+best isolation as possible.
 
-In the following pages, we will describe a performance tuning configuration using a node with 36 physical cores split on 2 NUMA and Hyperthreading enabled (72 logical cores).
+In the following pages, we will describe a performance tuning configuration
+using a node with 36 physical cores split on 2 NUMA and Hyperthreading enabled
+(72 logical cores).
 
 On this system we are applying the following typical CPU allocation:
 
@@ -3133,10 +3258,10 @@ On this system we are applying the following typical CPU allocation:
 - CPUs assigned to VNF (aka Nova CPU): 3,5,7,9,11-35,39,41,43,45,47-71 (NUMA 0 and 1)
 - CPUs assigned to the operating system and other task (vrouter DPDK control threads): 0,1,36,37 (NUMA 0 and 1)
 
-Configuration described into the next pages is really relevant when a Contrail 20.03 and later release is used. +
-CPUs 2-35,38-71 will be allocated to Contrail DPDK vRouter and to Nova.
-They will be isolated using both *_tuned partitioning_* and *_isolcpus_* mechanisms.
-The diagram below is describing the target situation:
+Configuration described below is really relevant when a Contrail 20.03 and
+later release is used. CPUs 2-35,38-71 will be allocated to Contrail DPDK
+vRouter and to Nova. They will be isolated using both `tuned partitioning` and
+`isolcpus` mechanisms. The diagram below is describing the target situation:
 
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image45.png[image,width=708,height=365]
 
@@ -3144,121 +3269,127 @@ image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image45.
 
 === Discover hardware architecture topology
 
-Use lstopo and numactl commands to check cores numbering and numa nodes architecture
+Use `lstopo` and `numactl` commands to check cores numbering and numa nodes architecture
 
 [source, sh, linenums]
 ----
 (Ubuntu) # apt-get install hwloc
 (RedHat) # yum install hwloc
+
 # lstopo
 Machine (252GB)
-NUMANode L#0 (P#0 126GB)
-Socket L#0 + L3 L#0 (30MB)
-L2 L#0 (256KB) + L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0
-PU L#0 (P#0)
-PU L#1 (P#24)
-L2 L#1 (256KB) + L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1
-PU L#2 (P#1)
-PU L#3 (P#25)
-L2 L#2 (256KB) + L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2
-PU L#4 (P#2)
-PU L#5 (P#26)
-L2 L#3 (256KB) + L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3
-PU L#6 (P#3)
-PU L#7 (P#27)
-L2 L#4 (256KB) + L1d L#4 (32KB) + L1i L#4 (32KB) + Core L#4
-PU L#8 (P#4)
-PU L#9 (P#28)
-L2 L#5 (256KB) + L1d L#5 (32KB) + L1i L#5 (32KB) + Core L#5
-PU L#10 (P#5)
-PU L#11 (P#29)
-L2 L#6 (256KB) + L1d L#6 (32KB) + L1i L#6 (32KB) + Core L#6
-PU L#12 (P#6)
-PU L#13 (P#30)
-L2 L#7 (256KB) + L1d L#7 (32KB) + L1i L#7 (32KB) + Core L#7
-PU L#14 (P#7)
-PU L#15 (P#31)
-L2 L#8 (256KB) + L1d L#8 (32KB) + L1i L#8 (32KB) + Core L#8
-PU L#16 (P#8)
-PU L#17 (P#32)
-L2 L#9 (256KB) + L1d L#9 (32KB) + L1i L#9 (32KB) + Core L#9
-PU L#18 (P#9)
-PU L#19 (P#33)
-L2 L#10 (256KB) + L1d L#10 (32KB) + L1i L#10 (32KB) + Core L#10
-PU L#20 (P#10)
-PU L#21 (P#34)
-L2 L#11 (256KB) + L1d L#11 (32KB) + L1i L#11 (32KB) + Core L#11
-PU L#22 (P#11)
-PU L#23 (P#35)
-HostBridge L#0
-PCIBridge
-PCI 103c:3239
-Block L#0 "sda"
-Block L#1 "sdb"
-PCIBridge
-PCI 8086:1572
-Net L#2 "t1a"
-PCI 8086:1572
-Net L#3 "t1b"
-PCIBridge
-PCI 8086:1572
-Net L#4 "t2a"
-PCI 8086:1572
-Net L#5 "t2b"
-PCIBridge
-PCI 102b:0533
-PCIBridge
-PCI 14e4:1657
-Net L#6 "meth0"
-PCI 14e4:1657
-Net L#7 "meth1"
-PCI 14e4:1657
-Net L#8 "eth4"
-PCI 14e4:1657
-Net L#9 "eth6"
-NUMANode L#1 (P#1 126GB) + Socket L#1 + L3 L#1 (30MB)
-L2 L#12 (256KB) + L1d L#12 (32KB) + L1i L#12 (32KB) + Core L#12
-PU L#24 (P#12)
-PU L#25 (P#36)
-L2 L#13 (256KB) + L1d L#13 (32KB) + L1i L#13 (32KB) + Core L#13
-PU L#26 (P#13)
-PU L#27 (P#37)
-L2 L#14 (256KB) + L1d L#14 (32KB) + L1i L#14 (32KB) + Core L#14
-PU L#28 (P#14)
-PU L#29 (P#38)
-L2 L#15 (256KB) + L1d L#15 (32KB) + L1i L#15 (32KB) + Core L#15
-PU L#30 (P#15)
-PU L#31 (P#39)
-L2 L#16 (256KB) + L1d L#16 (32KB) + L1i L#16 (32KB) + Core L#16
-PU L#32 (P#16)
-PU L#33 (P#40)
-L2 L#17 (256KB) + L1d L#17 (32KB) + L1i L#17 (32KB) + Core L#17
-PU L#34 (P#17)
-PU L#35 (P#41)
-L2 L#18 (256KB) + L1d L#18 (32KB) + L1i L#18 (32KB) + Core L#18
-PU L#36 (P#18)
-PU L#37 (P#42)
-L2 L#19 (256KB) + L1d L#19 (32KB) + L1i L#19 (32KB) + Core L#19
-PU L#38 (P#19)
-PU L#39 (P#43)
-L2 L#20 (256KB) + L1d L#20 (32KB) + L1i L#20 (32KB) + Core L#20
-PU L#40 (P#20)
-PU L#41 (P#44)
-L2 L#21 (256KB) + L1d L#21 (32KB) + L1i L#21 (32KB) + Core L#21
-PU L#42 (P#21)
-PU L#43 (P#45)
-L2 L#22 (256KB) + L1d L#22 (32KB) + L1i L#22 (32KB) + Core L#22
-PU L#44 (P#22)
-PU L#45 (P#46)
-L2 L#23 (256KB) + L1d L#23 (32KB) + L1i L#23 (32KB) + Core L#23
-PU L#46 (P#23)
-PU L#47 (P#47)
+  NUMANode L#0 (P#0 126GB)
+    Socket L#0 + L3 L#0 (30MB)
+      L2 L#0 (256KB) + L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0
+        PU L#0 (P#0)
+        PU L#1 (P#24)
+      L2 L#1 (256KB) + L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1
+        PU L#2 (P#1)
+        PU L#3 (P#25)
+      L2 L#2 (256KB) + L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2
+        PU L#4 (P#2)
+        PU L#5 (P#26)
+      L2 L#3 (256KB) + L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3
+        PU L#6 (P#3)
+        PU L#7 (P#27)
+      L2 L#4 (256KB) + L1d L#4 (32KB) + L1i L#4 (32KB) + Core L#4
+        PU L#8 (P#4)
+        PU L#9 (P#28)
+      L2 L#5 (256KB) + L1d L#5 (32KB) + L1i L#5 (32KB) + Core L#5
+        PU L#10 (P#5)
+        PU L#11 (P#29)
+      L2 L#6 (256KB) + L1d L#6 (32KB) + L1i L#6 (32KB) + Core L#6
+        PU L#12 (P#6)
+        PU L#13 (P#30)
+      L2 L#7 (256KB) + L1d L#7 (32KB) + L1i L#7 (32KB) + Core L#7
+        PU L#14 (P#7)
+        PU L#15 (P#31)
+      L2 L#8 (256KB) + L1d L#8 (32KB) + L1i L#8 (32KB) + Core L#8
+        PU L#16 (P#8)
+        PU L#17 (P#32)
+      L2 L#9 (256KB) + L1d L#9 (32KB) + L1i L#9 (32KB) + Core L#9
+        PU L#18 (P#9)
+        PU L#19 (P#33)
+      L2 L#10 (256KB) + L1d L#10 (32KB) + L1i L#10 (32KB) + Core L#10
+        PU L#20 (P#10)
+        PU L#21 (P#34)
+      L2 L#11 (256KB) + L1d L#11 (32KB) + L1i L#11 (32KB) + Core L#11
+        PU L#22 (P#11)
+        PU L#23 (P#35)
+    HostBridge L#0
+      PCIBridge
+        PCI 103c:3239
+          Block L#0 "sda"
+          Block L#1 "sdb"
+      PCIBridge
+        PCI 8086:1572
+          Net L#2 "t1a"
+        PCI 8086:1572
+          Net L#3 "t1b"
+      PCIBridge
+        PCI 8086:1572
+          Net L#4 "t2a"
+        PCI 8086:1572
+          Net L#5 "t2b"
+      PCIBridge
+        PCI 102b:0533
+      PCIBridge
+        PCI 14e4:1657
+          Net L#6 "meth0"
+        PCI 14e4:1657
+          Net L#7 "meth1"
+        PCI 14e4:1657
+          Net L#8 "eth4"
+        PCI 14e4:1657
+          Net L#9 "eth6"
+  NUMANode L#1 (P#1 126GB) + Socket L#1 + L3 L#1 (30MB)
+    L2 L#12 (256KB) + L1d L#12 (32KB) + L1i L#12 (32KB) + Core L#12
+      PU L#24 (P#12)
+      PU L#25 (P#36)
+    L2 L#13 (256KB) + L1d L#13 (32KB) + L1i L#13 (32KB) + Core L#13
+      PU L#26 (P#13)
+      PU L#27 (P#37)
+    L2 L#14 (256KB) + L1d L#14 (32KB) + L1i L#14 (32KB) + Core L#14
+      PU L#28 (P#14)
+      PU L#29 (P#38)
+    L2 L#15 (256KB) + L1d L#15 (32KB) + L1i L#15 (32KB) + Core L#15
+      PU L#30 (P#15)
+      PU L#31 (P#39)
+    L2 L#16 (256KB) + L1d L#16 (32KB) + L1i L#16 (32KB) + Core L#16
+      PU L#32 (P#16)
+      PU L#33 (P#40)
+    L2 L#17 (256KB) + L1d L#17 (32KB) + L1i L#17 (32KB) + Core L#17
+      PU L#34 (P#17)
+      PU L#35 (P#41)
+    L2 L#18 (256KB) + L1d L#18 (32KB) + L1i L#18 (32KB) + Core L#18
+      PU L#36 (P#18)
+      PU L#37 (P#42)
+    L2 L#19 (256KB) + L1d L#19 (32KB) + L1i L#19 (32KB) + Core L#19
+      PU L#38 (P#19)
+      PU L#39 (P#43)
+    L2 L#20 (256KB) + L1d L#20 (32KB) + L1i L#20 (32KB) + Core L#20
+      PU L#40 (P#20)
+      PU L#41 (P#44)
+    L2 L#21 (256KB) + L1d L#21 (32KB) + L1i L#21 (32KB) + Core L#21
+      PU L#42 (P#21)
+      PU L#43 (P#45)
+    L2 L#22 (256KB) + L1d L#22 (32KB) + L1i L#22 (32KB) + Core L#22
+      PU L#44 (P#22)
+      PU L#45 (P#46)
+    L2 L#23 (256KB) + L1d L#23 (32KB) + L1i L#23 (32KB) + Core L#23
+      PU L#46 (P#23)
+      PU L#47 (P#47)
 ----
+
+.ping: hwloc-ls GUI
+image::diagrams/hwloc-ls.png[]
+
 
 [source, sh, linenums]
 ----
 (Ubuntu) # apt-get install numactl
 (RedHat) # yum install numactl
+
 # numactl --hardware
 available: 2 nodes (0-1)
 node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 24 25 26 27 28 29 30 31 32 33 34 35
@@ -3268,13 +3399,14 @@ node 1 cpus: 12 13 14 15 16 17 18 19 20 21 22 23 36 37 38 39 40 41 42 43 44 45 4
 node 1 size: 129019 MB
 node 1 free: 92592 MB
 node distances:
-node 0 1
-0: 10 21
-1: 21 10
+node   0   1
+  0:  10  21
+  1:  21  10
+
 # lscpu | grep NUMA
-NUMA node(s): 2
-NUMA node0 CPU(s): 0-11,24-35
-NUMA node1 CPU(s): 12-23,36-47
+NUMA node(s):          2
+NUMA node0 CPU(s):     0-11,24-35
+NUMA node1 CPU(s):     12-23,36-47
 ----
 
 To check NIC assignment to NUMA node.
@@ -3286,7 +3418,7 @@ NUMA as the NIC(s).
 
 Use lspci command to find PCI addresses of NICs that will be bound to DPDK process
 
-[source, sh, linenums]
+[source, sh, linenums, subs="quotes"]
 ----
 # lspci | grep Ethernet
 02:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5719 Gigabit Ethernet PCIe (rev 01)
@@ -3299,7 +3431,7 @@ Use lspci command to find PCI addresses of NICs that will be bound to DPDK proce
 *0b:00.1 Ethernet controller: Intel Corporation Ethernet Controller X710 for 10GbE SFP+ (rev 01)*
 ----
 
-Use dpdk_nic_bind.py command to verify proper binding of NICs to DPDK
+Use `dpdk_nic_bind`.py command to verify proper binding of NICs to DPDK
 
     sudo /opt/contrail/bin/dpdk_nic_bind.py -s
 
@@ -3359,8 +3491,8 @@ physical_interface_mac = $dpdk_dev_mac;
 
 ==== Configure nova scheduler
 
-On every controller, add values AggregateInstanceExtraSpecFilter and
-NUMATopologyFilter to the scheduler_default_filters parameter in
+On every controller, add values `AggregateInstanceExtraSpecFilter` and
+`NUMATopologyFilter` to the `scheduler_default_filters` parameter in
 /etc/nova/nova.conf.  Restart nova-scheduler.
 
 Configure host aggregates:
@@ -3384,24 +3516,24 @@ openstack flavor set --property hw:cpu_policy=dedicated my-flavor
 openstack flavor set --property hw:cpu_thread_policy=require my-flavor
 ----
 
-NOTE: that mem_page_size can have 1GB or 2048 values depending on hugepage size
+that `mem_page_size` can have 1GB or 2048 values depending on hugepage size
 requirements of the VNF.  Multiple flavors could be created in order to provide
 for both options.
 
-hw:cpu_policy=**dedicated** - means that Nova will allocate physical cores and their sibling HT
+- `hw:cpu_policy=**dedicated**` - means that Nova will allocate physical cores and their sibling HT
+- `hw:cpu_policy=**isolated**` - means that Nova will allocate physical cores only
+- `hw:cpu_policy=**prefered**` - allocate range for VM and then system range
+  will allocate cores dynamically. *DO NOT use this option with isolated CPUs!*
 
-hw:cpu_policy=**isolated** - means that Nova will allocate physical cores only
-
-hw:cpu_policy=**prefered** - allocate range for VM and then system range will allocate cores dynamically. *DO NOT use this option with isolated CPUs!*
-
-PS: *Large pages are required* for each instance *(even any non-DPDK instance)
+*Large pages are required* for each instance *(even any non-DPDK instance)
 running on hosts with DPDK vrouter*. If large pages are not present in the
-guest, the *interface will appear but will not function*.
+guest, the *interface will appear but will not function*.  This is why, on a
+compute node running DPDK vrouter, openstack instances must use flavors having
+`hw:mem_page_size=**large**` property.
 
-This is why, on a compute node running DPDK vrouter, openstack instances must
-use flavors having _hw:mem_page_size=large_ property.
+ping: didn't say why..
 
-===== Spawn a VM
+.Spawn a VM
 
     openstack server create --image dpdk_image --flavor my-flavor --nic net-id=276c706c-cf78-44ba-ba97-d9b9dbe36707 vm-dpdk-1
 
@@ -3812,6 +3944,11 @@ Kernel Compute:
 
 This issue is tracked under https://bugs.launchpad.net/juniperopenstack/+bug/1731174
 We do not support these offloads yet inside vrouter-dpdk.
+
+****
+LP 1731174:
+This is needed to support jumbo MTU in non-DPDK VM. Request from Orange vEPC - Ericsson
+****
 
 Starting from Contrail 4.0.1 and 3.2.8, jumbo frames are supported in all scenarios.
 
