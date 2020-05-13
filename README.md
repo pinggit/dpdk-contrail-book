@@ -66,7 +66,7 @@ coauthors:  (as of March 17)
 
 ## table of content (Volume I)
 
-### ch1: Overview of SDN       (prz, ping)
+### ch1: Overview of SDN       (ping, laurent)
 
 * Different SDN solutions (contrail, calico, nuage, OVN)
 * Overview of Tungsten Fabric
