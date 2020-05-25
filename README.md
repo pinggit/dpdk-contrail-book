@@ -198,7 +198,7 @@ coauthors:  (as of March 17)
     * Static mapping of queues
     * Run-to-completion
 
-## dpdk lab (Laurent)
+## dpdk lab (1910)
 
 If needed you can use following labs:
 
@@ -244,7 +244,7 @@ https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
 also see "dpdk performance tests.pptx"
 https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g7dfd0123ae_1_300
 
-## dpdk lab
+## dpdk lab (1904)
 
 ### login
 
@@ -430,6 +430,44 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
     # Select from following numbers: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524280, 1048576
     flows=[16384]
 
+## dpdk lab(2003)
+ 
+    (undercloud) [stack@undercloud ~]$ openstack server list
+    +--------------------------------------+--------------------------------+--------+-------------------------+----------------+---------------------------+
+    | ID                                   | Name                           | Status | Networks                | Image          | Flavor                    |
+    +--------------------------------------+--------------------------------+--------+-------------------------+----------------+---------------------------+
+    | 1dd70e0f-0f70-4c5c-b0d4-cab16803aebd | overcloudjcx-ctrl-0            | ACTIVE | ctlplane=192.168.213.95 | overcloud-full | Controller                |
+    | 22de73b4-08de-4ecd-8129-990e8be37097 | overcloudjcx-ca-2              | ACTIVE | ctlplane=192.168.213.71 | overcloud-full | ContrailAnalytics         |
+    | 3433fe0b-e511-4e87-a451-92bc46c46d5c | overcloudjcx-ctrl-2            | ACTIVE | ctlplane=192.168.213.98 | overcloud-full | Controller                |
+    | 4788a3ac-cfc0-4907-989c-aa2a19693832 | overcloudjcx-ctrl-1            | ACTIVE | ctlplane=192.168.213.93 | overcloud-full | Controller                |
+    | 05b53e09-7090-45d4-9bb0-825d027228a1 | overcloudjcx-compdpdk2hw0-0    | ACTIVE | ctlplane=192.168.213.75 | overcloud-full | ComputeDpdk2Hw0           |
+    | 1a2e4a2d-2c16-48d1-ae97-11ec27e6f46a | overcloudjcx-compkernel3hw1-0  | ACTIVE | ctlplane=192.168.213.88 | overcloud-full | ComputeKernel3Hw1         |
+    | 3d0f6cab-e997-4491-ab86-8d6a922e6a4a | overcloudjcx-cc-2              | ACTIVE | ctlplane=192.168.213.64 | overcloud-full | ContrailController        |
+    | 8780c734-c577-4233-855f-88f9f0c1d425 | overcloudjcx-afxctrl-0         | ACTIVE | ctlplane=192.168.213.91 | overcloud-full | AppformixController       |
+    | fabed07f-7c7c-43a9-9120-c1ae593443b2 | overcloudjcx-afxctrl-2         | ACTIVE | ctlplane=192.168.213.59 | overcloud-full | AppformixController       |
+    | 367c6027-fa27-48ca-b870-d45ec0293877 | overcloudjcx-cephstorage3hw0-0 | ACTIVE | ctlplane=192.168.213.69 | overcloud-full | CephStorage3Hw0           |
+    | 3aff5a98-77c6-429e-92d1-ce8542d110af | overcloudjcx-compdpdk3hw2-0    | ACTIVE | ctlplane=192.168.213.76 | overcloud-full | ComputeDpdk3Hw2           |
+    | 7229fd0d-e467-412e-8a72-35535baa0da8 | overcloudjcx-compdpdk3hw1-0    | ACTIVE | ctlplane=192.168.213.68 | overcloud-full | ComputeDpdk3Hw1           |
+    | 81891963-3e1c-414a-95b3-b6be7362849b | overcloudjcx-afxctrl-1         | ACTIVE | ctlplane=192.168.213.85 | overcloud-full | AppformixController       |
+    | a0c40c27-b863-475c-9dc6-0c6c83eb26aa | overcloudjcx-compdpdk1hw0-0    | ACTIVE | ctlplane=192.168.213.86 | overcloud-full | ComputeDpdk1Hw0           |
+    | 78434a00-a6aa-4bdc-8a43-d94ec98458bb | overcloudjcx-cephstorage2hw0-0 | ACTIVE | ctlplane=192.168.213.60 | overcloud-full | CephStorage2Hw0           |
+    | 9594cf3d-5461-4cdf-add4-e67fc0ae720f | overcloudjcx-cc-0              | ACTIVE | ctlplane=192.168.213.63 | overcloud-full | ContrailController        |
+    | 811108ac-d1f7-453c-8dae-ec1971c4896d | overcloudjcx-compdpdk2hw0-1    | ACTIVE | ctlplane=192.168.213.67 | overcloud-full | ComputeDpdk2Hw0           |
+    | 49550879-3586-427b-a696-d6dfb1501938 | overcloudjcx-ca-1              | ACTIVE | ctlplane=192.168.213.58 | overcloud-full | ContrailAnalytics         |
+    | 723f61f5-62fc-409c-a974-9ce89e0da9c5 | overcloudjcx-cadb-0            | ACTIVE | ctlplane=192.168.213.72 | overcloud-full | ContrailAnalyticsDatabase |
+    | af15411c-ab70-4450-932b-fe49071ee0f9 | overcloudjcx-cephstorage1hw0-0 | ACTIVE | ctlplane=192.168.213.52 | overcloud-full | CephStorage1Hw0           |
+    | 8ca45f90-2f8b-42ca-b55f-67f9b8dc0769 | overcloudjcx-compdpdk3hw0-0    | ACTIVE | ctlplane=192.168.213.53 | overcloud-full | ComputeDpdk3Hw0           |
+    | 27a836ae-f51f-4e79-8bff-d73c7b05548d | overcloudjcx-ca-0              | ACTIVE | ctlplane=192.168.213.62 | overcloud-full | ContrailAnalytics         |
+    | d2d177df-84bc-4c4b-9bd3-f8276e48d6d7 | overcloudjcx-cc-1              | ACTIVE | ctlplane=192.168.213.74 | overcloud-full | ContrailController        |
+    | 506c78df-6219-4999-b6c2-53c27e3776bf | overcloudjcx-cadb-2            | ACTIVE | ctlplane=192.168.213.51 | overcloud-full | ContrailAnalyticsDatabase |
+    | 6557e674-8d4a-43a1-abe8-e2e7bccdeca1 | overcloudjcx-compdpdk3hw0-1    | ACTIVE | ctlplane=192.168.213.77 | overcloud-full | ComputeDpdk3Hw0           |
+    | 953a9c70-5f10-4ef3-9479-16e91b59cbc0 | overcloudjcx-cadb-1            | ACTIVE | ctlplane=192.168.213.54 | overcloud-full | ContrailAnalyticsDatabase |
+    | 9bba6a9c-e049-4561-bd0e-643a80f57771 | overcloudjcx-compdpdk2hw1-0    | ACTIVE | ctlplane=192.168.213.61 | overcloud-full | ComputeDpdk2Hw1           |
+    | f149e6c6-0730-40b3-8c7e-ba68d464f8ae | overcloudjcx-compdpdk1hw1-0    | ACTIVE | ctlplane=192.168.213.56 | overcloud-full | ComputeDpdk1Hw1           |
+    | 9d593fbb-49cc-4fdc-ab48-3b3dc23c7556 | overcloudjcx-compdpdk2hw1-1    | ACTIVE | ctlplane=192.168.213.66 | overcloud-full | ComputeDpdk2Hw1           |
+    | 01a7e0cb-b3e9-4ddb-9c80-1e6d1d08050c | overcloudjcx-compdpdk1hw1-1    | ACTIVE | ctlplane=192.168.213.57 | overcloud-full | ComputeDpdk1Hw1           |
+    +--------------------------------------+--------------------------------+--------+-------------------------+----------------+---------------------------+
+
 ## tools
 
 ### git/github
@@ -500,6 +538,8 @@ works in everywhere
     convert -density 300 -trim -bordercolor white -border 5 image1.pdf image1.png
     #or oneliner
     unoconv -f pdf -T 15 --stdout image1.emf | convert -density 300 -trim -bordercolor white -border 5 - image1.png
+    #convert all files
+    for file in *.emf; do echo "converting $file ..."; unoconv -f pdf -T 15 --stdout $file | convert -density 300 -trim -bordercolor white -border 5 - $(basename $file .emf).png; done
 
     #libreoffice
     $ libreoffice --headless --convert-to png image1.emf

@@ -237,9 +237,21 @@ ring is a circular array of `descriptors` allocated by the OS in the system
 memory (RAM). Each `descriptor` contains information about a packet that has been
 received or that is going to be transmitted.
 
+[qanda]
+====
 ping? "ring" = "descriptor", seems like located on both cores or NIC? also see
-<<vrouter DPDK fine tuning parameters>>.
+<<vrouter DPDK fine tuning parameters>>
 
+A (LD): Ring is a set of memory pointers (descriptors). These pointers are
+pointing the real memory area in which the data to be processed (packets) are
+stored.
+
+There are 2 rings per “queues” (1 per direction:. 1 RX ring, 1 TX ring).
+
+Data are stored in compute central memory (in huge page area). Packets are not
+moved from one queue to another, but these are descriptors (pointers) that are
+moving from one queue to another.
+====
 
 *[.underline]#RX ring#*
 
@@ -603,7 +615,18 @@ For each vrouter interface one or several queues are managed.
 - Physical interface card (usually a bond) : vif 0/0
 - Internal processing interfaces (pkt0) : vif 0/2
 - Virtual Machine Interfaces : vif 0/n
-- ping? vhost0 ?
+
+[qanda]
+====
+ping? how about vhost0 ?
+
+A (LD): here is a drawing which is describing how are plugged each internal nic
+onto vrouter dataplane. Vhost0 is belonging to vrouter agent, not to vrouter
+dataplane. This is vif0/1 which is connected onto the vrouter dapaplane.
+
+//image:diagrams/extracted-media-QA.docx/media/image1.emf[image,width=601,height=483]
+image:diagrams/extracted-media-QA.docx/media/image1.png[image]
+====
 
 Two kinds of interfaces have to be taken in consideration :
 
@@ -613,7 +636,29 @@ Two kinds of interfaces have to be taken in consideration :
   implemented for each virtual NIC. It depends if the given virtual machine is
   supporting multi-queue or not.
 
+[qanda]
+====
 ping? very confusing. one Q per cpu? is Q in NIC or in CPU?
+
+DPDK application principle is simple.
+
+We are allocating as many as needed CPUs as required to process incoming packets.
+
+You have to consider the application we are building with DPDK.
+
+For Juniper/Contrail this is a vrouter processing packets coming from a single physical Interface (to be sent to VM).
+
+PS: This single interface can be a bond. But at vrouter level there is always a unique physical interface.
+
+All the dimensioning consist in “how many CPU do I need to process packet coming from this interface (vif0) ?”
+
+The answer is N CPU. For each CPU we are allocating 1 processing bidirectional
+Q (2 in reality because there are 2 directions = 1 for RX and one for RX) which
+are the buffers in which we store the packets coming from the physical NIC (RX
+Q) or to sent to the physical NIC (TX Q).
+
+So N CPU, means N bidirectional Q (in fact this is 2 x N single direction Q N x RX + N x TX).
+====
 
 In the diagram below we have a first overview of vrouter packet processing for
 an external packet to be sent to virtual machine instances.
@@ -664,7 +709,16 @@ An all DPDK stack, used both at vrouter level and at VNF level, is providing the
 .vrouter 4 topologies
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image16.png[image,width=618,height=513]
 
+[qanda]
+====
 ping? why vhost0?
+
+It was a mistake. This is vif0.
+
+image:diagrams/extracted-media-QA.docx/media/image2.png[image,width=466,height=464]
+
+image:diagrams/extracted-media-QA.docx/media/image3.png[image,width=601,height=375]
+====
 
 .PMD
 When DPDK is used into the virtual instance, vNIC driver (virtio-net) used for
@@ -779,10 +833,27 @@ $ cat /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini
 command=taskset 0xf /usr/bin/contrail-vrouter-dpdk --no-daemon --vdev "eth_bond_bond0,mode=4,xmit_policy=l34,socket_id=0,mac=5c:b9:01:8b:6f:3c,slave=0000:08:00.0,slave=0000:08:00.1" --vlan_tci "2004" --vlan_fwd_intf_name "bond0" --socket-mem 1024,1024
 ----
 
-ping? how to print it in contrail5?
-
 `0xf` => cpu# 0~3 are pinned for forwarding.
 ****
+
+[qanda]
+====
+ping? how to print it in contrail5?
+
+A (LD): Since contrail 5, we are using contrainers.
+
+There is no more this single file used for vrouter config:
+
+    cat /etc/contrail/supervisord_vrouter_files/contrail-vrouter-dpdk.ini
+
+Now, the parameters are in vhost0 interface configuration:
+
+    vi /etc/sysconfig/network-scripts/ifcfg-vhost0
+    CPU_LIST=0x154
+    DPDK_COMMAND_ADDITIONAL_ARGS=”--vr_nexthops=32768”
+
+====
+
 
 When the router boots up, it displays a message about its logical cores numbering.
 For instance, we can get into `contrail-vrouter-dpdk-stdout.log` file, such a message :
@@ -1262,13 +1333,36 @@ Hashing algorithm is in `vr_dpdk_ethdev.c` module (https://github.com/Juniper/co
 
 [NOTE]
 ====
-ping: per <<packet-processing>> what is meant here is there are 2 hash: 
+ping: per <<packet-processing>> what it meant here is there are 2 hash: 
 
 * 1st hash is done by NIC based on outer header, to multiple queue, to multiple polling core.
 * 2nd hash is done by each polling core based on inner header, to multiple forwarding core.
 
 but for MPLSoGRE only 2nd hash happens.
 ====
+
+[qanda]
+====
+A (LD): First hash is calculated on underlay packet outer header by the NIC card.
+
+Second hash is calculated by vrouter application on inner header (on
+decapsulated packet) because if the first hash result would be reused, we would
+have same selected CPU for packet processing than those used for packet
+polling.
+
+This is this second hash calculation that is allowing to use a different CPU
+for packet processing than for packet polling and to spread the DPDK vrouter
+load on all CPUs when MPLSoGRE is used:
+
+This is explained in this drawing. Packets are all polled by the first CPU (due
+to poor entropy).
+
+Then due to second hash calculation, packets are re-balanced on the 3 others.
+
+//image:diagrams/extracted-media-QA.docx/media/image6.emf[image,width=601,height=298]
+image:diagrams/extracted-media-QA.docx/media/image6.png[image,width=601,height=298]
+====
+
 
 ==== Forwarding core - second step of packet processing (MPLS over GRE)
 
@@ -1313,7 +1407,24 @@ expected for incoming encapsulated traffic.
 *No hash is recalculated on the polling core, and each incoming packet will be
 processed on the same forwarding core than the polling one.*
 
+[qanda]
+====
 ping: this is the diff with MPLSoGRE, where we see "an extra hop"
+
+A (LD): Yes. Indeed.
+
+We have to simplify explanations … this is currently very confusing.
+
+In fact this is not so complicated. You have two situations:
+
+* first: processing core is not the same as polling core (there are 2 hash used
+  – first calculated by pNIC or vNIC, second one by vrouter)
+* second: processing and polling core are the same (we are using only 1 hash
+  calculated by pNIC or vNIC)
+
+Next we could provide a matrix stating when 1 or 2 hash are used, and
+illustrate some situation with diagrams.
+====
 
 In the diagram below, it is shown a situation where the polling CPU core is the
 same as the forwarding CPU, which will be the case for MPLSoUDP and VXLAN
@@ -1344,7 +1455,19 @@ image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image46.
 Table above has been made using real single flow traffic seen on each vif 0/0
 and vif 0/3 interface (vNIC) with `vif --get` command (cf appendixes)
 
+[qanda]
+====
 ping? how is this neat output captured?
+
+A (LD): This is a script I made in order to display (at least to have a
+representation – I’ve enriched a Premecz Python program) about packet
+processing. I did it on Premecz lab during performance tests we’ve made early
+this year.
+
+image:diagrams/extracted-media-QA.docx/media/image4.png[image,width=601,height=229]
+
+https://drive.google.com/open?id=1mhxzRlulBqo3SfbGOywy2smG-NdC5dVN
+====
 
 === DPDK VM outgoing traffic
 
@@ -1354,7 +1477,27 @@ The decision which thread will poll which virtio queue is made by Contrail DPDK 
 If VM uses multiqueue then more vRouter forwarding threads (CPU cores) will be
 engaged in receiving packets from a single VM.
 
+[qanda]
+====
 ping? no 1x1 mapping between vNIC queue and forwarding threads? as with pNIC?
+
+A (LD): Yes, there is. But you have 2 cases to consider. SingleQ and MultiQ NIC.
+
+Also, there is a balancing mechanism in order to attach queue0 of each NIC not on a same CPU (
+
+Cf: vNIC queues - Polling Core Assignment (R1910)
+
+Here, multiQ case:
+
+Each CPU is bound to a Q :
+
+//image:diagrams/extracted-media-QA.docx/media/image5.emf[image,width=601,height=276]
+image:diagrams/extracted-media-QA.docx/media/image5.png[image,width=601,height=276]
+
+But it is only part of the full view. You have to consider each direction … and type of traffic.
+
+See my drawings.
+====
 
 ==== egress traffic forwarding steps
 
@@ -1371,7 +1514,24 @@ encapsulation and packet delivery to NIC transmit queue.
 - A round robin algorithm (described in next section) is used to assign vNIC queues to logical cores.
 - vNIC sub-interfaces are sharing TX/RX queues with their parent interface. Hence the same logical core is polling these queues.
 
+[qanda]
+====
 ping? confusing: #2 and #3 statements are conflicting
+
+A (LD):
+
+[arabic]
+. The packet is placed on a vNIC TX queue (vRouter vif RX queue) by the Virtual machine.
+. A given vNIC TX queue is always polled by the same vRouter logical core.
+. A round robin algorithm (described in next section) is used to assign vNIC queues to logical cores.
+. vNIC sub-interfaces are sharing TX/RX queues with their parent interface. Hence the same logical co
+
+Not very well described indeed.
+
+Step 3 is done once … at vnic plugin on vrouter
+
+Step 2 is done during vnic life (how each packet is processed)
+====
 
 Then, the incoming packet is dequeued by the polling logical core (step 1) :
 
@@ -1407,8 +1567,18 @@ is in charge to do :
 For VM incoming traffic a hash is calculated in order to rebalance received
 traffic on a given polling core to all other forwarding cores :
 
+[qanda]
+====
 ping? this is different than ingress traffic received from pNIC - only MPLSoGRE
 traffic will use a different forwarding thread than polling thread.
+
+A (LD): Yes. Indeed.
+
+Yes, and this is something that will change in next releases. To be discussed
+with Kiran and Premecz. It seems we will provide the ability to disable this
+hash calculation done at vrouter level to rebalance polled packets onto
+different CPU to be processed.
+====
 
 .egress traffic coming from VM
 //image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image6.png[image,width=708,height=277]
@@ -1504,12 +1674,68 @@ NOTE: whenever the polling core performs a hash to distribute the packet to a
 processing core, the polling core will never select itself to process the
 packet.
 
+[qanda]
+====
 ping? why diff between vNIC and pNIC? when pNIC got MPLSoUDP (just a UDP packet
 anyway), it do RSS hashing and put in differnet pNIC queue -> diff polling
 core, so polling core does not need to hash again and just processed it. why
 vNIC do it differently? vNIC got UDP packet from VM, it should again do hash
 and place it into different queue, so different polling core will just poll and
 process it. why distribute to other cores here?
+
+A (LD): First, I think this provided matrix has to be discussed and revised …
+Personally I do not understand this concept of “IPv4 MPLSoGRE” when packet is
+originated onto a vNIC.
+
+My understanding is this situation :
+
+[.underline]#Incoming packets from Physical NIC#
+
+[cols=",,",options="header",]
+|===
+|Outer packet Type     |Inner packet type                    |Action
+|IPv4 MPLSoUDP or VXLAN|any                                  |Polling = Processing core (single hash)
+|IPv4 MPLSoGRE         |IP (v4 or v6)                        |Polling != Processing core (two hash calc.)
+|                      |Not IP (Ethernet Frame for instance) |Polling = Processing core (single hash)
+|IPv4                  |Not encapsulated (like XMPP messages)|??
+|===
+
+[.underline]#Incoming packets from Virtual NIC#
+
+[cols=",",options="header",]
+|===
+|Packet type                         |Action
+|IP (v4 or v6)                       |Polling != Processing core (two hash calc.)
+|Not IP (Ethernet Frame for instance)|Polling = Processing core (single hash)
+|===
+
+Second: Why all this complex stuff ?
+
+This is (it was) required by poor entropy situations:
+
+* MPLS GRE encapsulation (incoming traffic from other baremetal computes)
+* SingleQ VM (incoming traffic from virtual instances)
+
+In both situations only 1 polling core is selected. So it is useless to
+allocate lots of CPU onto your vrouter if due to poor entropy / or single Q VM,
+you are using only one core.
+
+This is why Contrail has created a mechanism to spread the load on all CPU.
+This mechanism consist in different hash calculation in order to select another
+CPU for processing.
+
+This was a nice solution till, GRE was the main encapsulation protocol
+supported and most of DPDK VM were single Q.
+
+But now, as most of our customers are using UDP encapsulation protocols and
+MultiQ VNF, this old nice mechanism is really a drawback. It brings an
+additional calculation and an additional queuing steps that is badly impacting
+vrouter performances.
+
+This is why in next release the idea is to propose a setup in which all packets
+are polled and processed by the same CPU. It will be worth to use this new
+setup when your VNF are MultiQ and when using UDP encapsulations.
+====
 
 ////
 [NOTE]
@@ -1846,9 +2072,56 @@ It is important to allocate hugepage memory to all NUMA nodes that will have
 DPDK interfaces associated with them.  If memory is not allocated on a NUMA
 node associated with a physical NIC or VM, they cannot be used.
 
+[qanda]
+====
 ping? this is not fully convincing... isn't `--socket-mem` to allocate hugepage
 for vrouter (not to VM) only? or this is actually a same "global" system-wise
 parameter just as the kernel `hugepagesz=1G hugepages=40` parameter?
+
+A (LD): This is also something we have to explain clearly. Hugepages use in
+DPDK are really badly explained. And, once again this is not so complex as it
+seems.
+
+You just have to keep in mind that :
+
+* Packet are put into memory at one place and *never copied*
+
+(only descriptors are moving from one Q to another)
+
+* Consequently “memory” area where the packet are put must be shared between
+  DPDK vrouter and all instances (what ever the instance is – DPDK or not DPDK)
+
+Then, you have DPDK setup :
+
+* At system level : to allocate a given amount of Memory as “hugepage type”
+* At vrouter level: to use an amount of system hugepages to store packets (in mbufs)
+* vRouter is using CPU on a same NUMA (at least this is the recommended setup
+  if you want to avoid performance issues).
+* Virtual instances are using CPU on both NUMA (and most probably on the other
+  NUMA which is not used by vrouter – because you have lots of CPU on this
+  second one available for your VMs)
+
+So, in a short, you have instances running on both NUMA. They have to be able
+access packets that are referenced by descriptors (that vrouter as put in vNIC
+RX queue).
+
+This is why, by default we spread hugepage memory allocation on both NUMA.
+
+//image:diagram/extracted-media-QA.docx/media/image7.emf[image,width=601,height=419]
+image:diagrams/extracted-media-QA.docx/media/image7.png[image,width=601,height=419]
+
+Here, is shown how huge pages are used.
+
+So, first you are allocating HugePage at system level (at startup for 1G huge pages):
+
+default_hugepagesz=1GB hugepagesz=1G hugepages=40 hugepagesz=2M hugepages=40
+
+I guess, that Huge pages are equally balanced on both NUMA (to be checked)
+
+Then you are requesting at vrtouter level a part of them for vrouter DPDK application need (to store both underlay and VM packets):
+
+--socket-mem <value>,<value>
+====
 
 TIP: If you are using 2 or more ports from different NICs, it is best to ensure that
 these NICs are on the same CPU socket.
@@ -2105,7 +2378,42 @@ The best way to utilize all cores in the system, especially when using
 systemd)*. In that case, both siblings for each core used for VM pinning can be
 utilized.
 
+[qanda]
+====
 ping? shouldn't disabling HT archive max perf?
+
+A (LD): HT matter is not a yes or no answer. It depends …
+
+First, things to consider … HT has been created to improve hardware use
+efficiency. Idea is, we are creating “two virtual CPU” on a single Hardware
+CPU. It improve Physical CPU usage as the the second virtual CPU can use the
+physical resource when the first one is sleeping (like VM usage is improving
+Physical BM utilization)
+
+As the main DPDK principle is to never let a CPU to sleep … we should answer no !!!
+
+But, from the customer perspective which is using Bare Metal Compute to run VM,
+his answer is YES, I want it !!!
+
+So, in general every customer is enabling HT on his servers. So, the question
+is … for vrouter needs, will we recommend to use only one “logical CPU” per
+physical CPU ?
+
+Or do we recommend to use both (aka siblings) on physical CPU ?
+
+Here, again the answer is not so clear, and can’t be Yes or No.
+
+Refer to this section: *_Last step: sibling consideration_*
+
+_[.underline]#Two (simplified) situations#_:
+
+[arabic]
+. highest throughput is expected and number VM per compute is no the first criteria +
+do not use siblings
+. VM per compute is the first criteria. An average DPDK vrouter performance is largely enough +
+lets use siblings
+====
+
 
 With OpenStack Having a core without its sibling listed in `vcpu_pin_set`
 variable in `nova.conf` file and `hw:cpu_policy=dedicated` set in flavor
@@ -2152,7 +2460,30 @@ away from linux scheduler. This isolation mechanism will:
 - change the scheduling algorithm from `cooperative` to `preemptive`
 - perform CPU isolation at the *system boot*
 
+[qanda]
+====
 ping: talk about both algorithm.
+
+A (LD)
+
+First, we have to override this is RedHat specific. Ubuntu is using only one mechanism.
+
+Second (not for the book), but this is not so clear on RedHat side. First idea
+was that new tuned partitioning will replace isolcpus historical mechanism.
+
+But today this is not so clear on Redhat side, and they recommend to use both !!!.
+
+Mainly because isolcpus is changing the scheduling algorithm from cooperative
+to preemptive, so it is more efficient for isolation.
+
+This is why in my opinion we have to explain that:
+
+- two mechanisms are proposed by redhat
+
+- describe each one (how to configure it, what it does)
+
+- explain we are recommending to use both of them to have the better CPU isolation as possible
+====
 
 The main drawbacks of using `isolcpus` are :
 
@@ -2198,7 +2529,35 @@ WARNING: before Contrail 20.03 release, it is not recommended to use such an
 isolation method.  If used some packet drops could randomly occur and vrouter
 performances are not stable.
 
+[qanda]
+====
 ping? explain why?
+
+A (LD): For a lot of complex reason hard to explain. One of them (easiest to
+understand) is:
+
+because before 20.03 we were not offering an ability to pin correctly service
+threads.
+
+when we were enforcing a too strict CPU isolation service threads were sometime
+using vrouter allocated polling and processing CPUs.
+
+Since 20.03 we are proposing a setup in which:
+
+- vrouter processing CPUs are assigned to well defined CPU list
+- vrouter control and service CPUs are assigned to another well defined CPU list
+
+OpenStack is providing a mechanism to assign a well defined CPU list to Virtual
+Instances
+
+Consequently at system level we can enforce a strict isolation to remove
+vrouter and openstack assigned CPU to the "common" pool.
+
+A small common pool is kept for Operating System usage (in a shart Hypervisor
+needs)
+
+*To be supplemented by Kiran and Premecz.*
+====
 
 *_isolcpus_* is a kernel parameter. It has to be provisioned at the system
 startup.  GRUB configuration has to be modified in order to take into
@@ -2221,7 +2580,15 @@ For instance :
 
     TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
 
+[qanda]
+====
 ping? should be `=` instead of `:`?
+
+    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
+
+Because, this variable content will be added to GRUB “command line” which is
+using shell like syntax.
+====
 
 .ping: lab (3.2 no isolcpus)
 
@@ -2916,7 +3283,7 @@ host kernel.
 Also there is a vhost userspace process wherein the vRouter copies packets
 to/from the VM.
 
-.ping? this "vhost userspace process" is kernel vrouter only?
+.ping: from 3.2 lab
 [source, sh, linenums]
 ----
 root@bcomp79:~# ps aux | grep vhost-
@@ -2924,6 +3291,69 @@ root      1737  0.0  0.0      0     0 ?        S    15:20   0:00 [vhost-1734]
 root      1738  0.0  0.0      0     0 ?        S    15:20   0:00 [vhost-1734]
 root      1739  0.0  0.0      0     0 ?        S    15:20   0:00 [vhost-1734]
 ----
+
+[qanda]
+====
+.ping? this "vhost userspace process" is kernel vrouter only?
+
+A (LD):
+
+In my opinion we have to explain:
+
+- DPDK vrouter is running in user space (this is the goal of DPDK)
+
+- Kernel vouter dataplane is running in Kernel space (vrouter.ko module)
+
+But afer, this kernel/user space has not only to be considered at vrouter level.
+
+You aslo have to consider the virtualization layer:
+
+- what about virtio (QEMU capaability) ?
+
+- what about the VM itself (using DPDK or not) ?
+
+QEMU, few years ago was not able to run in userspace. So, it was creating performance issue when used with DPDK applications.
+
+VNF, were also running Kernel packet processing stack
+
+Drawback is interupt mechanisms it required that is slowering packet processing and Kernel to User constext swap (which is CPU intensive) is requires.
+
+Nowaday, lots of VNF are DPDK and QEMU is supporting lots of scenarios.
+
+Ideal situation is to get everything running at userspace level:
+
+- DPDK vrouter
+
+- DPDK VNF (multiQ - same number of Q than vrouter)
+
+- virtio also running in user space (vhost-user)
+
+All these situations are described in this diagram:
+
+image:diagrams/extracted-media-QA.docx/media/image2.emf[image,width=466,height=464]
+
+The last drawing at right is the best situation and the one that is providing the best performance.
+
+The wort is the first diagram at left. Both diagrams in the middle are providing drawbacks:
+
+* When DPDK VM is used onto a Kernel vRouter, vrouter will will slow down packet processing
+* When Kernel VM is used onto a DPDK vrouter, Kernel VM will slow down packet processing
+
+So, this is a pity situation to mix DPDK and not-DPDK element (but sometimes it can’t be avoided)
+
+So, we have to explain that vrouter can’t solve everything. Part of the job has to be done at VNF layer.
+
+*In my opinion, the main goal of this book is to explain the (nowadays) optimal situation:*
+
+*- DPDK vrouter*
+
+*- UDP overlay protocol (MPLSoUDP or VxLAN)*
+
+*- 200X release: with 2 hash mechanism disabled (discuss with Kiran and Premecz about X)*
+
+*- DPDK VNF (multiQ – with same number of Q than vrouter)*
+====
+
 
 Every queue inside the VM maps to a virtio ring on the host user space.
 
@@ -3130,7 +3560,14 @@ virsh dumpxml [vm id]
 Here, 5 queues have been allocated to the vNIC, `rx/tx_queue_size` is
 configured as 1024.
 
+[qanda]
+====
 ping? interface type should be vhostuser?
+
+A (LD): This is something that is not fully clear for me. When is use OVS DPDK
+I clearly see that VM interfaces are vhost user. To be clarified with Kiran and
+Premecz.
+====
 
 .ping: lab
 ****
@@ -3895,8 +4332,64 @@ will use CPUs:
 //image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image,width=708,height=253]
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image8.png[image]
 
+[qanda]
+====
 ping? this is great diagram showing overall allocations. the numbering seems
 not correct. see <<hwloc-ls, hwloc-ls GUI>> and `lscpu`
+
+A (LD): the problem is that we are mixing platforms ...
+
+All examples I've added in this document are comming from Orange which is using
+to kinds of plaforms (72 lcores or 48 lcores).
+
+So, I'm trying to be consistent in perf guide. But some examples are provided
+from other platforms. So, it can lead to confusion.
+
+CPU numbering is not always following same rules:
+
+- some suppliers are using odd and even numbers to differentiate Numa0 from Numa1 CPUs
+- others are using first half and second half numbers to differentiate Numa0 from Numa1 CPUs
+
+This is bringing confusion ...
+
+Here an example - 48 lcores:
+
+    # lscpu | grep NUMA
+    NUMA node(s): 2
+    NUMA node0 CPU(s): 0-11,24-35
+    NUMA node1 CPU(s): 12-23,36-47
+    Physical Cores are ID 0 to 23
+    First half = Numa0
+    Second half = Numa1
+    Siblings are ID 24 to 27
+    Here is another example 72 lcores (like Orange Model):
+    Physical Cores are ID 0 to 35
+    Even = Numa0
+    Odd number = Numa1
+    Siblings are ID 36 to 71
+    NUMA node0 CPU(s):
+    PHY cores: *0 2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34*
+    HT cores : *36 38 40 42 44 46 48 50 52 54 56 58 60 62 64 66 68 70*
+    NUMA node1 CPU(s):
+    PHY cores: *1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35*
+    HT cores : *37 39 41 43 45 47 49 51 53 55 57 59 61 63 65 67 69 71*
+    Updated situation with 48 CPUs:
+    NUMA node0 CPU(s):
+    PHY cores: *0 2 4 6 8 10 12 14 16 18 20 22*
+    HT cores : *24 … 46*
+    NUMA node1 CPU(s):
+    PHY cores: *1 3 5 7 9 11 13 15 17 19 21 23*
+    HT cores : *25 …. 47*
+
+And the diagram I’ve provided in the book:
+
+image:diagrams/extracted-media-QA.docx/media/image8.png[image,width=601,height=214]
+
+I can provide an updated diagram. But pay attention all netmask I’ve provided are following this numbering rule:
+
+*0x154 …. Has to be changed everywhere if we are changing CPU model*
+
+====
 
 We are defining 4 CPU groups:
 
@@ -3916,8 +4409,16 @@ We are applying these allocation rules to get the best performance as possible:
   `isolcpu` and `tuned partitioning` mechanisms will be used to get the best
   isolation as possible.
 
+[qanda]
+====
 *ping? statement #1 and #2 above is conflicting.*
 
+A (LD): yes, your right.
+
+To be updated (last part of second sentence to be removed):
+
+vRouter packet processing threads will be assigned with physical CPUs in same NUMA.
+====
 
 In the following example, we will describe a performance tuning configuration
 using a node with 36 physical cores split on 2 NUMA and Hyperthreading enabled
@@ -3987,8 +4488,25 @@ In this diagram we can see that:
   a performance of 1.2 MPPS per lecore when siblings are not used (1.2 MPPS at
   per physical CPU).
 
+[qanda]
+====
 *ping? confusing. text makes sense, but not corelating to the diagram. 2p2ht
 means 2 pcores, both enabled ht=>4lcores in use?*
+
+A (LD):
+
+It is consistent. Let see the situation with 4 lcores usage:
+
+2 situations:
+
+2p + 2h --> diagram = 3 MPPS
+
+4p + 0h --> diagram = 5.2 MPPS
+
+3 / 4 = 0.75 (almost 0.8) ==> 1,6 MPPS per Physical CPU
+
+5.2 / 4 = 1.3 ==> 1,3 MPPS per Physical CPU (near to 1,25)
+====
 
 We can summarize this diagram performance result into following table:
 
@@ -4190,7 +4708,19 @@ guest, the *interface will appear but will not function*.  This is why, on a
 compute node running DPDK vrouter, openstack instances must use flavors having
 `hw:mem_page_size=**large**` property.
 
+[qanda]
+====
 ping? didn't say why..
+
+A (LD): Indeed. See earlier explanations. Second sentence is explaining why.
+
+_You just have to keep in mind that :_
+
+_- Packet are put into memory at one place and never copied (only descriptors are moving from one Q to another)_
+
+_- Consequently “memory” area where the packets are put must be shared between DPDK vrouter and all instances (whatever the instance is – DPDK or not DPDK)_
+====
+
 
 .Spawn a VM
 
@@ -4202,7 +4732,15 @@ ping? didn't say why..
 
 ==== Generic vrouter dimensioning parameters
 
+[qanda]
+====
 ping? since 4.0?
+
+A (LD): I do not know I do not have any 4.0 lab. I guess there is no difference
+(as we are telling “is still using”). But, it is not so important in my
+opinion. Let's focus now on 19.X for this book. We can look for this
+information for the current (and internal only) perf guide document.
+====
 
 Since Contrail 5.0 release and later, Contrail is containerized.
 Kernel vrouter module is still using `/etc/modprobe.d/vrouter.conf` file to get
@@ -4546,7 +5084,14 @@ These values have to be adjusted depending on:
 - the number of NIC members of vhost0 bond
 - the number of logical cores allocated to the vrouter
 
+[qanda]
+====
 ping: great visualization! maybe worth a better quality image here
+
+A (LD): as now we are using .doc word format, it will be easier for me to
+integrate better quality images. Let’s see how we will integrate images in the
+definitive document.
+====
 
 .vrouter parameters illustration
 //image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image22.png[image,width=662,height=476]
@@ -5166,9 +5711,9 @@ processing from vif0/0 to vif0/n into the vrouter :
 .*[.underline]#Packet flow from a Compute Physical NIC to a VM NIC - counters placement#*
 image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image2.png[image,width=708,height=277]
 
-//comparing with:
+comparing with:
 
-//image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image3.png[image,width=708,height=272]
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image3.png[image,width=708,height=272]
 
 Here on vif 0/0, RX port and RX packets have the same value :
 
