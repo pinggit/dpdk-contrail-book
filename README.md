@@ -78,49 +78,37 @@ coauthors:  (as of March 17)
 ### ch2: Compute nodes in TF  (prz, kiran)
 
 * Introduction to TF vRouter
-    * Interfaces
-    * Packet processing pipeline
-    * Variants (DPDK/Kernel/Smart NIC/SRIOV)
-* Use-cases (prz)
-    * vendor x : why select multiq, isolation, bgpaas, HAs..etc
-    * ATT(vMME, nimbus)
+* Interfaces
+* Packet processing pipeline
+* Variants (DPDK/Kernel/Smart NIC/SRIOV)
+* why select multiq, isolation, HAs..etc
+
+from perf guide
 
 ### ch3: Overview of DPDK and DPDK vrouter (kiran, prz)
 
 * DPDK overview
 * vRouter and DPDK
-
-### ch4: DPDK vRouter Architecture (core) (kiran, prz)
-
 * Role of various threads
-* Pipelining v/s run to completion
+* Pipelining v/s run to completion ?
 * Memory mapping of VNF
 * Virtio
 * Interaction with Qemu
-
-### ch5: Openstack integration (detail) (core) (kiran, prz)
-
 * Neutron plugin
 * Nova Vif plugin
+* System calls
 
-### ch6: DPDK vRouter Performance tuning (core) (damian, prz)
+from perf guide
+
+### ch4: DPDK vRouter Performance tuning (core) (damian, prz)
 
 * Core Pinning
 * Hugepages
 * Number of threads
-* System calls
 * CPU partitioning
 * Multiqueue virtio
 
-### ch7: DPDK vRouter Deployment (Damian)
-
-* TripleO
-* Juju
-* Contrail cloud???
-* Ansible (OSA: OpenStack Ansibile) laurent
-* HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
-
-### ch8: DPDK vRouter Troubleshooting (joint work)
+### ch5: DPDK vRouter Troubleshooting (joint work)
 
 * Configuration
 * Vrouter info command I guess
@@ -130,6 +118,17 @@ coauthors:  (as of March 17)
 * hugepages
 * DPDK logs analysis (laurent)
   (what to check into DPDK logs: vrring activation, queue, and setup info)
+
+### (optional) appendix: DPDK vRouter Deployment (Damian) (need to be clarified)
+
+* TripleO
+* Juju
+* Contrail cloud???
+* Ansible (OSA: OpenStack Ansibile) laurent
+* HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
+
+* use Prz perf report 
+* https://www.juniper.net/documentation/en_US/contrail20/information-products/pathway-pages/contrail-install-and-upgrade-guide.pdf
 
 ### misc details
 
@@ -230,6 +229,8 @@ or:
     | 5e17284b-13ab-49ad-8091-e42b26766d4f | jnprctdpdk01 | ACTIVE | ctlplane=192.168.24.71 | overcloud-full | contrail-dpdk       |
     | c8bc39ec-8e4d-4e4b-83e8-8d6e3fcfe8c3 | jnprcp01     | ACTIVE | ctlplane=192.168.24.61 | overcloud-full | compute-kernel      |
     +--------------------------------------+--------------+--------+------------------------+----------------+---------------------+
+
+    (undercloud) [stack@tripleo-director ~]$ ssh heat-admin@192.168.24.71
 
 Don’t worry if you break one of them, I can easily rebuild it.
 Normally a demo project with 4 Cirros VM should be deployed.
@@ -431,7 +432,15 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
     flows=[16384]
 
 ## dpdk lab(2003)
+
  
+    [5/21 11:57 AM] Przemyslaw Grygiel
+        ssh root@172.25.151.35 (c0ntrail123)
+    [5/21 11:57 AM] Przemyslaw Grygiel
+     top is rapid jump, bottom left compute with swap, bottom right compute with gen VM   
+
+    tmux attach -t ping
+
     (undercloud) [stack@undercloud ~]$ openstack server list
     +--------------------------------------+--------------------------------+--------+-------------------------+----------------+---------------------------+
     | ID                                   | Name                           | Status | Networks                | Image          | Flavor                    |
