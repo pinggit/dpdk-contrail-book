@@ -1,21 +1,36 @@
 # contrail dpdk day one book
 
-* [contrail dpdk day one book](#contrail-dpdk-day-one-book)
-    * [progress/meetings](#progressmeetings)
-        * [0327 agenda/meeting minutes](#0327-agendameeting-minutes)
-        * [0323 agenda/meeting minutes](#0323-agendameeting-minutes)
-        * [0316: drafted TOC!](#0316-drafted-toc)
-        * [0310: kicked off first book meeting!](#0310-kicked-off-first-book-meeting)
-    * [table of content (Volume I)](#table-of-content-volume-i)
-        * [details](#details)
-    * [table of content (Volume II)](#table-of-content-volume-ii)
-    * [lab resources (from Laurent)](#lab-resources-from-laurent)
-    * [tools](#tools)
-        * [git/github](#gitgithub)
-        * [document format/editor recommendation](#document-formateditor-recommendation)
-        * [asciidocFX](#asciidocfx)
-        * [emf picture](#emf-picture)
-    * [references/materials](#referencesmaterials)
+* [progress/meetings](#progressmeetings)
+    * [0529 meeting minutes](#0529-meeting-minutes)
+    * [0420 agenda/meeting minutes](#0420-agendameeting-minutes)
+    * [0327 agenda/meeting minutes](#0327-agendameeting-minutes)
+    * [0323 agenda/meeting minutes](#0323-agendameeting-minutes)
+    * [0316: drafted TOC!](#0316-drafted-toc)
+    * [0310: kicked off first book meeting!](#0310-kicked-off-first-book-meeting)
+* [table of content (Volume I)](#table-of-content-volume-i)
+    * [ch1: Overview of SDN       (ping, laurent)](#ch1-overview-of-sdn-------ping-laurent)
+    * [ch2: Compute nodes in TF  (prz, kiran)](#ch2-compute-nodes-in-tf--prz-kiran)
+    * [ch3: Overview of DPDK and DPDK vrouter (kiran, prz)](#ch3-overview-of-dpdk-and-dpdk-vrouter-kiran-prz)
+    * [ch4: DPDK vRouter Performance tuning (core) (damian, prz)](#ch4-dpdk-vrouter-performance-tuning-core-damian-prz)
+    * [ch5: DPDK vRouter Troubleshooting (joint work)](#ch5-dpdk-vrouter-troubleshooting-joint-work)
+    * [(optional) appendix: DPDK vRouter Deployment (Damian) (need to be clarified)](#optional-appendix-dpdk-vrouter-deployment-damian-need-to-be-clarified)
+    * [misc details](#misc-details)
+* [table of content (Volume II)](#table-of-content-volume-ii)
+* [dpdk lab (1910)](#dpdk-lab-1910)
+* [dpdk lab (1904)](#dpdk-lab-1904)
+    * [login](#login)
+    * [iperf VM@dpdk-1](#iperf-vmdpdk-1)
+    * [recvr VM@dpdk-3](#recvr-vmdpdk-3)
+    * [runrapid.py](#runrapidpy)
+* [dpdk lab(2003)](#dpdk-lab2003)
+* [tools](#tools)
+    * [git/github](#gitgithub)
+    * [document format/editor recommendation](#document-formateditor-recommendation)
+    * [asciidocFX](#asciidocfx)
+    * [emf picture](#emf-picture)
+    * [to png](#to-png)
+    * [to svg](#to-svg)
+* [references/materials](#referencesmaterials)
 
 target date: before July 1 2020
 
@@ -26,8 +41,54 @@ coauthors:  (as of March 17)
 * Laurent Antoine Durand <ldurand@juniper.net>
 * ping song <pings@juniper.net>
 
-
 ## progress/meetings
+
+### 0529 meeting minutes
+
+between Laurent/Prz/ping.
+
+* given that we have a tight schedule, we discussed how to proceed:
+  1. stick to original plan?
+  2. keep polishing/extend/adjust perf guide, turn it into a well organized, readable book
+
+* earlier, my concern about #2 was that, in orignal TOC there are a lot of
+  topics that are NOT covered by perf guide.
+  * that is why I believed we should work on the planned chapters and copy
+    contents from perf guide as needed.
+  * that is also why I started to clean the perf guide, catching/raising
+    confusions/errors/ambiguities/etc. so later reference will be easier
+
+* we went through the initial TOC and checked what is missing in perf guide. 
+  * we decided some topics can be cut, some chapters topics can be merged.
+  * looking at the new TOC, again, we think it's easier to just extend/clean
+    the perf guide.
+
+* conclusion is we will proceed with the #2 approach - work on the perf guide.
+
+next:
+
+* since time schedule is tough we'll work on it together
+
+* I will push and share the current version of perf guide that I've been
+  working on so far.
+  * I'm in the middle of 2nd read of it, and **not done yet**. 
+  * in this version you will see a lot of contents reorganized/modified
+
+* I will merge everything we've got so far
+  * all good Q&As with Laurent (marked as "Q&A" in the doc). those are 
+    topics where confusions will most likely come from (at least for me) 
+  * the chapter 1 which is mostly finished.
+  * Laurent's new document about "log analysis", as a new chapter
+
+* currently it's only in pure text(adoc), but sounds to me folks still prefer
+  word, so I'll convert it into word format and share.
+
+* we'll split the chapters and each one of us will pick one or several
+  chapters
+
+btw I've removed all answered questions previously tagged with my name, only
+left a few unanswered for easy search. it was just temporarily used for
+convenience of quick search.
 
 ### 0420 agenda/meeting minutes
 
@@ -575,3 +636,4 @@ for web page, word has problem to display
 * Performance tests (WIP) - https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g75c8716119_0_0
 * Performance degradation analysis - https://docs.google.com/presentation/d/1UDzqtLgRKDO3azQS7VVsMF-y0WMJu6BLe24i_VudyMs/edit#slide=id.g75c8716119_0_0
 * DPDK performance tests https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g6f0dcffbae_4_22
+* perf report
