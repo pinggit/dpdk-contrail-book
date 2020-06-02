@@ -14,10 +14,11 @@
 
 [cols="",]
 |====
+|v0.1  |Jun,02, 2020 | adjusted TOC: grouped some topics, merged HP/CPU into fine tune chapter, etc
 |v0    |May 29, 2020 | First version of the book after "perf guide" polishment/reorganization
 |====
 
-== *[underline]#chapter 1: SDN overview#*
+== *[underline]#chapter 1: SDN overview#* (ping)
 
 === what is SDN - the history
 
@@ -1060,7 +1061,7 @@ We'll cover more details of TF vrouter in the next chapter.
 
 <<<
 
-== *[underline]#chapter 2: SDN dataplane fundamentals#*
+== *[underline]#chapter 2: SDN dataplane fundamentals#* (laurent)
 
 === Performance requirements
 
@@ -1154,6 +1155,277 @@ For more information on VirtIO :
 
 * https://www.redhat.com/en/blog/introduction-virtio-networking-and-vhost-net
 * https://www.redhat.com/en/blog/deep-dive-virtio-networking-and-vhost-net
+
+==== DPDK
+
+Data Plane Development Kit (DPDK) is a set of data plane libraries and network
+interface controller drivers for fast packet processing, currently managed as
+an open-source project under the Linux Foundation.
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image27.png[image,width=602,height=258]
+
+The main goal of the DPDK is to provide a simple, complete framework for fast
+packet processing in data plane applications.
+
+The framework creates a set of libraries for specific environments through the
+creation of an Environment Abstraction Layer (EAL), which may be specific to a
+mode of the Intel® architecture (32-bit or 64-bit), Linux* user space compilers
+or a specific platform.
+
+These environments are created through the use of make files and configuration
+files. Once the EAL library is created, the user may link with the library to
+create their own applications.
+
+The DPDK implements a "run to completion model" for packet processing, where all
+resources must be allocated prior to calling Data Plane applications, running
+as execution units on logical processing cores.
+
+The model does not support a scheduler and all devices are accessed by polling.
+The primary reason for not using interrupts is the performance overhead imposed
+by interrupt processing.
+
+For more information please refer to dpdk.org documents http://dpdk.org/doc/guides/prog_guide/index.html
+
+===== DPDK memory management
+
+With DPDK there is a direct link between application data stored in host memory
+and the NIC memory used to transfer data onto the wire :
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image13.png[image,width=492,height=273]
+
+DPDK uses message buffers known as `mbufs` to store packet data into the host memory.
+These `mbufs` are stored in memory pools known as `mempools`.
+`Mempools` are set up as a `ring`, which creates a pool with a configuration
+similar to a first-in, first-out (FIFO) system.
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image17.png[image,width=604,height=254]
+
+`Rings descriptors` are managing data storage into mempools.
+The more descriptors RX/TX rings are containing, the more memory size will be required in each mempool to store data.
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image20.png[image,width=605,height=293]
+
+The Host OS exchanges packets with the NIC through the so called `rings`.  A
+ring is a circular array of `descriptors` allocated by the OS in the system
+memory (RAM). Each `descriptor` contains information about a packet that has been
+received or that is going to be transmitted.
+
+.Q&A
+****
+"ring" = "descriptor", seems like located on both cores or NIC? also see
+<<vrouter DPDK fine tuning parameters>>
+
+answer: Ring is a set of memory pointers (descriptors). These pointers are
+pointing the real memory area in which the data to be processed (packets) are
+stored.
+
+There are 2 rings per “queues” (1 per direction:. 1 RX ring, 1 TX ring).
+
+Data are stored in compute central memory (in huge page area). Packets are not
+moved from one queue to another, but these are descriptors (pointers) that are
+moving from one queue to another.
+****
+
+*[.underline]#RX ring#*
+
+RX ring is managing Data transfer from NIC memory to host memory :
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image18.png[image,width=605,height=279]
+
+Synchronization between the OS and the NIC happens through two registers, whose
+content is interpreted as an index in the RX ring:
+
+- Receive Descriptor Head (RDH): indicates the first descriptor prepared by the
+  OS that can be used by the NIC to store the next incoming packet.
+- Receive Descriptor Tail (RDT): indicates the position to stop reception, i.e.
+  the first descriptor that is not ready to be used by the NIC.
+
+*[.underline]#TX ring#*
+
+TX ring is managing data transfer from host memory to NIC memory :
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image14.png[image,width=605,height=279]
+
+Synchronization between the host OS and the NIC happens through two registers,
+whose content is interpreted as an index in the TX ring:
+
+- Transmit Descriptor Head (TDH): indicates the first descriptor that has been
+  prepared by the OS and has to be transmitted on the wire.
+- Transmit Descriptor Tail (TDT): indicates the position to stop transmission,
+  i.e. the first descriptor that is not ready to be transmitted, and that will
+  be the next to be prepared.
+
+*[.underline]#DMA#*
+
+Direct Memory Access (DMA) allows PCI devices to read (write) data from (to)
+memory without CPU intervention. This is a fundamental requirement for high
+performance devices.
+
+===== DPDK Poll Mode Drivers (PMD)
+
+When DPDK is used, Network interfaces are no more managed in Kernel space.
+Legacy NIC driver which is usually used to manage the NIC has to be replaced by
+a new driver which is able to run into user space.  This new drive, called *Poll
+Mode Driver (PMD)* will be used to manage the network interface into user space
+with the DPDK library.
+
+A Poll Mode Driver consists of APIs, provided through the BSD driver running in
+user space, to configure the devices and their respective queues.
+In addition, a PMD accesses the RX and TX descriptors directly without any
+interrupts (with the exception of Link Status Change interrupts) to quickly
+receive, process and deliver packets in the user’s application.
+
+.NIC access path: dpdk vs kernel
+image::https://user-images.githubusercontent.com/2038044/83194151-33d9aa00-a106-11ea-88f7-4cde53c601a8.png[]
+
+* PMD used to manage physical interfaces :
+
+    - I40e PMD for Intel X710/XL710/X722 10/40 Gbps family of adapters http://dpdk.org/doc/guides/nics/i40e.html
+    - IXGBE PMD http://dpdk.org/doc/guides/nics/ixgbe.html
+    - Linux bonding PMD http://dpdk.org/doc/guides/prog_guide/link_bonding_poll_mode_drv_lib.html
+
+* PMD used to manage virtual interfaces :
+
+    - Virtio PMD http://dpdk.org/doc/guides/nics/virtio.html
+
+ping? "PMD user space process" vs. "pmd kernel drivers"
+https://github.com/pinggit/dpdk-contrail-book/issues/1#issue-625774372
+
+===== DPDK PMD Linux drivers
+
+In Linux user space environment, the DPDK application runs as a user-space
+application using the pthread library.
+
+PCI information about devices and address space is discovered through the
+`/sys` kernel interface and through kernel modules such as:
+
+- uio_pci_generic,
+- igb_uio or 
+- vfio-pci
+
+Different PMDs may require different kernel drivers in order to work properly.
+Depending on the PMD being used, a corresponding kernel driver should be loaded
+and bound to the network ports.  Before loading, make sure that each NIC has
+been flashed with the latest version of NVM/firmware.
+
+====== UIO
+
+Supported NICs
+
+- Intel http://dpdk.org/browse/dpdk/tree/drivers/net/e1000[[.underline]#igb#] (82575, 82576, 82580, I210, I211, I350, I354, DH89xx)
+- Intel http://dpdk.org/doc/guides/nics/ixgbe.html[[.underline]#ixgbe#] (82598, 82599, X520, X540, X550)
+- Intel http://dpdk.org/doc/guides/nics/i40e.html[[.underline]#i40e#] (X710, XL710, X722)
+
+NOTE: RHEL does not support "*uio_pci_generic*" driver
+
+To enable `igb_uio` driver change `physical_uio_driver` in
+`/etc/contrail/contrail-vrouter-agent.conf` file and restart
+`supervisor-vrouter`.
+
+////
+[cols="",]
+|====
+a|{empty}[DEFAULT]
+
+physical_uio_driver=**igb_uio**
+|====
+////
+
+[source, sh, linenums]
+----
+/etc/contrail/contrail-vrouter-agent.conf
+[DEFAULT]
+physical_uio_driver=igb_uio
+----
+
+====== VFIO
+
+Supported NICs
+
+- Intel http://dpdk.org/doc/guides/nics/i40e.html[[.underline]#i40e#] (X710, XL710, X722)
+
+====== VFIO and IOMMU
+
+Input–Output Memory Management Unit (IOMMU) is a memory management unit (MMU)
+that connects a Direct Memory Access (DMA) capable I/O bus to the main memory.
+
+In Virtualization, an IOMMU is re-mapping the addresses accessed by the
+hardware into a similar translation table that is used to map guest-physical
+address to host-physical addresses.
+
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image10.png[image,width=296,height=296]
+
+IOMMU provides a short path for the guest to get access to the physical device
+memory.  Intel has published a specification for IOMMU technology as
+*Virtualization Technology for Directed I/O*, abbreviated as *VT-d*.
+
+VFIO need to get IOMMU enabled :
+
+- both kernel and BIOS must support and be configured to use IO virtualization (such as Intel® VT-d).
+- IOMMU must be enabled into Linux Kernel parameters in `/etc/default/grub` and run `update-grub` command.
+
+GRUB configuration example :
+
+[cols="",]
+|====
+|GRUB_CMDLINE_LINUX_DEFAULT="*iommu=pt intel_iommu=on*"
+|====
+
+.VFIO can be also be used without IOMMU
+While this is just as unsafe as using UIO, it does make it possible for the
+user to keep the degree of device access and programming that VFIO has, in
+situations where IOMMU is not available.
+
+To enable vfio-pci driver change physical_uio_driver in
+`/etc/contrail/contrail-vrouter-agent.conf` file and restart `supervisor-vrouter`.
+
+    [DEFAULT]
+    physical_uio_driver=**vfio-pci**
+
+.Drivers features compatibility list
+
+[cols=",,,,",options="header",]
+|====
+|                 |*RHEL DPDK*               |*Ubuntu DPDK*|*RHEL SRIOV (VF)**|*Ubuntu SRIOV (VF)**
+|*igb_uio*        |No (no dkms support)      |Yes (dkms)   |No                |Yes
+|*uio_pci_generic*|No (not supported by RHEL)|Yes          |No                |No
+|*vfio_pci*       |Yes                       |Yes          |Yes               |Yes
+|====
+
+*vRouter in parallel with SRIOV (VF support on VM)
+
+===== DPDK capable NICs
+
+[cols=",,,,,",options="header",]
+|====
+|*NICs*                              |*Ubuntu - KVM*|*Ubuntu - DPDK*|*Redhat - KVM*|*Redhat - DPDK*|*vCenter - ESX*
+|Intel 82599/X520 "Niantic" - 10G    |Yes           |Yes            |Yes           |Yes            |Yes
+|Intel X710 "Fortville" - 10G/25G/40G|Yes           |Yes            |Yes           |Yes            |Not tested
+|Broadcom bnxt 2x25G                 |Yes           |Yes            |Not tested    |Not tested     |Not tested
+|Mellanox 2x25G                      |Yes           |Yes            |Not tested    |Not tested     |Not tested
+|Netronome                           |3.1.x only    |No             |No            |No             |No
+|====
+
+These are the guidelines from Intel with regard to Intel NIC X710 (in order not
+to bump into a known issue that impacts data plane)
+
+- Do not use a single PCI NIC for non-DPDK and DPDK interfaces (having i40e
+  kernel driver used together with i40e PMD driver for interfaces on the same
+  PCI NIC cause problems)
+- Upgrade NIC FW to 6.01 and i40e kernel driver to 2.4.6 (all necessary
+  information you find in that document, table 9.
+  https://www.intel.com/content/dam/www/public/us/en/documents/release-notes/xl710-ethernet-controller-feature-matrix.pdf
+- LLDP is supported from 6.01 NIC FW but Intel also suggested to disable
+  (`ethtool -set-priv-flags <interface name> disable-fw-lldp on`)
+
+NOTE: If your server manufacturer has no support for the latest firmware please
+contact him asap (i.e. The latest Lenovo server firmware includes 5.05 for X710
+NICs)
+
+* Redhat supports 1.6.27 i40 kernel driver version.
+* Canonical supports 1.4.25 i40e kernel version.
+
+<<<
 
 === hardware architecture 
 
@@ -1570,276 +1842,301 @@ Other network devices
 ----
 ****
 
-=== DPDK
+==== Physical CPU cores allocation planning
 
-Data Plane Development Kit (DPDK) is a set of data plane libraries and network
-interface controller drivers for fast packet processing, currently managed as
-an open-source project under the Linux Foundation.
+When planning physical CPU cores allocation, the following aspects need to be
+taken into account:
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image27.png[image,width=602,height=258]
+- hyperthreading enabled or not
+- numa topology
+- number of cores assigned to vrouter for 2 kinds of tasks:
+  * forwarding threads (packet processing purpose)
+  * control and service threads (vrouter management purpose)
+- number of cores left for system processes
+- number of cores allocated to VMs
 
-The main goal of the DPDK is to provide a simple, complete framework for fast
-packet processing in data plane applications.
+WARNING: A proper definition and configuration of CPU partitioning is key for
+optimal performance.  A bogus implementation is indeed the main source of
+transient packet drops even at moderate throughput.
 
-The framework creates a set of libraries for specific environments through the
-creation of an Environment Abstraction Layer (EAL), which may be specific to a
-mode of the Intel® architecture (32-bit or 64-bit), Linux* user space compilers
-or a specific platform.
+==== Hyper Threading
 
-These environments are created through the use of make files and configuration
-files. Once the EAL library is created, the user may link with the library to
-create their own applications.
+If HT (Hyper Threading) is enabled, the first half of each numa node core are
+physical cores, and the second half their HT sibling.
 
-The DPDK implements a "run to completion model" for packet processing, where all
-resources must be allocated prior to calling Data Plane applications, running
-as execution units on logical processing cores.
+//ping: see <<hwloc-ls, hwloc-ls GUI>>
 
-The model does not support a scheduler and all devices are accessed by polling.
-The primary reason for not using interrupts is the performance overhead imposed
-by interrupt processing.
+The best way to utilize all cores in the system, especially when using
+`hw:cpu_policy=dedicated` (see <<CPU isolation mechanisms>>) is to
+*use both siblings when calculating mask for vrouter (and other resources line
+systemd)*. In that case, both siblings for each core used for VM pinning can be
+utilized.
 
-For more information please refer to dpdk.org documents http://dpdk.org/doc/guides/prog_guide/index.html
-
-==== DPDK memory management
-
-With DPDK there is a direct link between application data stored in host memory
-and the NIC memory used to transfer data onto the wire :
-
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image13.png[image,width=492,height=273]
-
-DPDK uses message buffers known as `mbufs` to store packet data into the host memory.
-These `mbufs` are stored in memory pools known as `mempools`.
-`Mempools` are set up as a `ring`, which creates a pool with a configuration
-similar to a first-in, first-out (FIFO) system.
-
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image17.png[image,width=604,height=254]
-
-`Rings descriptors` are managing data storage into mempools.
-The more descriptors RX/TX rings are containing, the more memory size will be required in each mempool to store data.
-
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image20.png[image,width=605,height=293]
-
-The Host OS exchanges packets with the NIC through the so called `rings`.  A
-ring is a circular array of `descriptors` allocated by the OS in the system
-memory (RAM). Each `descriptor` contains information about a packet that has been
-received or that is going to be transmitted.
+With OpenStack, Having a core without its sibling listed in `vcpu_pin_set`
+variable in `nova.conf` file and `hw:cpu_policy=dedicated` set in flavor
+properties used to spawn an instance leads to a scheduling error (variable
+`sibling_set` referenced before assignment).
 
 .Q&A
 ****
-"ring" = "descriptor", seems like located on both cores or NIC? also see
-<<vrouter DPDK fine tuning parameters>>
+Question: shouldn't disabling HT archive max perf?
 
-answer: Ring is a set of memory pointers (descriptors). These pointers are
-pointing the real memory area in which the data to be processed (packets) are
-stored.
+Answer: HT matter is not a yes or no answer. It depends …
 
-There are 2 rings per “queues” (1 per direction:. 1 RX ring, 1 TX ring).
+First, things to consider … HT has been created to improve hardware use
+efficiency. Idea is, we are creating “two virtual CPU” on a single Hardware
+CPU. It improve Physical CPU usage as the the second virtual CPU can use the
+physical resource when the first one is sleeping (like VM usage is improving
+Physical BM utilization). As the main DPDK principle is to never let a CPU to
+sleep … we should answer no !!!
 
-Data are stored in compute central memory (in huge page area). Packets are not
-moved from one queue to another, but these are descriptors (pointers) that are
-moving from one queue to another.
+But, from the customer perspective which is using Bare Metal Compute to run VM,
+his answer is YES, I want it !!!
+
+So, in general every customer is enabling HT on his servers. So, the question
+is: for vrouter needs, will we recommend to use only one “logical CPU” per
+physical CPU ?
+
+Or do we recommend to use both (aka siblings) on physical CPU ?
+
+Here, again the answer is not so clear, and can’t be Yes or No.
+
+Refer to this section: *_Last step: sibling consideration_*
+
+_[.underline]#Two (simplified) situations#_:
+
+. highest throughput is expected and number VM per compute is no the first
+  criteria, do not use siblings
+. VM per compute is the first criteria. An average DPDK vrouter performance is
+  largely enough, let's use siblings
 ****
 
-*[.underline]#RX ring#*
+==== CPU isolation mechanisms
 
-RX ring is managing Data transfer from NIC memory to host memory :
+- Tasks to be run by an operating system must be spread across available CPUs.
+- These tasks into a multi-threading environment are often made of several
+  processes which are also made of several threads.
+- In order to run all these processes and threads on the CPU offered by the
+  node, the Operating System is using a scheduler to place each single one onto
+  a given CPU.
+- There are two styles of scheduling, `cooperative` and `preemptive`.
+- By default, RedHat Linux is using a `cooperative` mode
+  https://medium.com/traveloka-engineering/cooperative-vs-preemptive-a-quest-to-maximize-concurrency-power-3b10c5a920fe
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image18.png[image,width=605,height=279]
+//ping: https://draveness.me/system-design-scheduler/
+//.ping: regarding preemptive and cooperative
+//image::diagrams/preemptive-scheduling.png[]
+//image::diagrams/cooperative-scheduling.png[]
 
-Synchronization between the OS and the NIC happens through two registers, whose
-content is interpreted as an index in the RX ring:
+In order to get a CPU booked for a subset of tasks, we have to inform the
+Operating System scheduler not to use these CPUs for all the tasks it has to
+run.
 
-- Receive Descriptor Head (RDH): indicates the first descriptor prepared by the
-  OS that can be used by the NIC to store the next incoming packet.
-- Receive Descriptor Tail (RDT): indicates the position to stop reception, i.e.
-  the first descriptor that is not ready to be used by the NIC.
+These CPUs are told: `"isolated"` because they are no more used to process all tasks.
+In order to get a CPU isolated several mechanisms can be used:
 
-*[.underline]#TX ring#*
+- remove this CPU from the "common" CPU list used to process all tasks
+- change the scheduling algorithm (cooperative to preemptive)
+- participate or not to interrupt processing
 
-TX ring is managing data transfer from host memory to NIC memory :
+RedHat Linux is currently supporting 2 different CPU isolation methods.
+They are `isolcpus` and `tuned CPU partitioning`, They can be used either
+independently or simultaneously.
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image14.png[image,width=605,height=279]
+.*isolcpus*
+A first method, *isolcpus* kernel parameter, has been proposed to keep CPUs
+away from linux scheduler. This isolation mechanism will:
 
-Synchronization between the host OS and the NIC happens through two registers,
-whose content is interpreted as an index in the TX ring:
+- remove isolated CPUs from the "common" CPU list used to process all tasks
+- change the scheduling algorithm from `cooperative` to `preemptive`
+- perform CPU isolation at the *system boot*
 
-- Transmit Descriptor Head (TDH): indicates the first descriptor that has been
-  prepared by the OS and has to be transmitted on the wire.
-- Transmit Descriptor Tail (TDT): indicates the position to stop transmission,
-  i.e. the first descriptor that is not ready to be transmitted, and that will
-  be the next to be prepared.
+The main drawbacks of using `isolcpus` are :
 
-*[.underline]#DMA#*
+- it requires manual placement of processes on isolated cpus.
+- it is not possible to re-arrange the CPU isolation rules after the system startup
+- it is not possible to move process from one isolated cpu to another.
 
-Direct Memory Access (DMA) allows PCI devices to read (write) data from (to)
-memory without CPU intervention. This is a fundamental requirement for high
-performance devices.
+.*tuned CPU partitioning*
+A second method, *tuned CPU partitioning*, has been proposed more recently.
+since almost all processes are started by `systemd`, physical CPU cores
+assignment can be configured in a different way:
 
-==== DPDK Poll Mode Drivers (PMD)
+- `CPUAffinity` parameter in `/etc/systemd/system.conf`; 
+  it will restrict all processes spawned by `systemd` to the list of cores.
+- `isolated_cores`: is removing a set of CPU from the "common" CPU list used to
+  process all tasks
 
-When DPDK is used, Network interfaces are no more managed in Kernel space.
-Legacy NIC driver which is usually used to manage the NIC has to be replaced by
-a new driver which is able to run into user space.  This new drive, called *Poll
-Mode Driver (PMD)* will be used to manage the network interface into user space
-with the DPDK library.
+NOTE: from RHEL 7.5, `CPUAffinity` is natively integrated in *tuned’s
+cpu-partitioning profile*.
 
-A Poll Mode Driver consists of APIs, provided through the BSD driver running in
-user space, to configure the devices and their respective queues.
-In addition, a PMD accesses the RX and TX descriptors directly without any
-interrupts (with the exception of Link Status Change interrupts) to quickly
-receive, process and deliver packets in the user’s application.
+This isolation mechanism will:
 
-.NIC access path: dpdk vs kernel
-image::https://user-images.githubusercontent.com/2038044/83194151-33d9aa00-a106-11ea-88f7-4cde53c601a8.png[]
+- remove isolated CPUs from the "common" CPU list used to process all tasks
+- perform CPU isolation after the system boot using systemd.
 
-* PMD used to manage physical interfaces :
+The main drawbacks of using `tuned partitioning` are :
 
-    - I40e PMD for Intel X710/XL710/X722 10/40 Gbps family of adapters http://dpdk.org/doc/guides/nics/i40e.html
-    - IXGBE PMD http://dpdk.org/doc/guides/nics/ixgbe.html
-    - Linux bonding PMD http://dpdk.org/doc/guides/prog_guide/link_bonding_poll_mode_drv_lib.html
+- Some processes are started at the system boot before systemd is started.
+  These processes are run before isolation rules are enforced and could break
+  expected isolation rules.
+- Scheduling Algorithm is kept to `cooperative` mode which provides a lower isolation.
 
-* PMD used to manage virtual interfaces :
+In few words, `tuned partitioning` is more flexible and featureful than isolcpus,
+but is providing a lower CPU isolation.
+This is why both mechanisms are often used altogether to enforce CPU isolation.
 
-    - Virtio PMD http://dpdk.org/doc/guides/nics/virtio.html
+IMPORTANT: if both tuned CPU partitioning profiles and isolcpus mechanisms are
+used, *be careful to be consistent* in the defined setup.
 
-ping? "PMD user space process" vs. "pmd kernel drivers"
-https://github.com/pinggit/dpdk-contrail-book/issues/1#issue-625774372
+.Q&A
+****
+Question: talk about both algorithm.
 
-==== DPDK PMD Linux drivers
+Answer:
 
-In Linux user space environment, the DPDK application runs as a user-space
-application using the pthread library.
+First, we have to override this is RedHat specific. Ubuntu is using only one mechanism.
 
-PCI information about devices and address space is discovered through the
-`/sys` kernel interface and through kernel modules such as:
+Second (not for the book), but this is not so clear on RedHat side. First idea
+was that new tuned partitioning will replace isolcpus historical mechanism.
 
-- uio_pci_generic,
-- igb_uio or 
-- vfio-pci
+But today this is not so clear on Redhat side, and they recommend to use both !!!.
 
-Different PMDs may require different kernel drivers in order to work properly.
-Depending on the PMD being used, a corresponding kernel driver should be loaded
-and bound to the network ports.  Before loading, make sure that each NIC has
-been flashed with the latest version of NVM/firmware.
+Mainly because isolcpus is changing the scheduling algorithm from cooperative
+to preemptive, so it is more efficient for isolation.
 
-===== UIO
+This is why in my opinion we have to explain that:
 
-Supported NICs
+- two mechanisms are proposed by redhat
 
-- Intel http://dpdk.org/browse/dpdk/tree/drivers/net/e1000[[.underline]#igb#] (82575, 82576, 82580, I210, I211, I350, I354, DH89xx)
-- Intel http://dpdk.org/doc/guides/nics/ixgbe.html[[.underline]#ixgbe#] (82598, 82599, X520, X540, X550)
-- Intel http://dpdk.org/doc/guides/nics/i40e.html[[.underline]#i40e#] (X710, XL710, X722)
+- describe each one (how to configure it, what it does)
 
-NOTE: RHEL does not support "*uio_pci_generic*" driver
+- explain we are recommending to use both of them to have the better CPU isolation as possible
+****
 
-To enable `igb_uio` driver change `physical_uio_driver` in
-`/etc/contrail/contrail-vrouter-agent.conf` file and restart
-`supervisor-vrouter`.
+===== isolcpus mechanism configuration
 
-////
-[cols="",]
-|====
-a|{empty}[DEFAULT]
+WARNING: before Contrail 20.03 release, it is not recommended to use such an
+isolation method.  If used some packet drops could randomly occur and vrouter
+performances are not stable.
 
-physical_uio_driver=**igb_uio**
-|====
-////
+[qanda]
+====
+question: explain why?
+
+A (LD): For a lot of complex reason hard to explain. One of them (easiest to
+understand) is:
+
+because before 20.03 we were not offering an ability to pin correctly service
+threads.
+
+when we were enforcing a too strict CPU isolation service threads were sometime
+using vrouter allocated polling and processing CPUs.
+
+Since 20.03 we are proposing a setup in which:
+
+- vrouter processing CPUs are assigned to well defined CPU list
+- vrouter control and service CPUs are assigned to another well defined CPU list
+
+OpenStack is providing a mechanism to assign a well defined CPU list to Virtual
+Instances
+
+Consequently at system level we can enforce a strict isolation to remove
+vrouter and openstack assigned CPU to the "common" pool.
+
+A small common pool is kept for Operating System usage (in a shart Hypervisor
+needs)
+
+*To be supplemented by Kiran and Premecz.*
+====
+
+*_isolcpus_* is a kernel parameter. It has to be provisioned at the system
+startup.  GRUB configuration has to be modified in order to take into
+consideration a new set of isolated CPU, and then, the system has to be
+restarted.
 
 [source, sh, linenums]
 ----
-/etc/contrail/contrail-vrouter-agent.conf
-[DEFAULT]
-physical_uio_driver=igb_uio
+$ vi /etc/default/grub
+GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 crashkernel=auto rhgb quiet default_hugepagesz=1GB hugepagesz=1G hugepages=28 iommu=pt intel_iommu=on isolcpus=7,9-35,43,45-71"
+$ grub2-mkconfig -o /etc/grub2.cfg
 ----
 
-===== VFIO
+When `TripleO` is used for Contrail and OpenStack installation, this grub
+configuration update is automatically done, using
+`TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS` environment variable to define `isolcpus`
+value.
 
-Supported NICs
+For instance :
 
-- Intel http://dpdk.org/doc/guides/nics/i40e.html[[.underline]#i40e#] (X710, XL710, X722)
+    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
 
-===== VFIO and IOMMU
+.Q&A
+****
+question: here it should be `=` instead of `:`?
 
-Input–Output Memory Management Unit (IOMMU) is a memory management unit (MMU)
-that connects a Direct Memory Access (DMA) capable I/O bus to the main memory.
+    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
 
-In Virtualization, an IOMMU is re-mapping the addresses accessed by the
-hardware into a similar translation table that is used to map guest-physical
-address to host-physical addresses.
+Because, this variable content will be added to GRUB “command line” which is
+using shell like syntax.
+****
 
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image10.png[image,width=296,height=296]
+.lab capture (3.2 no isolcpus)
+****
+[source, sh, linenums]
+----
+[2020-05-12 12:47:43]root@bcomp78:~
+$ cat /etc/default/grub | grep iso
+----
 
-IOMMU provides a short path for the guest to get access to the physical device
-memory.  Intel has published a specification for IOMMU technology as
-*Virtualization Technology for Directed I/O*, abbreviated as *VT-d*.
+[source, sh, linenums]
+----
+[root@overcloudmz5-compdpdk-3 ~]# cat /etc/default/grub | grep iso
+TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=1-9,11-19,21-29,31-39"
+#TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=5-9,11-19,25-29,31-39"
+#TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=5,8-9,11-19,25,28-29,31-39"
+----
+****
 
-VFIO need to get IOMMU enabled :
+===== Tuned CPU partitioning configuration
 
-- both kernel and BIOS must support and be configured to use IO virtualization (such as Intel® VT-d).
-- IOMMU must be enabled into Linux Kernel parameters in `/etc/default/grub` and run `update-grub` command.
+Tuned cpu partitioning has to be installed onto the system:
 
-GRUB configuration example :
+    yum install tuned-profiles-cpu-partitioning
 
-[cols="",]
-|====
-|GRUB_CMDLINE_LINUX_DEFAULT="*iommu=pt intel_iommu=on*"
-|====
+Tuned is using CPU isolation information defined into
+`cpu-partitioning-variables.conf and into system.conf`:
 
-.VFIO can be also be used without IOMMU
-While this is just as unsafe as using UIO, it does make it possible for the
-user to keep the degree of device access and programming that VFIO has, in
-situations where IOMMU is not available.
+[source, sh, linenums]
+----
+/etc/tuned/cpu-partitioning-variables.conf
+isolated_cores=7,9-35,43,45-71
 
-To enable vfio-pci driver change physical_uio_driver in
-`/etc/contrail/contrail-vrouter-agent.conf` file and restart `supervisor-vrouter`.
+/systemd/system.conf
+CPUAffinity=0-6,8,36-42,44
+----
 
-    [DEFAULT]
-    physical_uio_driver=**vfio-pci**
+Tuned is not setting `isolcpus` Kernel value, but `tuned.non_isolcpus`.
 
-.Drivers features compatibility list
+.lab capture
+****
+[source, sh, linenums]
+----
+[root@overcloudmz5-compdpdk-3 ~]# cat /etc/systemd/system.conf | grep CPU
+#CPUAffinity=1 2
+#DefaultCPUAccounting=no
+#DefaultLimitCPU=
+CPUAffinity=0 10 20 30  #<---systemd processes will use these CPUs only
 
-[cols=",,,,",options="header",]
-|====
-|                 |*RHEL DPDK*               |*Ubuntu DPDK*|*RHEL SRIOV (VF)**|*Ubuntu SRIOV (VF)**
-|*igb_uio*        |No (no dkms support)      |Yes (dkms)   |No                |Yes
-|*uio_pci_generic*|No (not supported by RHEL)|Yes          |No                |No
-|*vfio_pci*       |Yes                       |Yes          |Yes               |Yes
-|====
-
-*vRouter in parallel with SRIOV (VF support on VM)
-
-==== DPDK capable NICs
-
-[cols=",,,,,",options="header",]
-|====
-|*NICs*                              |*Ubuntu - KVM*|*Ubuntu - DPDK*|*Redhat - KVM*|*Redhat - DPDK*|*vCenter - ESX*
-|Intel 82599/X520 "Niantic" - 10G    |Yes           |Yes            |Yes           |Yes            |Yes
-|Intel X710 "Fortville" - 10G/25G/40G|Yes           |Yes            |Yes           |Yes            |Not tested
-|Broadcom bnxt 2x25G                 |Yes           |Yes            |Not tested    |Not tested     |Not tested
-|Mellanox 2x25G                      |Yes           |Yes            |Not tested    |Not tested     |Not tested
-|Netronome                           |3.1.x only    |No             |No            |No             |No
-|====
-
-These are the guidelines from Intel with regard to Intel NIC X710 (in order not
-to bump into a known issue that impacts data plane)
-
-- Do not use a single PCI NIC for non-DPDK and DPDK interfaces (having i40e
-  kernel driver used together with i40e PMD driver for interfaces on the same
-  PCI NIC cause problems)
-- Upgrade NIC FW to 6.01 and i40e kernel driver to 2.4.6 (all necessary
-  information you find in that document, table 9.
-  https://www.intel.com/content/dam/www/public/us/en/documents/release-notes/xl710-ethernet-controller-feature-matrix.pdf
-- LLDP is supported from 6.01 NIC FW but Intel also suggested to disable
-  (`ethtool -set-priv-flags <interface name> disable-fw-lldp on`)
-
-NOTE: If your server manufacturer has no support for the latest firmware please
-contact him asap (i.e. The latest Lenovo server firmware includes 5.05 for X710
-NICs)
-
-* Redhat supports 1.6.27 i40 kernel driver version.
-* Canonical supports 1.4.25 i40e kernel version.
-
-<<<
+[root@overcloudmz5-compdpdk-3 ~]# cat /etc/tuned/cpu-partitioning-variables.conf
+# Examples:
+# isolated_cores=2,4-7
+isolated_cores=1-9,11-19,21-29,31-39    #<---
+#
+# To disable the kernel load balancing in certain isolated CPUs:
+# no_balance_cores=5-10
+----
+****
 
 === other hardware acceleration technologies
 
@@ -1848,7 +2145,7 @@ NICs)
 ==== vDPA
 ==== eBPF
 
-== *[underline]#chapter 3: Contrail vrouter and DPDK#*
+== *[underline]#chapter 3: Contrail DPDK vrouter architecture#* (ping)
 
 === Contrail vrouter architecture
 
@@ -2510,7 +2807,7 @@ Starting from OpenStack Pike release, no patch is required.
 
 <<<
 
-== *[underline]#chapter 4: DPDK vrouter packet forwarding#*
+== *[underline]#chapter 4: Contrail DPDK vrouter packet forwarding#*
 
 === interfaces and queues
 
@@ -3638,9 +3935,32 @@ bus: main-system-bus
 
 <<<
 
-== *[underline]#chapter 5: huge pages#*
+== *[underline]#chapter 5: Contrail DPDK vrouter Performance fine tuning: memory and CPU considerations#*
 
-=== Huge pages configuration
+=== Performance tuning essentials
+
+Juniper Networks recommends to tune performance in the following four areas:
+
+- Enable multiqueue on VNF as described in section <<Enable Multiqueue on OpenStack instances>>
+- Proper CPU allocation as described in section <<service and control threads pinning >= 20.03>>
+- Not disable Irqbalance as described in section <<Irqbalance>>
+- When router is working in Flow based mode, optimize flow setup rate as
+  described in section <<Flow setup rate optimisation>> or consider usage of
+  Packed based mode.
+
+The following performance optimization actions are details below:
+
+* Enable CPU performance mode
+* Manage a high flow environment
+* Bond setting
+* Change default encapsulation
+* DPDK buffer size adjustment (mbuf)
+* Jumbo frame support
+* Control the number of CPU cores for vRouter
+
+=== DPDK vrouter memory consideration
+
+==== Huge pages configuration
 
 - DPDK vrouter is using hugepages. Huge pages need to be configured before it
   can be used.
@@ -3795,7 +4115,7 @@ none              /dev/hugepages2M  hugetlbfs  pagesize=2M  0           0
 ----
 ****
 
-=== hugepages for vrouter: `--socket-mem`
+==== hugepages for vrouter: `--socket-mem`
 
 As mentioned before, DPDK vRouter needs its own hugepages.
 The DPDK library auto-detects the huge pages from the `hugetlbfs` mount point.
@@ -4004,7 +4324,7 @@ application need (to store both underlay and VM packets):
     --socket-mem <value>,<value>
 ****
 
-=== Kubernetes: vrouter and Single Hugepage size
+==== Kubernetes: vrouter and Single Hugepage size
 
 - Currently Kubernetes in not supported to be run on compute nodes configured
   with multiple huge page size. If a worker node is configured with both 2M and
@@ -4065,7 +4385,7 @@ summary of this section
 feature limit, should avoid this topic
 ****
 
-=== IRQ setup
+==== IRQ setup
 
 ping? talk about IRQ?
 
@@ -4109,305 +4429,148 @@ ping? talk about mergeable buffers?
 
 <<<
 
-== *[underline]#chapter 6: CPU pinning#*
+=== DPDK buffer size adjustment (mbuf)
 
-=== Physical CPU cores allocation planning
+Received packets in Fortville NICs are processed differently to Niantic.
+Contrail vRouter adjusts to Intel recommendations and increases the number of
+TX and RX buffer descriptors from 128 to 2048 and the mbuf pool from 16K to 32K
+bytes.
 
-When planning physical CPU cores allocation, the following aspects need to be
-taken into account:
+Starting from the Contrail 3.2.10 release it will be possible to configure the
+number of TX / RX descriptors in `contrail-vrouter-dpdk.ini` file
+https://bugs.launchpad.net/juniperopenstack/+bug/1743391
 
-- hyperthreading enabled or not
-- numa topology
-- number of cores assigned to vrouter for 2 kinds of tasks:
-  * forwarding threads (packet processing purpose)
-  * control and service threads (vrouter management purpose)
-- number of cores left for system processes
-- number of cores allocated to VMs
-
-WARNING: A proper definition and configuration of CPU partitioning is key for
-optimal performance.  A bogus implementation is indeed the main source of
-transient packet drops even at moderate throughput.
-
-=== Hyper Threading
-
-If HT (Hyper Threading) is enabled, the first half of each numa node core are
-physical cores, and the second half their HT sibling.
-
-//ping: see <<hwloc-ls, hwloc-ls GUI>>
-
-The best way to utilize all cores in the system, especially when using
-`hw:cpu_policy=dedicated` (see <<CPU isolation mechanisms>>) is to
-*use both siblings when calculating mask for vrouter (and other resources line
-systemd)*. In that case, both siblings for each core used for VM pinning can be
-utilized.
-
-With OpenStack, Having a core without its sibling listed in `vcpu_pin_set`
-variable in `nova.conf` file and `hw:cpu_policy=dedicated` set in flavor
-properties used to spawn an instance leads to a scheduling error (variable
-`sibling_set` referenced before assignment).
-
-.Q&A
 ****
-Question: shouldn't disabling HT archive max perf?
+LP 1743391:
 
-Answer: HT matter is not a yes or no answer. It depends …
+During testings, we hit problem with packet loss between switch port (TX) and
+vrouter vif 0 (RX). The error counters on DPDK vRouter was 0 during all the
+test (1Mpps, 4Gbps). After testing it turned out the problem is with lack of
+available RX descriptors. Engineering prepared a build that uses 2K TX and RX
+descriptors/buffers (instead of 128) and a mbuf pool of size 32K (instead of
+16K). The mbuf pool size is actually configurable at runtime by adding this to
+the vrouter-dpdk ini file (--vr_mempool_sz=any power of 2). It should be also
+possible to configure number of TX / RX descriptors there.
 
-First, things to consider … HT has been created to improve hardware use
-efficiency. Idea is, we are creating “two virtual CPU” on a single Hardware
-CPU. It improve Physical CPU usage as the the second virtual CPU can use the
-physical resource when the first one is sleeping (like VM usage is improving
-Physical BM utilization). As the main DPDK principle is to never let a CPU to
-sleep … we should answer no !!!
+Configuration of the settings through this LP fixed the drop issue and allowed
+to achieve higher thorughput (link saturation).
 
-But, from the customer perspective which is using Bare Metal Compute to run VM,
-his answer is YES, I want it !!!
-
-So, in general every customer is enabling HT on his servers. So, the question
-is: for vrouter needs, will we recommend to use only one “logical CPU” per
-physical CPU ?
-
-Or do we recommend to use both (aka siblings) on physical CPU ?
-
-Here, again the answer is not so clear, and can’t be Yes or No.
-
-Refer to this section: *_Last step: sibling consideration_*
-
-_[.underline]#Two (simplified) situations#_:
-
-. highest throughput is expected and number VM per compute is no the first
-  criteria, do not use siblings
-. VM per compute is the first criteria. An average DPDK vrouter performance is
-  largely enough, let's use siblings
+    --dpdk_txd_sz=2048 --dpdk_rxd_sz=2048 --vr_mempool_sz=131072
 ****
 
-=== CPU isolation mechanisms
+Since Contrail 5.0 release and later, Contrail is now containerized and DPDK
+parameters are no more defined into `contrail-vrouter-dpdk.ini` file but are
+installed by `/bin/bash /entrypoint.sh` into `contrail-vrouter-agent-dpdk`
+container - cf appendix section.
 
-- Tasks to be run by an operating system must be spread across available CPUs.
-- These tasks into a multi-threading environment are often made of several
-  processes which are also made of several threads.
-- In order to run all these processes and threads on the CPU offered by the
-  node, the Operating System is using a scheduler to place each single one onto
-  a given CPU.
-- There are two styles of scheduling, `cooperative` and `preemptive`.
-- By default, RedHat Linux is using a `cooperative` mode
-  https://medium.com/traveloka-engineering/cooperative-vs-preemptive-a-quest-to-maximize-concurrency-power-3b10c5a920fe
+*Caveat: The Intel NIC may silently drop packets in case of a shortage of RX
+descriptors.  The DPDK vRouter polls NIC for these statistics.*
 
-//ping: https://draveness.me/system-design-scheduler/
-//.ping: regarding preemptive and cooperative
-//image::diagrams/preemptive-scheduling.png[]
-//image::diagrams/cooperative-scheduling.png[]
+==== Intel recommendation
 
-In order to get a CPU booked for a subset of tasks, we have to inform the
-Operating System scheduler not to use these CPUs for all the tasks it has to
-run.
+Intel recommendation to reduce or avoid packet loss
 
-These CPUs are told: `"isolated"` because they are no more used to process all tasks.
-In order to get a CPU isolated several mechanisms can be used:
+When using Niantic (PF), the packets can be either buffered in the RX
+descriptors (or, more correctly speaking, in the memory addressed by the RX
+descriptors), or in the RX packet buffer in the NIC.
 
-- remove this CPU from the "common" CPU list used to process all tasks
-- change the scheduling algorithm (cooperative to preemptive)
-- participate or not to interrupt processing
+RX packet buffer size is 512KB when flow director is disabled, hence it can
+hold > 8000 packets of 64 Bytes => handle an interrupt longer than 500
+microseconds -
+https://etherealmind.com/wp-content/uploads/2017/01/X520_to_XL710_Tuning_The_Buffers.pdf
+)
 
-RedHat Linux is currently supporting 2 different CPU isolation methods.
-They are `isolcpus` and `tuned CPU partitioning`, They can be used either
-independently or simultaneously.
+When using Fortville, packets are by default dropped when RX descriptors are
+not available.  Hence, by default, the only buffers available to store packets
+when a core is interrupted are the buffers pointed to by the RX descriptors.
 
-.*isolcpus*
-A first method, *isolcpus* kernel parameter, has been proposed to keep CPUs
-away from linux scheduler. This isolation mechanism will:
+A similar behavior (packets dropped when no descriptors available) is obtained
+on Niantic when using Virtual functions: to avoid "head of line" blocking,
+packets are dropped if no descriptor is available and virtual functions are
+used.
 
-- remove isolated CPUs from the "common" CPU list used to process all tasks
-- change the scheduling algorithm from `cooperative` to `preemptive`
-- perform CPU isolation at the *system boot*
+So, to avoid packet losses due to CPU core being interrupted when using
+Fortville (_or when using Niantic and *SR-IOV*_), the number of RX descriptors
+should be configured high enough, for instance to 2048.
 
-The main drawbacks of using `isolcpus` are :
+Setup number of rx descriptors through rte_eth_rx_queue_setup (see
+http://www.dpdk.org/browse/dpdk/tree/examples/l3fwd/main.c#n990
 
-- it requires manual placement of processes on isolated cpus.
-- it is not possible to re-arrange the CPU isolation rules after the system startup
-- it is not possible to move process from one isolated cpu to another.
+    ret = rte_eth_rx_queue_setup(portid, queueid, nb_rxd, socketid, NULL, pktmbuf_pool[socketid]);
 
-.*tuned CPU partitioning*
-A second method, *tuned CPU partitioning*, has been proposed more recently.
-since almost all processes are started by `systemd`, physical CPU cores
-assignment can be configured in a different way:
+The number of TX descriptors should also be considered and depends on the application.
+Imagine the CPU core is interrupted and up to 2048 packets are now buffered through the RX descriptors.
+Once the interrupt is dealt with, up to 2048 packets can be received very fast by the application: as the packets are already in memory, they might arrive much faster than 10Gbps.
+Hence, when the application tries to forward those packets, the application might try to send those packets faster than 10Gbps.
+Some of those packets must be buffered before being sent to the 10 Gb/s link.
+Either the application takes care of this by buffering those packets, or those packets must be buffered in the TX descriptors.
+In that case, the number of TX descriptors should also be increased (e.g. up to 2048).
 
-- `CPUAffinity` parameter in `/etc/systemd/system.conf`; 
-  it will restrict all processes spawned by `systemd` to the list of cores.
-- `isolated_cores`: is removing a set of CPU from the "common" CPU list used to
-  process all tasks
+Increasing the number of RX and/or TX descriptors implies that you might have
+to increase the number of pre-allocated mbufs. This can have a small impact on
+performance (throughput), as more memory is being used.
 
-NOTE: from RHEL 7.5, `CPUAffinity` is natively integrated in *tuned’s
-cpu-partitioning profile*.
+Setup number of mbufs through rte_pktmbuf_pool_create: (see
+http://www.dpdk.org/browse/dpdk/tree/examples/l3fwd/main.c#n724)
 
-This isolation mechanism will:
+    rte_pktmbuf_pool_create(s, nb_mbuf, MEMPOOL_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE, socketid);
 
-- remove isolated CPUs from the "common" CPU list used to process all tasks
-- perform CPU isolation after the system boot using systemd.
+==== Problem
 
-The main drawbacks of using `tuned partitioning` are :
+A problem with reassigning kernel driver back to interface when DPDK vRouter is
+stopped.
 
-- Some processes are started at the system boot before systemd is started.
-  These processes are run before isolation rules are enforced and could break
-  expected isolation rules.
-- Scheduling Algorithm is kept to `cooperative` mode which provides a lower isolation.
-
-In few words, `tuned partitioning` is more flexible and featureful than isolcpus,
-but is providing a lower CPU isolation.
-This is why both mechanisms are often used altogether to enforce CPU isolation.
-
-IMPORTANT: if both tuned CPU partitioning profiles and isolcpus mechanisms are
-used, *be careful to be consistent* in the defined setup.
-
-.Q&A
-****
-Question: talk about both algorithm.
-
-Answer:
-
-First, we have to override this is RedHat specific. Ubuntu is using only one mechanism.
-
-Second (not for the book), but this is not so clear on RedHat side. First idea
-was that new tuned partitioning will replace isolcpus historical mechanism.
-
-But today this is not so clear on Redhat side, and they recommend to use both !!!.
-
-Mainly because isolcpus is changing the scheduling algorithm from cooperative
-to preemptive, so it is more efficient for isolation.
-
-This is why in my opinion we have to explain that:
-
-- two mechanisms are proposed by redhat
-
-- describe each one (how to configure it, what it does)
-
-- explain we are recommending to use both of them to have the better CPU isolation as possible
-****
-
-==== isolcpus mechanism configuration
-
-WARNING: before Contrail 20.03 release, it is not recommended to use such an
-isolation method.  If used some packet drops could randomly occur and vrouter
-performances are not stable.
-
-[qanda]
-====
-question: explain why?
-
-A (LD): For a lot of complex reason hard to explain. One of them (easiest to
-understand) is:
-
-because before 20.03 we were not offering an ability to pin correctly service
-threads.
-
-when we were enforcing a too strict CPU isolation service threads were sometime
-using vrouter allocated polling and processing CPUs.
-
-Since 20.03 we are proposing a setup in which:
-
-- vrouter processing CPUs are assigned to well defined CPU list
-- vrouter control and service CPUs are assigned to another well defined CPU list
-
-OpenStack is providing a mechanism to assign a well defined CPU list to Virtual
-Instances
-
-Consequently at system level we can enforce a strict isolation to remove
-vrouter and openstack assigned CPU to the "common" pool.
-
-A small common pool is kept for Operating System usage (in a shart Hypervisor
-needs)
-
-*To be supplemented by Kiran and Premecz.*
-====
-
-*_isolcpus_* is a kernel parameter. It has to be provisioned at the system
-startup.  GRUB configuration has to be modified in order to take into
-consideration a new set of isolated CPU, and then, the system has to be
-restarted.
+On Compute node In file `/opt/contrail/bin/vrouter-functions.sh` (line 532) in
+`s/\x1([0-9:.]+)[\x1]+/ \1/g` there are missing letters from a to f. This should
+be corrected and that could impact on not binding interface back to interface
+kernel driver from UIO kernel driver when vRouter is stopped.
 
 [source, sh, linenums]
 ----
-$ vi /etc/default/grub
-GRUB_CMDLINE_LINUX="console=tty0 console=ttyS0,115200n8 crashkernel=auto rhgb quiet default_hugepagesz=1GB hugepagesz=1G hugepages=28 iommu=pt intel_iommu=on isolcpus=7,9-35,43,45-71"
-$ grub2-mkconfig -o /etc/grub2.cfg
+## Look for slave PCI addresses of vRouter --vdev argument
+DPDK_BOND_PCIS=`sed -nr \
+    -e '/^ *command *=/ {
+        s/slave=/\x1/g
+        s/[^\x1]+//
+        s/\x1([0-9:\.]+)[^\x1]+/ \1/g
+        p
+    }' \
+    ${VROUTER_DPDK_INI}`
 ----
 
-When `TripleO` is used for Contrail and OpenStack installation, this grub
-configuration update is automatically done, using
-`TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS` environment variable to define `isolcpus`
-value.
+The correct sed should have letters `s/\x1([0-9**a-f**:\.]+)[^\x1]+/ \1/g`.
 
-For instance :
+This issue will be solved in release 5.0.1
+https://bugs.launchpad.net/juniperopenstack/+bug/1774403
 
-    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
+=== Enable CPU performance mode
 
-.Q&A
-****
-question: here it should be `=` instead of `:`?
+- CPU frequency scaling enables the operating system to scale the CPU frequency
+  up or down in order to save power.
+- CPU frequencies can be scaled automatically depending on the system load, in
+  response to ACPI events, or manually by userspace programs.
+- To run the CPU at the maximum frequency set `scaling_governor` to `performance`.
 
-    TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS: "isolcpus=7,9-35,43,45-71"
+    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor ; do echo performance > $f ; cat $f; done
 
-Because, this variable content will be added to GRUB “command line” which is
-using shell like syntax.
-****
+Disable all power saving options such as: Power performance tuning, CPU
+P-State, CPU C3 Report and CPU C6 Report.  Select Performance as the CPU Power
+and Performance policy.
 
-.lab capture (3.2 no isolcpus)
-****
-[source, sh, linenums]
-----
-[2020-05-12 12:47:43]root@bcomp78:~
-$ cat /etc/default/grub | grep iso
-----
+.BIOS/Platform Configuration(RBSU)
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image38.png[image,width=470,height=159]
 
-[source, sh, linenums]
-----
-[root@overcloudmz5-compdpdk-3 ~]# cat /etc/default/grub | grep iso
-TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=1-9,11-19,21-29,31-39"
-#TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=5-9,11-19,25-29,31-39"
-#TRIPLEO_HEAT_TEMPLATE_KERNEL_ARGS=" default_hugepagesz=1GB hugepagesz=1G hugepages=64 hugepagesz=2M hugepages=8192 isolcpus=5,8-9,11-19,25,28-29,31-39"
-----
-****
+Disable Turbo Boost to ensure the performance scaling increases with the number of cores.
 
-==== Tuned CPU partitioning configuration
+.Disable Turbo Boost
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image39.png[image,width=476,height=138]
 
-Tuned cpu partitioning has to be installed onto the system:
+Set memory frequency to the highest available number, NOT auto.
 
-    yum install tuned-profiles-cpu-partitioning
+.Set memory frequency
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image43.png[image,width=483,height=174]
 
-Tuned is using CPU isolation information defined into
-`cpu-partitioning-variables.conf and into system.conf`:
-
-[source, sh, linenums]
-----
-/etc/tuned/cpu-partitioning-variables.conf
-isolated_cores=7,9-35,43,45-71
-
-/systemd/system.conf
-CPUAffinity=0-6,8,36-42,44
-----
-
-Tuned is not setting `isolcpus` Kernel value, but `tuned.non_isolcpus`.
-
-.lab capture
-****
-[source, sh, linenums]
-----
-[root@overcloudmz5-compdpdk-3 ~]# cat /etc/systemd/system.conf | grep CPU
-#CPUAffinity=1 2
-#DefaultCPUAccounting=no
-#DefaultLimitCPU=
-CPUAffinity=0 10 20 30  #<---systemd processes will use these CPUs only
-
-[root@overcloudmz5-compdpdk-3 ~]# cat /etc/tuned/cpu-partitioning-variables.conf
-# Examples:
-# isolated_cores=2,4-7
-isolated_cores=1-9,11-19,21-29,31-39    #<---
-#
-# To disable the kernel load balancing in certain isolated CPUs:
-# no_balance_cores=5-10
-----
-****
-
-=== CPU assignment for DPDK vRouter
+=== DPDK vRouter CPU assignment
 
 In order to get DPDK vrouter threads pinned to a subset of CPUs on each compute
 node we have to define:
@@ -4694,7 +4857,7 @@ set according following rules :
 - *control threads* have a CPU affinity restricted to the same CPUs assigned
   for Operation System (they are 0,1,3,5,36,37,39,41).
 
-=== Provisioning concerns
+==== Provisioning concerns
 
 Currently *only CPU assigned to packet processing threads* (*CPU_LIST /
 COREMASK*) can be managed with provisioning tools.
@@ -4707,7 +4870,7 @@ Contrail can be installed through different tools: Contrail Cloud, Contrail
 Networking integrated with RHOSP and TripleO deployer or Juniper Contrail
 Ansible Deployer to name some.
 
-==== control and service threads >= 20.03
+===== control and service threads >= 20.03
 
 When setting up the environment we will have to specify the CPU assignment for
 service threads.
@@ -4769,7 +4932,7 @@ NOTE: If `ContrailSettings` is defined at role level, it will hide all
 Each `ContrailSettings` parameters expected at role level have to be redefined
 even if defined at the global level.
 
-==== packet processing threads (forwarding cores)
+===== packet processing threads (forwarding cores)
 
 When setting up the environment we will have to specify the CPU assignment for
 packet processing threads.
@@ -4845,7 +5008,25 @@ NOTE: If more that 54 forwarding cores are selected with CPU_CORE_MASK (or
 cpu_list), vrouter startup will fail with following message into
 `contrail-vrouter-dpdk.log` file: `"Error configuring lcores: number of forwarding cores exceeds maximum of 54" .`
 
-=== CPU pinning and isolation
+==== vRouter CPU numbers and single queue VM
+
+In non-multiqueue VNF with one DPDK interface, increasing the number of CPU
+cores for vRouter can actually decrease performance because of One to Many CPU
+cores queues are sending packets one by one what takes time and can produce
+microbursts.
+
+.vrouter core numbers and single-queue VNF
+image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image44.png[image,width=409,height=284]
+
+On the diagram cores one by one are sending traffic to VM and when last finish
+data processing potentially first will have no time (buffers) to send VM
+(virtio queue).
+
+During this case microbursts affecting VNF will be observed on vRouter as TX errors.
+
+<<<
+
+=== DPDK vrouter CPU pinning and isolation
 
 ==== tuned and isolcpus - RedHat
 
@@ -4884,7 +5065,7 @@ vRouter and Nova out of the system scheduler :
     Kernel parameter isolcpus=2-35,38-71 in /etc/default/grub, 
     run update-grub and restart the node.
 
-==== Operating system scheduler CPU assignment (CPUAffinity) - RedHat
+==== RedHat OS scheduler CPU assignment (CPUAffinity)
 
 1. CPUs assigned to the system scheduler are defined using tuned partitioning mechanism :
 +
@@ -5006,55 +5187,7 @@ the process.
 
 <<<
 
-== *[underline]#chapter 7: DPDK vrouter Performance fine tuning#*
-
-=== Performance tuning essentials
-
-Juniper Networks recommends to tune performance in the following four areas:
-
-- Enable multiqueue on VNF as described in section <<Enable Multiqueue on OpenStack instances>>
-- Proper CPU allocation as described in section <<service and control threads pinning >= 20.03>>
-- Not disable Irqbalance as described in section <<Irqbalance>>
-- When router is working in Flow based mode, optimize flow setup rate as
-  described in section <<Flow setup rate optimisation>> or consider usage of
-  Packed based mode.
-
-The following performance optimization actions are details below:
-
-* Enable CPU performance mode
-* Manage a high flow environment
-* Bond setting
-* Change default encapsulation
-* DPDK buffer size adjustment (mbuf)
-* Jumbo frame support
-* Control the number of CPU cores for vRouter
-
-=== Enable CPU performance mode
-
-- CPU frequency scaling enables the operating system to scale the CPU frequency
-  up or down in order to save power.
-- CPU frequencies can be scaled automatically depending on the system load, in
-  response to ACPI events, or manually by userspace programs.
-- To run the CPU at the maximum frequency set `scaling_governor` to `performance`.
-
-    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor ; do echo performance > $f ; cat $f; done
-
-Disable all power saving options such as: Power performance tuning, CPU
-P-State, CPU C3 Report and CPU C6 Report.  Select Performance as the CPU Power
-and Performance policy.
-
-.BIOS/Platform Configuration(RBSU)
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image38.png[image,width=470,height=159]
-
-Disable Turbo Boost to ensure the performance scaling increases with the number of cores.
-
-.Disable Turbo Boost
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image39.png[image,width=476,height=138]
-
-Set memory frequency to the highest available number, NOT auto.
-
-.Set memory frequency
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image43.png[image,width=483,height=174]
+== *[underline]#chapter 6: Contrail DPDK vrouter Performance fine tuning: other considerations#*
 
 === vrouter physical bond setting
 
@@ -5284,139 +5417,7 @@ multipath) at VRF level.
        }
     }
 
-=== DPDK buffer size adjustment (mbuf)
-
-Received packets in Fortville NICs are processed differently to Niantic.
-Contrail vRouter adjusts to Intel recommendations and increases the number of
-TX and RX buffer descriptors from 128 to 2048 and the mbuf pool from 16K to 32K
-bytes.
-
-Starting from the Contrail 3.2.10 release it will be possible to configure the
-number of TX / RX descriptors in `contrail-vrouter-dpdk.ini` file
-https://bugs.launchpad.net/juniperopenstack/+bug/1743391
-
-****
-LP 1743391:
-
-During testings, we hit problem with packet loss between switch port (TX) and
-vrouter vif 0 (RX). The error counters on DPDK vRouter was 0 during all the
-test (1Mpps, 4Gbps). After testing it turned out the problem is with lack of
-available RX descriptors. Engineering prepared a build that uses 2K TX and RX
-descriptors/buffers (instead of 128) and a mbuf pool of size 32K (instead of
-16K). The mbuf pool size is actually configurable at runtime by adding this to
-the vrouter-dpdk ini file (--vr_mempool_sz=any power of 2). It should be also
-possible to configure number of TX / RX descriptors there.
-
-Configuration of the settings through this LP fixed the drop issue and allowed
-to achieve higher thorughput (link saturation).
-
-    --dpdk_txd_sz=2048 --dpdk_rxd_sz=2048 --vr_mempool_sz=131072
-****
-
-Since Contrail 5.0 release and later, Contrail is now containerized and DPDK
-parameters are no more defined into `contrail-vrouter-dpdk.ini` file but are
-installed by `/bin/bash /entrypoint.sh` into `contrail-vrouter-agent-dpdk`
-container - cf appendix section.
-
-*Caveat: The Intel NIC may silently drop packets in case of a shortage of RX
-descriptors.  The DPDK vRouter polls NIC for these statistics.*
-
-==== Intel recommendation
-
-Intel recommendation to reduce or avoid packet loss
-
-When using Niantic (PF), the packets can be either buffered in the RX
-descriptors (or, more correctly speaking, in the memory addressed by the RX
-descriptors), or in the RX packet buffer in the NIC.
-
-RX packet buffer size is 512KB when flow director is disabled, hence it can
-hold > 8000 packets of 64 Bytes => handle an interrupt longer than 500
-microseconds -
-https://etherealmind.com/wp-content/uploads/2017/01/X520_to_XL710_Tuning_The_Buffers.pdf
-)
-
-When using Fortville, packets are by default dropped when RX descriptors are
-not available.  Hence, by default, the only buffers available to store packets
-when a core is interrupted are the buffers pointed to by the RX descriptors.
-
-A similar behavior (packets dropped when no descriptors available) is obtained
-on Niantic when using Virtual functions: to avoid "head of line" blocking,
-packets are dropped if no descriptor is available and virtual functions are
-used.
-
-So, to avoid packet losses due to CPU core being interrupted when using
-Fortville (_or when using Niantic and *SR-IOV*_), the number of RX descriptors
-should be configured high enough, for instance to 2048.
-
-Setup number of rx descriptors through rte_eth_rx_queue_setup (see
-http://www.dpdk.org/browse/dpdk/tree/examples/l3fwd/main.c#n990
-
-    ret = rte_eth_rx_queue_setup(portid, queueid, nb_rxd, socketid, NULL, pktmbuf_pool[socketid]);
-
-The number of TX descriptors should also be considered and depends on the application.
-Imagine the CPU core is interrupted and up to 2048 packets are now buffered through the RX descriptors.
-Once the interrupt is dealt with, up to 2048 packets can be received very fast by the application: as the packets are already in memory, they might arrive much faster than 10Gbps.
-Hence, when the application tries to forward those packets, the application might try to send those packets faster than 10Gbps.
-Some of those packets must be buffered before being sent to the 10 Gb/s link.
-Either the application takes care of this by buffering those packets, or those packets must be buffered in the TX descriptors.
-In that case, the number of TX descriptors should also be increased (e.g. up to 2048).
-
-Increasing the number of RX and/or TX descriptors implies that you might have
-to increase the number of pre-allocated mbufs. This can have a small impact on
-performance (throughput), as more memory is being used.
-
-Setup number of mbufs through rte_pktmbuf_pool_create: (see
-http://www.dpdk.org/browse/dpdk/tree/examples/l3fwd/main.c#n724)
-
-    rte_pktmbuf_pool_create(s, nb_mbuf, MEMPOOL_CACHE_SIZE, 0, RTE_MBUF_DEFAULT_BUF_SIZE, socketid);
-
-==== Problem
-
-A problem with reassigning kernel driver back to interface when DPDK vRouter is
-stopped.
-
-On Compute node In file `/opt/contrail/bin/vrouter-functions.sh` (line 532) in
-`s/\x1([0-9:.]+)[\x1]+/ \1/g` there are missing letters from a to f. This should
-be corrected and that could impact on not binding interface back to interface
-kernel driver from UIO kernel driver when vRouter is stopped.
-
-[source, sh, linenums]
-----
-## Look for slave PCI addresses of vRouter --vdev argument
-DPDK_BOND_PCIS=`sed -nr \
-    -e '/^ *command *=/ {
-        s/slave=/\x1/g
-        s/[^\x1]+//
-        s/\x1([0-9:\.]+)[^\x1]+/ \1/g
-        p
-    }' \
-    ${VROUTER_DPDK_INI}`
-----
-
-The correct sed should have letters `s/\x1([0-9**a-f**:\.]+)[^\x1]+/ \1/g`.
-
-This issue will be solved in release 5.0.1
-https://bugs.launchpad.net/juniperopenstack/+bug/1774403
-
-=== vRouter CPU numbers and single queue VM
-
-In non-multiqueue VNF with one DPDK interface, increasing the number of CPU
-cores for vRouter can actually decrease performance because of One to Many CPU
-cores queues are sending packets one by one what takes time and can produce
-microbursts.
-
-.vrouter core numbers and single-queue VNF
-image::diagrams/extracted-media-ContrailPerformanceGuidev3.2.docx/media/image44.png[image,width=409,height=284]
-
-On the diagram cores one by one are sending traffic to VM and when last finish
-data processing potentially first will have no time (buffers) to send VM
-(virtio queue).
-
-During this case microbursts affecting VNF will be observed on vRouter as TX errors.
-
-<<<
-
-== *[underline]#chapter 8: Deployment considerations#*
+== *[underline]#chapter 7: Contrail DPDK vrouter Deployment considerations#* (prz)
 
 === Define number of resources required for vRouter DPDK
 
@@ -6010,7 +6011,7 @@ You just have to keep in mind that :
 
 <<<
 
-== *[underline]#chapter 9: DPDK vrouter troubleshooting#*
+== *[underline]#chapter 8: Contrail DPDK vrouter troubleshooting#* (laurent)
 
 === vrouter fine tuning parameters (kernel and DPDK mode)
 
@@ -6650,6 +6651,12 @@ $ vi /var/log/containers/contrail/contrail-vrouter-dpdk.log
 In order to start contrail_vrouter_agent container we have to issue the following command :
 
     $ sudo docker start contrail_vrouter_agent
+
+=== DPDK vrouter log analysis
+
+laurent's new document
+
+<<<
 
 === Connectivity Troubleshooting
 
@@ -7638,12 +7645,6 @@ When DPDK is used, it’s also important to check that some DPDK interfaces are
 available to be used by the vrouter. It can be checked with :
 
     $ sudo /opt/contrail/bin/dpdk_nic_bind.py -s
-
-<<<
-
-== *[underline]#chapter 10: DPDK vrouter log analysis#*
-
-laurent's new document
 
 <<<
 

@@ -125,106 +125,208 @@ convenience of quick search.
 * materials/references shared
 * private google doc home folder built
 
-## table of content (Volume I)
+## table of content (Volume I) (2020-06-02) 
 
-### ch1: Overview of SDN       (ping, laurent)
+### [underline]#chapter 1: SDN overview#* (ping)
 
-* Different SDN solutions (contrail, calico, nuage, OVN)
-* Overview of Tungsten Fabric
-* Dataplane in SDN
-* Openstack integration (brief)
-    * Neutron
-    * Nova
+    |what is SDN - the history
+    . |Network device evolution
+    . |Early age of SDN
+    . |SDN startups acquired by major networks or virtualization vendors
+    |SDN definition
+    . |What is SDN?
+    . |Traditional Network Planes and SDN layer
+    . |the primary changes between SDN and traditional networking
+    . |underlay vs overlay
+    . |interfaces between layers
+    . |SDN, openstack, NVF and data center
+    |SDN solutions
+    . |controllers
+    . |SDN controller reports
+    . |opendaylight (ODL)
+    . |underlay network and overlay network
+    . |OVN
+    . . |OVS
+    . . |OVN
+    . |ONOS
+    . |calico
+    . . |calico introduction
+    . . |calico archetecture
+    . . . |felix (policy)
+    . . . |Orchestrator plugin
+    . . . |Etcd (database)
+    . . . |BIRD (BGP)
+    . . . |Confd
+    . . . |CNI plugin
+    . . . |IPAM plugin
+    . . |calico workflow
+    . |nuage VCP (Nokia)
+    . . |VSD
+    . . |VSC
+    . . |VRS
+    . |vmare NSX
+    . |other solutions?
+    . . |cisco: apic
+    . . |openflood
+    |Overview of Tungsten Fabric (TF)
+    . |TF introduction
+    . |TF components
+    . . |The TF SDN controller
+    . . |TF vRouter
+    . . |TF controller components
+    . . |TF vRouter components
 
-### ch2: Compute nodes in TF  (prz, kiran)
+### [underline]#chapter 2: SDN dataplane fundamentals#* (laurent)
 
-* Introduction to TF vRouter
-* Interfaces
-* Packet processing pipeline
-* Variants (DPDK/Kernel/Smart NIC/SRIOV)
-* why select multiq, isolation, HAs..etc
+    |Performance requirements
+    |software architecture
+    . |kernel
+    . |kvm, QEMU
+    . |Virtio
+    . |DPDK
+    . . |DPDK memory management
+    . . |DPDK Poll Mode Drivers (PMD)
+    . . |DPDK PMD Linux drivers
+    . . . |UIO
+    . . . |VFIO
+    . . . |VFIO and IOMMU
+    . . |DPDK capable NICs
+    |hardware architecture
+    . |NUMA
+    . |Hyper-threading (HT)
+    . |Huge pages
+    . |hardware topology Discovery
+    . |Physical CPU cores allocation planning
+    . |Hyper Threading
+    . |CPU isolation mechanisms
+    . . |isolcpus mechanism configuration
+    . . |Tuned CPU partitioning configuration
+    |other hardware acceleration technologies
+    . |sriov
+    . |smartnic
+    . |vDPA
+    . |eBPF
 
-from perf guide
+### [underline]#chapter 3: Contrail DPDK vrouter architecture#* (ping)
 
-### ch3: Overview of DPDK and DPDK vrouter (kiran, prz)
+    |Contrail vrouter architecture
+    |vrouter and dpdk
+    |DPDK threads and Contrail lcore numbering
+    . |control threads
+    . |Service and Processing threads
+    . |forwarding threads
+    |contrail dpdk version
+    |Contrail related linux packages
 
-* DPDK overview
-* vRouter and DPDK
-* Role of various threads
-* Pipelining v/s run to completion ?
-* Memory mapping of VNF
-* Virtio
-* Interaction with Qemu
-* Neutron plugin
-* Nova Vif plugin
-* System calls
+### [underline]#chapter 4: Contrail DPDK vrouter packet forwarding#*
 
-from perf guide
+    |interfaces and queues
+    |DPDK VM incoming traffic (from underlay network)
+    . |step 1: NIC spreading (RSS)
+    . |step 2: Polling core
+    . |step 3: Forwarding core (MPLSoGRE)
+    . |step 3: Forwarding core (MPLSoUDP/VxLAN)
+    |DPDK VM outgoing traffic
+    . |step 1: polling core
+    . |step 2: RSS
+    . |step 3: forwarding core
+    |Packet Flow Summary (Based on R1910)
+    |*Non DPDK VM* on DPDK vrouter
+    |*[underline]#vNIC queues#*
+    . |Single queue virtIO
+    . |Multiqueue virtIO
+    . |vNIC queues "queue size" configuration (RedHat OpenStack)
+    . |vNIC queues "queue number" configuration (RedHat OpenStack)
+    . |vNIC queues "queue number" changing
+    . |vNIC queues verfication
+    . |Multiqueue known limitations
+    . . |Number of queues on VM instances
+    . . |Indirect descriptors are not supported
 
-### ch4: DPDK vRouter Performance tuning (core) (damian, prz)
+### [underline]#chapter 5: Contrail DPDK vrouter Performance fine tuning: memory and CPU considerations#*
 
-* Core Pinning
-* Hugepages
-* Number of threads
-* CPU partitioning
-* Multiqueue virtio
+    |Performance tuning essentials
+    |DPDK vrouter memory consideration
+    . |Huge pages configuration
+    . |hugepages for vrouter: `--socket-mem`
+    . |Kubernetes: vrouter and Single Hugepage size
+    . |IRQ setup
+    |DPDK buffer size adjustment (mbuf)
+    . |Intel recommendation
+    . |Problem
+    |Enable CPU performance mode
+    |DPDK vRouter CPU assignment
+    . |packet processing threads
+    . |service and control threads <= 19.12
+    . |service and control threads pinning >= 20.03
+    . |Provisioning concerns
+    . . |control and service threads >= 20.03
+    . . |packet processing threads (forwarding cores)
+    . |vRouter CPU numbers and single queue VM
+    |DPDK vrouter CPU pinning and isolation
+    . |tuned and isolcpus - RedHat
+    . |isolcpus - Ubuntu
+    . |RedHat OS scheduler CPU assignment (CPUAffinity)
+    . |Nova CPU assignment (vcpu_pin_set)
+    . |vRouter CPU assignment (CPU_LIST, SERVICE_CORE_MASK and DPDK_CTRL_THREAD_MASK)
+    . |Check CPU pinning on all processes
 
-### ch5: DPDK vRouter Troubleshooting (joint work)
+### [underline]#chapter 6: Contrail DPDK vrouter Performance fine tuning: other considerations#*
 
-* Configuration
-* Vrouter info command I guess
-* Qemu/libvirt/virsh
-* Drops
-* Pinning
-* hugepages
-* DPDK logs analysis (laurent)
-  (what to check into DPDK logs: vrring activation, queue, and setup info)
+    |vrouter physical bond setting
+    |Manage a high flow environment
+    . |Increase flow table size
+    . |Flow setup rate optimisation
+    . |Configuration of packet based processing
+    |MPLSoUDP encapsulation Configuration
+    . |Contrail Configuration
+    . |SDN Gateway configuration: MPLSoUDP and Load Balancing
 
-### (optional) appendix: DPDK vRouter Deployment (Damian) (need to be clarified)
+### [underline]#chapter 7: Contrail DPDK vrouter Deployment considerations#* (prz)
 
-* TripleO
-* Juju
-* Contrail cloud???
-* Ansible (OSA: OpenStack Ansibile) laurent
-* HELM? laurent:seems more and more used. If not too long to explain, it could be worth. 
+    |Define number of resources required for vRouter DPDK
+    |Compute Node CPU capacity planning
+    |vrouter forwarding cores capacity planning
+    . |First step: expected network throughput
+    . |Second step: VM DPDK support and multi queues capability
+    . |Last step: sibling consideration
+    |vrouter services cores capacity planning
+    |typical CPU assignment
+    |Performance tests figures (DPDK vrouter)
+    |Jumbo frame support
+    |Configure driver and network settings
+    |Configure nova scheduler and flavor
 
-* use Prz perf report 
-* https://www.juniper.net/documentation/en_US/contrail20/information-products/pathway-pages/contrail-install-and-upgrade-guide.pdf
+### [underline]#chapter 8: Contrail DPDK vrouter troubleshooting#* (laurent)
 
-### misc details
-
-* DPDK vrouter architecture description
-    * vrouter agent and vrouter dataplane
-        * vif 1, vif 2
-    * physical connectivity
-        * vif 0
-    * virtual connectivity
-        * vif N and virtio 
-    * packet processing
-      * 2 steps : polling  then processing
-        * different scenarios (depending encap)
-    * NIC and vNIC queue
-      * High level description of Q (focus on sizing)
- 
-* DPDK vrouter fine tuning
-    * CPU pinning
-    * HT and Sibling
-    * Queue sizing
-    * new parameters
-        * internal hash suppression
-        * yield desactivation
-        * Q accurate pining
-    * flow mode specific tuning
-        * Pin more CPU on service threads
-        * Increase flow table size
-
-* DPDK vrouter fine trouble shouting
-    * In a shot, what we have to look into logs
-    * And some specific tools usage (packet drop log, vrouter info, ...)
- 
-* DPDK fine tuning Scenarios
-    * when to use sibling
-    * when to desactivate internal hash
+    |vrouter fine tuning parameters (kernel and DPDK mode)
+    . . |Generic vrouter dimensioning parameters
+    . |Increase vrouter default value of dimensioning parameters (especially flow table)
+    . |32 bits vrouter nexthop limit parameter (contrail release 19.11 and later)
+    . |vrouter networking parameters (MTU)
+    |vrouter DPDK fine tuning parameters
+    . |DPDK vrouter parameters
+    . |DPDK fine tuning rules (mainly for Intel NIC)
+    . |DPDK vouter parameters provisioning
+    . |DPDK vouter parameters configuration (5.0 and later versions)
+    |DPDK vrouter log analysis
+    |Connectivity Troubleshooting
+    . |How to check vrouter connectivity
+    . |vRouter vif queues setup
+    . |vRouter vif queues activation
+    |Packet drop troubleshooting
+    . |Interface traffic counters
+    . |Packet flow from a Compute Physical NIC to a VM NIC - counters placement
+    . |Packet flow from a VM NIC to compute node Physical NIC - counters placement
+    . |Traffic Load balancing on forwarding cores
+    . |vrouter is dropping packets
+    . |virtual instance is dropping packets
+    . |Packet Drop statistics
+    . |vif command: get-drop-stats option
+    . |Dropstats and packet drop log utility
+    |Faulty vrouter deployment troubleshooting
+    ppendix
+    |References
 
 ## table of content (Volume II)
 
