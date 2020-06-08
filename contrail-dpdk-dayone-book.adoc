@@ -33,16 +33,17 @@ are done in “line cards”.
 //image::ch1-extracted-media/word/media/image1.svg[image]
 image::diagrams/ch1-extracted-media/word/media/image1.png[image]
 
-These progresses have been made thanks to the use of proprietary ASICs
-(Application-Specific Integrated Circuit), TCAM (Ternary Content-Addressable
-Memory) which have been designed to process data packets at high speed.
+These progresses have been made thanks to the use of proprietary TCAM (Ternary
+Content-Addressable Memory) and ASICs (Application-Specific Integrated Circuit)
+which have been designed to perform table look up and data packets forwarding at
+high speed.
 
 In early 2000, the Virtualization for x86 computers support has led to lots of
 innovation into systems domain. Compute virtualization and High-Speed network
 devices evolution have enabled the **Cloud** creation.
 
 Later, It appears it was not convenient to manage several isolated network
-devices having each their own configuration language. Following needs have
+devices each having their own configuration language. Following needs have
 emerged:
 
 * Single point of configuration
@@ -54,71 +55,56 @@ And these desires called for the cloud and SDN technology development.
 
 ==== Early age of SDN
 
-In Stanford University (US - CA) Clean Slate Research Projects program has been
+In Stanford University (US - CA), Clean Slate Research Projects program has been
 initiated in order to think about how to improve the Internet network
-architecture. ETHANE project was part of this program. Its purpose was to “
-Design network where connectivity is governed by high-level, global policy”.
-This project is generally known as the first implementation of SDN:
+architecture. "ETHANE" project was part of this program. Its purpose was to "
+Design network where connectivity is governed by high-level, global policy".
+This project is generally known as the first implementation of SDN.
 
 In 2008, a white paper has been proposed by ACM (Association for Computing
-Machinery) to design a new protocol (OpenFlow) to be able to program network
-devices from a network controller.
+Machinery) to design a new protocol (OpenFlow) that can program network devices
+from a network controller.
 
 In 2011, ONF (Open Networking Foundation) has been created to promote SDN
 Architecture and OpenFlow protocols.
 
 ==== SDN startups acquired by major networks or virtualization vendors
 
-First companies working on SDN have been founded around 2010. Most of them have
-now been bought by main networks or virtualization solution vendors.
-
+First companies working on SDN have been founded around 2010. (Most of them have
+now been acquired by main networks or virtualization solution vendors.)
 In 2007, Martin Casado, who was working on Ethane project has founded Nicira to
 provide solutions for network virtualization with SDN concept. Nicira has been
 aquired by vMware in 2012 to develop VMare NSX. In 2016, VMWare also bought
 PLUMGrid a SDN startup founded in 2013.
-
 In 2010, BigSwitch networks has been founded: BigSwitch is proposing a SDN
 solution. In early 2020, BigSwitch has been acquired by Arista Networks.
-
 In 2012, Cisco has created Insieme Networks, a spin-in start-up company working
 on SDN. In 2013, Cisco take back control on Insieme in order to develop its own
 SDN solution called ACI (Application Centric Infrastructure).
-
 In early 2012, Contrail Systems Inc has been created and aquired at the end of
 the year by Juniper Networks.
-
 In 2013, Alcatel Lucent has created Nuage Networks, a spin-in start-up company
 working on SDN. Nuage Networks is now an affiliate of Nokia.
 
 The road of SDN development and its history is never straighforward and looks
-more nuanced than a single storyline might suggest, it's actually far more
-complex to be described in a short section here. This diagram
-from <<sdn-history>> shows developments in programmable networking over the past 20
-years, and their chronological relationship to advances in network
-virtualization.
+more nuanced than a single storyline might suggest. It's actually far more
+complex to be described in a short section. This diagram from <<sdn-history>>
+shows developments in programmable networking over the past 20 years, and their
+chronological relationship to advances in network virtualization.
 
 image::diagrams/sdn-history.png[sdn-history]
-
-.References
-
-* [[sdn-history]] https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf
-* http://yuba.stanford.edu/cleanslate/research_project_ethane.php
-* http://yuba.stanford.edu/ethane/pubs.html
-* https://dl.acm.org/doi/10.1145/1355734.1355746
 
 === SDN definition
 
 ==== What is SDN?
 
 The concept of `SDN`, and the term itself, are both very broad and often
-confusing.  
-There is no real accurate definition of SDN, 
-and vendors usually take it very differently. Initially it was used to
-in Stanford’s OpenFlow project, and later it has been extended to include a
-much wider area of technologies. Discussion about each vendor's SDN definition
-is beyond the scope of this book. 
-but we generally consider that a SDN solution has to provide one to several of
-following characteristics:
+confusing.  There is no real accurate definition of SDN, and vendors usually
+take it very differently. Initially it was used to in Stanford’s OpenFlow
+project, and later it has been extended to include a much wider area of
+technologies. Discussion about each vendor's exact SDN definition is beyond the
+scope of this book. But we generally consider that a SDN solution has to
+provide one to several of following characteristics:
 
 * a network control and configuration plane split from the network dataplane.
 * a centralized configuration and control plane (SDN controller)
@@ -143,7 +129,7 @@ According to <<onf-sdn-definition>>, *Software-Defined Networking (SDN)* is:
 //jpg is too small after converted to word
 //image::diagrams/sdn-architecture-img.jpg[image, 400, 400]
 //seems size does not help when converting to word
-image::diagrams/sdn-architecture-img.png[image, 400, 400]
+image::diagrams/sdn-architecture-img.png[image]
 
 ////
 //ping:
@@ -171,37 +157,39 @@ south bound interfaces in the coming sections.
 
 In this diagram, you can see that SDN allows simple high-level policies in the
 "application layer" to modify the network, because the device level dependency
-is eliminated to some extent. Now the network administrator can operate the
+is eliminated to some extent. The network administrator can operate the
 different vendor-specific devices in the "infrastructure layer" from a single
-software console - control layer. The controller in control layer is designed in
-such a way that it can view the whole network globally. This controller design
-helps a lot to introduce functionalities or programs as they just needs to be
-talk to the centralized controller. All details communicating with each device
-is hidden from the applications.
+software console - the "control layer". The "controller" in control layer is
+designed with such a way that it can view the whole network globally.  This
+controller design helps a lot to introduce functionalities or programs as they
+just needs to talk to the centralized controller, without the need to know all
+details communicating with each individual device. These details are hidden by
+the controller from the applications.
 
 Several expectations are behind this new model:
 
-- *cost reduction*: using standardized network nodes. The costly part of the
-  network equipment (CPU) beeing moved and shared onto a central node.
+- *openness*: communication between controller and network device uses
+  standardized protocols like REST, OpenFlow, XMPP, NetConf, etc. This
+  eliminates traditional vendor lock-in, giving you freedom of choice in
+  networking.
 
-- *openness*: using some standardized protocols like REST, OpenFlow, XMPP,
-  NetConf
+- *cost reduction*: because of the openness, you can pick which ever low-cost
+  vendor for your infrastructure (hardware).
 
-- *automation*: through the API interfaces provided by the SDN controller.
+- *automation*: the controller layer has a global view of whole network.  with
+  the API exposed by the control layer, from the application perspective it's
+  much easier to automate network devices application.
 
+////
+ch1 QUESTION: hard to explain why?
 - *features rich*: with the ability of the SDN Controller to reprogram each
   controlled device using flow tables
+////
 
 NOTE: in this diagram, "openflow" is marked as the protocol between control
-layer and infrastructure layer. This is to give an example about the "south
-bound" interface. As of today there are more choices available and standardized
+layer and infrastructure layer. This is to give an example about the standard
+communication protocols. As of today more choices are available and standardized
 in the SDN industry, which will be covered later in this chapter.
-
-
-.References:
-
-* [[onf-sdn-definition]] https://www.opennetworking.org/sdn-definition/
-* https://www.rfc-editor.org/rfc/rfc7426.txt
 
 ==== Traditional Network Planes and SDN layer
 
@@ -213,17 +201,29 @@ traditionally, A typical network device (e.g. a router) has following planes:
 image::diagrams/ch1-extracted-media/word/media/image3.png[image]
 
 - *Configuration* (and management) *plane*: used for network node configuration
-  and supervision. Widely use protocols are CLI (Command Line Interface), SNMP
-  (Simple Network Management Protocol) and NetConf.
-- *Control plane*: used by network nodes to take packet forwarding decision. In
-  traditional networks most widely used network control protocols are OSPF,
-  ISIS and BGP for IP protocol and LDP; RSVP-TE for MPLS.
+  and supervision. Examples of widely use protocols are CLI (Command Line
+  Interface), SNMP (Simple Network Management Protocol) and NetConf.
+- *Control plane*: used by network nodes to make packet forwarding decision. In
+  traditional networks there have been a wide range of various different network
+  control protocols running in the networks. Common examples are OSPF, ISIS,
+  BGP, LDP, RSVP-TE, etc.
 - *Forwarding* (or data or user) *plane*: This plane is responsible to perform
-  data packet processing and forwarding. This forwarding plane is made of
+  data packet processing and forwarding. 
+  This forwarding plane is made of
   proprietary protocols and is specific to each network equipment vendor.
 
-First two planes (configuration and control) are located into router main
-processor card. The last one is located into the router line cards.
+////
+NOTE: strickly speaking, "CLI" by itself is NOT a real protocol, nor is it ever
+"standardized" - it may never be. it is a tool to provide user the ability to
+interact with each individual device, and in this sense we call it a protocol.
+////
+
+configuration and control plane are located in device's main processor card,
+oftenly called "routing engine", or "routing switching engine". The forwarding
+plane is located in the device's packet forwarding card, oftenly called "line
+card". 
+
+//TODO: add MX picture
 
 .SDN layer
 
@@ -479,10 +479,6 @@ Flexibility is the main driver for any visualization platform.  The data center
 network itself is also part of the virtualization revolution. SDN and network
 overlays are the key drivers for virtualizing networks in data centers.
 
-.References
-
-* https://portal.etsi.org/NFV/NFV_White_Paper.pdf
-
 === SDN solutions
 
 ==== controllers
@@ -507,13 +503,6 @@ corresponding SDN solutions.
 .TODO, some research about today's market players, may skip
 
 image::https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-11ea-9742-20b94163ddcf.png[image]
-
-.References
-
-* https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf[2015 ]
-* https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf[2016 ]
-* https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403[Controllers in SDN: A Review Report. 2018]
-//* https://aptira.com/comparison-of-software-defined-networking-sdn-controllers-part-2-open-network-operating-system-onos[2019]
 
 ==== opendaylight (ODL)
 
@@ -567,12 +556,6 @@ Remember earlier we mentioned that an SDN controller has "global
 view" of the whole SDN network. In that sense ODL has all necessary visibility
 and knowledge of the network that can be used to draw the network diagram in
 realtime.
-
-.References:
-
-* https://www.opendaylight.org/technical-community/getting-started-for-developers/roadmap
-* https://www.opendaylight.org/what-we-do/current-release/boron
-* https://www.sdnlab.com/community/article/odl/1
 
 ==== underlay network and overlay network
 
@@ -1057,7 +1040,24 @@ it look up its local FIB and determines the next hop of a packet,
 and enables encapsulating packets to be sent to the overlay network and
 decapsulating packets to be received from the overlay network.
 
-We'll cover more details of TF vrouter in the next chapter.
+We'll cover more details of TF vrouter in the later chapters.
+
+.References
+
+* [[sdn-history]] https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf
+* http://yuba.stanford.edu/cleanslate/research_project_ethane.php
+* http://yuba.stanford.edu/ethane/pubs.html
+* https://dl.acm.org/doi/10.1145/1355734.1355746
+* [[onf-sdn-definition]] https://www.opennetworking.org/sdn-definition/
+* https://www.rfc-editor.org/rfc/rfc7426.txt
+* https://portal.etsi.org/NFV/NFV_White_Paper.pdf
+* https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf[2015 ]
+* https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf[2016 ]
+* https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403[Controllers in SDN: A Review Report. 2018]
+//* https://aptira.com/comparison-of-software-defined-networking-sdn-controllers-part-2-open-network-operating-system-onos[2019]
+* https://www.opendaylight.org/technical-community/getting-started-for-developers/roadmap
+* https://www.opendaylight.org/what-we-do/current-release/boron
+* https://www.sdnlab.com/community/article/odl/1
 
 <<<
 

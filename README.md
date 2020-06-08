@@ -1,36 +1,40 @@
 # contrail dpdk day one book
 
-* [progress/meetings](#progressmeetings)
-    * [0529 meeting minutes](#0529-meeting-minutes)
-    * [0420 agenda/meeting minutes](#0420-agendameeting-minutes)
-    * [0327 agenda/meeting minutes](#0327-agendameeting-minutes)
-    * [0323 agenda/meeting minutes](#0323-agendameeting-minutes)
-    * [0316: drafted TOC!](#0316-drafted-toc)
-    * [0310: kicked off first book meeting!](#0310-kicked-off-first-book-meeting)
-* [table of content (Volume I)](#table-of-content-volume-i)
-    * [ch1: Overview of SDN       (ping, laurent)](#ch1-overview-of-sdn-------ping-laurent)
-    * [ch2: Compute nodes in TF  (prz, kiran)](#ch2-compute-nodes-in-tf--prz-kiran)
-    * [ch3: Overview of DPDK and DPDK vrouter (kiran, prz)](#ch3-overview-of-dpdk-and-dpdk-vrouter-kiran-prz)
-    * [ch4: DPDK vRouter Performance tuning (core) (damian, prz)](#ch4-dpdk-vrouter-performance-tuning-core-damian-prz)
-    * [ch5: DPDK vRouter Troubleshooting (joint work)](#ch5-dpdk-vrouter-troubleshooting-joint-work)
-    * [(optional) appendix: DPDK vRouter Deployment (Damian) (need to be clarified)](#optional-appendix-dpdk-vrouter-deployment-damian-need-to-be-clarified)
-    * [misc details](#misc-details)
-* [table of content (Volume II)](#table-of-content-volume-ii)
-* [dpdk lab (1910)](#dpdk-lab-1910)
-* [dpdk lab (1904)](#dpdk-lab-1904)
-    * [login](#login)
-    * [iperf VM@dpdk-1](#iperf-vmdpdk-1)
-    * [recvr VM@dpdk-3](#recvr-vmdpdk-3)
-    * [runrapid.py](#runrapidpy)
-* [dpdk lab(2003)](#dpdk-lab2003)
-* [tools](#tools)
-    * [git/github](#gitgithub)
-    * [document format/editor recommendation](#document-formateditor-recommendation)
-    * [asciidocFX](#asciidocfx)
-    * [emf picture](#emf-picture)
-    * [to png](#to-png)
-    * [to svg](#to-svg)
-* [references/materials](#referencesmaterials)
+* [contrail dpdk day one book](#contrail-dpdk-day-one-book)
+    * [progress/meetings](#progressmeetings)
+        * [0608 meeting minutes](#0608-meeting-minutes)
+        * [0529 meeting minutes](#0529-meeting-minutes)
+        * [0420 agenda/meeting minutes](#0420-agendameeting-minutes)
+        * [0323 agenda/meeting minutes](#0323-agendameeting-minutes)
+        * [0316: drafted TOC!](#0316-drafted-toc)
+        * [0310: kicked off first book meeting!](#0310-kicked-off-first-book-meeting)
+    * [table of content (Volume I) (2020-06-02)](#table-of-content-volume-i-2020-06-02)
+        * [[underline]#chapter 1: SDN overview#* (ping)](#underlinechapter-1-sdn-overview-ping)
+        * [[underline]#chapter 2: SDN dataplane fundamentals#* (laurent)](#underlinechapter-2-sdn-dataplane-fundamentals-laurent)
+        * [[underline]#chapter 3: Contrail DPDK vrouter architecture#* (ping)](#underlinechapter-3-contrail-dpdk-vrouter-architecture-ping)
+        * [[underline]#chapter 4: Contrail DPDK vrouter packet forwarding#*](#underlinechapter-4-contrail-dpdk-vrouter-packet-forwarding)
+        * [[underline]#chapter 5: Contrail DPDK vrouter Performance fine tuning: memory and CPU considerations#*](#underlinechapter-5-contrail-dpdk-vrouter-performance-fine-tuning-memory-and-cpu-considerations)
+        * [[underline]#chapter 6: Contrail DPDK vrouter Performance fine tuning: other considerations#*](#underlinechapter-6-contrail-dpdk-vrouter-performance-fine-tuning-other-considerations)
+        * [[underline]#chapter 7: Contrail DPDK vrouter Deployment considerations#* (prz)](#underlinechapter-7-contrail-dpdk-vrouter-deployment-considerations-prz)
+        * [[underline]#chapter 8: Contrail DPDK vrouter troubleshooting#* (laurent)](#underlinechapter-8-contrail-dpdk-vrouter-troubleshooting-laurent)
+    * [table of content (Volume II)](#table-of-content-volume-ii)
+    * [dpdk lab (1910)](#dpdk-lab-1910)
+    * [dpdk lab (1904)](#dpdk-lab-1904)
+        * [login](#login)
+        * [iperf VM@dpdk-1](#iperf-vmdpdk-1)
+        * [recvr VM@dpdk-3](#recvr-vmdpdk-3)
+        * [runrapid.py](#runrapidpy)
+* [the number of flows in the list need to be powers of 2, max 2^20](#the-number-of-flows-in-the-list-need-to-be-powers-of-2-max-220)
+* [Select from following numbers: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524280, 1048576](#select-from-following-numbers-1-2-4-8-16-32-64-128-256-512-1024-2048-4096-8192-16384-32768-65536-131072-262144-524280-1048576)
+    * [dpdk lab(2003)](#dpdk-lab2003)
+    * [tools](#tools)
+        * [git/github](#gitgithub)
+        * [document format/editor recommendation](#document-formateditor-recommendation)
+        * [asciidocFX](#asciidocfx)
+        * [emf picture](#emf-picture)
+        * [to png](#to-png)
+        * [to svg](#to-svg)
+    * [references/materials](#referencesmaterials)
 
 target date: before July 1 2020
 
@@ -42,6 +46,20 @@ coauthors:  (as of March 17)
 * ping song <pings@juniper.net>
 
 ## progress/meetings
+
+### 0608 meeting minutes
+
+between Laurent/ping.
+
+* chapter 1: 
+    * better to cut uncessary details about each SDN solutions. not too much
+      related to the whole book context. 
+    * extend more on Tungsten fabric only.
+* chapter 2:
+    * still in progress and need more adjustment
+* idea of describing testing methodology/tools/diagrams. will talk about
+  this further after main content is done
+* still target 6/15 and see what we get. then determine the next.
 
 ### 0529 meeting minutes
 
@@ -94,10 +112,6 @@ convenience of quick search.
 
 * first draft better done before June, so we have at least 1 month to review/update
 * we can ask editor for more time if necessary
-
-### 0327 agenda/meeting minutes
-
-
 
 ### 0323 agenda/meeting minutes
 
