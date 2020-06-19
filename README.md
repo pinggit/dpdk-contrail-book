@@ -47,6 +47,17 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0612 meeting minutes
+
+kiran/ping/laurent
+
+* we'll see by next Friday how much everyone's work will progress
+* we'll then determine how to proceed
+  * if we can finish next week, then we can start to review each other's work
+  * if not, we will continue to work on each chapters. new deadline July 1st.
+    * we told editor we'll submit first draft of the book in July, 
+    * there is a chance we can still submit in July 15, if everyone agree.
+
 ### 0608 meeting minutes
 
 between Laurent/ping.
