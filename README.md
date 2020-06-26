@@ -47,6 +47,26 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0619 meeting minutes
+
+Between Ping/Laurent/Przemyslaw.
+
+Current progress:
+
+    chapter 1: SDN overview#* (ping)   /41                                  1st draft done
+    chapter 2: SDN dataplane fundamentals#* (laurent)   /28                 1st draft done mostly
+    chapter 3: Contrail DPDK vrouter architecture#* (kiran)   /8            1st draft done
+    chapter 4: Contrail DPDK vrouter packet forwarding#* (kiran & prz)      in progress
+    chapter 5: Contrail DPDK vrouter Performance fine tuning: memory and CPU considerations#* (prz)   in progress
+    chapter 6: Contrail DPDK vrouter Performance fine tuning: other considerations#* (prz)   /8       in progress
+    chapter 7: Contrail DPDK vrouter Deployment considerations#* (prz)   /12                          in progress
+    chapter 8: Contrail DPDK vrouter troubleshooting#* (laurent)   /26                                in progress
+
+we’ve discussed it will be good to add DPDK perf testing diagram, tools, and
+methodologies. Can be added as a section or even a new chapter.
+About the timeline I can’t tell. Will see how much work left by end of June.
+
+
 ### 0612 meeting minutes
 
 kiran/ping/laurent
@@ -55,16 +75,16 @@ kiran/ping/laurent
 * we'll then determine how to proceed
   * if we can finish next week, then we can start to review each other's work
   * if not, we will continue to work on each chapters. new deadline July 1st.
-    * we told editor we'll submit first draft of the book in July, 
+    * we told editor we'll submit first draft of the book in July,
     * there is a chance we can still submit in July 15, if everyone agree.
 
 ### 0608 meeting minutes
 
 between Laurent/ping.
 
-* chapter 1: 
+* chapter 1:
     * better to cut uncessary details about each SDN solutions. not too much
-      related to the whole book context. 
+      related to the whole book context.
     * extend more on Tungsten fabric only.
 * chapter 2:
     * still in progress and need more adjustment
@@ -87,7 +107,7 @@ between Laurent/Prz/ping.
   * that is also why I started to clean the perf guide, catching/raising
     confusions/errors/ambiguities/etc. so later reference will be easier
 
-* we went through the initial TOC and checked what is missing in perf guide. 
+* we went through the initial TOC and checked what is missing in perf guide.
   * we decided some topics can be cut, some chapters topics can be merged.
   * looking at the new TOC, again, we think it's easier to just extend/clean
     the perf guide.
@@ -100,12 +120,12 @@ next:
 
 * I will push and share the current version of perf guide that I've been
   working on so far.
-  * I'm in the middle of 2nd read of it, and **not done yet**. 
+  * I'm in the middle of 2nd read of it, and **not done yet**.
   * in this version you will see a lot of contents reorganized/modified
 
 * I will merge everything we've got so far
-  * all good Q&As with Laurent (marked as "Q&A" in the doc). those are 
-    topics where confusions will most likely come from (at least for me) 
+  * all good Q&As with Laurent (marked as "Q&A" in the doc). those are
+    topics where confusions will most likely come from (at least for me)
   * the chapter 1 which is mostly finished.
   * Laurent's new document about "log analysis", as a new chapter
 
@@ -146,11 +166,11 @@ convenience of quick search.
 
 ### 0310: kicked off first book meeting!
 
-* the book idea discussed 
+* the book idea discussed
 * materials/references shared
 * private google doc home folder built
 
-## table of content (Volume I) (2020-06-02) 
+## table of content (Volume I) (2020-06-02)
 
 ### [underline]#chapter 1: SDN overview#* (ping)
 
@@ -439,7 +459,7 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
 
     [4/30 9:06 AM] Przemyslaw Grygiel
         please login to 10.87.5.122 root/c0ntrail
-        tmux attach -t  ping 
+        tmux attach -t  ping
 
     [contrail@5a3s21-node2 ~]# su contrail
     [contrail@5a3s21-node2 ~]$ ssh undercloud
@@ -621,11 +641,11 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
 
 ## dpdk lab(2003)
 
- 
+
     [5/21 11:57 AM] Przemyslaw Grygiel
         ssh root@172.25.151.35 (c0ntrail123)
     [5/21 11:57 AM] Przemyslaw Grygiel
-     top is rapid jump, bottom left compute with swap, bottom right compute with gen VM   
+     top is rapid jump, bottom left compute with swap, bottom right compute with gen VM
 
     tmux attach -t ping
 
@@ -687,11 +707,11 @@ commit
 push(publish)
 
     (if there is no conflict)
-    git push 
+    git push
 
     (if there is confliction - updates from others)
 
-    git pull 
+    git pull
     git push
 
 ### document format/editor recommendation
@@ -700,8 +720,8 @@ push(publish)
     * e.g. https://github.com/pinggit/kubernetes-contrail-day-one/blob/master/kubernetes-contrail.adoc
     * can convert to word and all other docs
     * syntax and online tool https://asciidoclive.com/
-    * editors: 
-        * VIM (with Voom plugin https://www.vim.org/scripts/script.php?script_id=2657), 
+    * editors:
+        * VIM (with Voom plugin https://www.vim.org/scripts/script.php?script_id=2657),
         * asciidocFX (UI, real time preview)
         * etc
 
@@ -758,9 +778,12 @@ for web page, word has problem to display
 * References - DPDK day-one book - https://docs.google.com/document/d/1_V1zLgh8wiYyQz2KdV_dqQJe8j7hHvm4GQpsO4xVU7o/edit?usp=sharing
 
 * DPDK performance guide - https://docs.google.com/document/d/1vbW7a2NDSbB0NBcYQzqyVkcH3E0g1pqj8PXQg4EMD28/edit?ts=5a845566
-* CONTRAIL DPDK VROUTERS INTERNAL DETAILS - https://drive.google.com/open?id=1ITKvvPM19M1xF_bgYgi_x7hpvx6bFysB 
+* CONTRAIL DPDK VROUTERS INTERNAL DETAILS - https://drive.google.com/open?id=1ITKvvPM19M1xF_bgYgi_x7hpvx6bFysB
 * DPDK architecture - https://static.sched.com/hosted_files/osndaysbangalore2019/c4/vrouter-arch1.pptx
 * Performance tests (WIP) - https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g75c8716119_0_0
 * Performance degradation analysis - https://docs.google.com/presentation/d/1UDzqtLgRKDO3azQS7VVsMF-y0WMJu6BLe24i_VudyMs/edit#slide=id.g75c8716119_0_0
 * DPDK performance tests https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g6f0dcffbae_4_22
-* perf report
+* perf report https://docs.google.com/document/d/1HxtCnBAfwpvLND8tNeCbZVhrufjnl1ycTzgEVUGMgF0/edit#heading=h.f88w6m5zfvkg
+* https://docs.google.com/document/d/1yyE5EMy6lI307NJbr9e4xgLqeZtWuGDpnB4c7Uhub7o/edit#heading=h.7zcp425tallj
+* https://docs.google.com/document/d/1AabF0ECAmERFLBCH1mCGfNNfSLnpO1U1neYiksrnbMo/edit?ts=5eed1ab8
+* https://docs.google.com/presentation/d/1-GGRK2pyuyWdrzdnpRWSegJTeGTfwEUE7oWRc1JJtfg/edit#slide=id.g89db5fdbaf_0_389
