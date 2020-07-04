@@ -15,9 +15,9 @@ Let us consider best case numbers for conventional linux packet processing. Toda
 Data Plane Development Kit (DPDK) is a framework for fast packet processing in dataplane applications. It consists of a set of userspace libraries and network interface controller drivers which the applications can link. It is currently managed as an open-source project under the Linux Foundation.
 
 === Origin of DPDK
-DPDK was initially created by Intel in 2010 and made available under a permissive open source license. The open source community was established at DPDK.org in 2013 by 6WIND and has facilitated the continued expansion of the project. Since then, the community has been continuously growing in terms of the number of contributors, patches, and contributing organizations. DPDK now supports all major CPU architectures and NICs from multiple vendors, which makes it ideally suited to applications that need to be portable across multiple platforms.
+DPDK was initially created by Intel in 2010 and made available under a permissive open source license. The open source community was established at `dpdk.org` in 2013 by 6WIND and has facilitated the continued expansion of the project. Since then, the community has been continuously growing in terms of the number of contributors, patches, and contributing organizations. DPDK now supports all major CPU architectures and NICs from multiple vendors, which makes it ideally suited to applications that need to be portable across multiple platforms.
 
-In the very first version itself, DPDK L2 forward application was able to give 5 million packets per second (MPPS) per core. It has continuously evolved in the last decade in terms of performance, features, support for different hardware architectures and network interfaces. In the latest LTS of DPDK, the R1911 version, it can give as much as 50 MPPS per core! To put this in perspective, DPDK can handle a 40G NIC using just 1 to 2 CPU cores in the best case. It is an order higher than linux stack. This has become very attractive for Telco NFV use-cases like EPC, VMX, SRX etc. Telcos can now virtualize their hardware based networking elements and at the same time get very good performance.
+In the very first version itself, DPDK L2 forward application was able to give 5 million packets per second (MPPS) per core. It has continuously evolved in the last decade in terms of performance, features, support for different hardware architectures and network interfaces. In the latest LTS of DPDK, the R1911 version, it can give as much as 50 MPPS per core! To put this in perspective, DPDK can handle a 40G NIC using just 1 to 2 CPU cores in the best case. It is an order higher than linux stack. This has become very attractive for Telco NFV use-cases like vEPC, vMX, vSRX etc. Telcos can now virtualize their hardware based networking elements and at the same time get very good performance.
 
 === Environment Abstraction Layer (EAL)
 DPDK creates a EAL which is customized for a particular environment in which it runs in. For example, we can create a DPDK application through compile flags and makefiles which is tuned for x86 64-bit architecture, linux OS. It abstracts hardware dependent portions and provides a generic API for application developers to use. It is a user-space library. Application developers can write their own applications and link it with the DPDK libraries and it runs as a user-space process. 
@@ -25,6 +25,9 @@ DPDK creates a EAL which is customized for a particular environment in which it 
 === Why use DPDK? 
 DPDK has lot of constructs which can be used by application developers readily. It has efficient implementations of most common data structures used in networking like MTRIE, hashtable, lockless-queue etc. It also provides implementation of networking components like Longest prefix match (LPM), fragmentation support, segmentation offloads, user space vhost etc. Developers need not re-implement all these and can make use of these readily. DPDK Provides networking drives for most of the popular NIC drives like intel, broadcom, mellanox etc. Application development is also very easy. It has very good documentation and has example applications which application developers can readily make use of it to develop newer applications. They need not to start from scratch, they can add to an existing example application.
 
+Below diagram shows an high level DPDK architecture:
+
+.high level DPDK architecture
 image::../diagrams/ch3/DPDK_libraries.jpg[image]
 
 === Where DPDK cannot be used?
@@ -62,7 +65,7 @@ image::../diagrams/ch3/x86_memory_layout.png[image]
 
 These are very significant numbers. Let us take an example of 10G NIC. For 64 Byte packet, the Inter arrival rate is around 67ns. That means, every 67ns, there is a new packet arriving at the NIC. To get line rate, the software has to take the packet, process it and send it out in that time. That is the budget. If it does not meet the budget, there will be queueing and subsequently tail drops. If you see the above latency numbers, just a single cache miss is contributing to 60ns when it has to fetch it from main memory. If it has to fetch it from a different sockets, the latency is 100ns which overshoots the budget. 
 
-So how does DPDK work? How does it get line rate? Earlier in the chapter, we saw the current DPDK versions are able to 50Mpps. 
+So how does DPDK work? How does it get line rate? Earlier in the chapter, we saw the current DPDK versions are able to reach 50Mpps. 
 
 DPDK solves this by using the below techniques
 
@@ -76,7 +79,7 @@ DPDK is very NUMA aware. All allocations like mempool, mem ring, mbuf can be don
 
 === Optimized memory manager
 
-DPDK has a highly optimized memory manager. DPDK works on a group of fixed size objects called a mempoool. Every one of them are pre-allocated. DPDK does not enourage dynamic allocations because it consumes a lot of CPU cycles and is a speed killer. DPDK pre-allocates a set of mbufs and keeps it in a pool called mempool. Mempool has further optimizations. It is very cache friendly. Everything is alligned to the cache and has a some mbufs allocated for each DPDK thread or lcore. This mempool has a ring where all the objects are stored. This ring itself is a highly optimized lockless ring. This ring can be used to communicate with two or more lcores in a multi-producer/multi-consumer kind of scenario without locks. Locking of data structures is a speed killer. By avoiding locks, DPDK gets large performance gains. It makes use of mempools when we want to allocate a mbuf wher packets are stored. Instead of allocating a single mbuf, we do a bulk allocation or bulk free. By doing this, it already having mbufs in the cache and becomes very cache friendly. 
+DPDK has a highly optimized memory manager. DPDK works on a group of fixed size objects called a `mempool`. Every one of them are pre-allocated. DPDK does not encourage dynamic allocations because it consumes a lot of CPU cycles and is a speed killer. DPDK pre-allocates a set of `mbufs` and keeps it in a pool called `mempool`. `Mempool` has further optimizations. It is very cache friendly. Everything is alligned to the cache and has a some `mbufs` allocated for each DPDK thread or lcore. This mempool has a `ring` where all the objects are stored. This `ring` itself is a highly optimized lockless ring. This `ring` can be used to communicate with two or more lcores in a multi-producer/multi-consumer kind of scenario without locks. Locking of data structures is a speed killer. By avoiding locks, DPDK gets large performance gains. It makes use of `mempools` when we want to allocate a `mbuf` where packets are stored. Instead of allocating a single `mbuf`, we do a bulk allocation or bulk free. By doing this, it already have `mbufs` in the cache and becomes very cache friendly. 
 
 === Hugepages
 

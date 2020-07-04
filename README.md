@@ -2,6 +2,9 @@
 
 * [contrail dpdk day one book](#contrail-dpdk-day-one-book)
     * [progress/meetings](#progressmeetings)
+        * [0703 meeting minutes](#0703-meeting-minutes)
+        * [0619 meeting minutes](#0619-meeting-minutes)
+        * [0612 meeting minutes](#0612-meeting-minutes)
         * [0608 meeting minutes](#0608-meeting-minutes)
         * [0529 meeting minutes](#0529-meeting-minutes)
         * [0420 agenda/meeting minutes](#0420-agendameeting-minutes)
@@ -46,6 +49,26 @@ coauthors:  (as of March 17)
 * ping song <pings@juniper.net>
 
 ## progress/meetings
+
+### 0703 meeting minutes
+
+>From: Kiran KN <kirankn@juniper.net> 
+>Sent: Friday, July 3, 2020 2:22 PM
+>To: Ping Song <pings@juniper.net>; Laurent Antoine Durand <ldurand@juniper.net>; Przemyslaw Grygiel <pgrygiel@juniper.net>
+>Subject: [Minutes] vrouter/DPDK day one book: meeting 0703
+>
+>It was a good call today. Summarizing the discussions:
+>1)	Ping to review chapters 2 and 3 and provide feedback
+>2)	Depending on feedback, Kiran/Laurant to merge those chapters or re-organize the contents
+>3)	Chapter 4 has the desired content, but need to organize it and make it into good flow.
+>4)	Can we defer chapter 5 and 6 to our second book since its advanced (needs more discussion with Przemek)
+>5)	In chapter 7, we can describe how to deploy contrail-dpdk using kolla due to its simplicity (needs more discussion)
+>6)	Chapter 8 just need to focus on usability and not more of troubleshooting (needs discussion)
+>
+>Ping/Laurant, pl add if I missed anything.
+>
+>Thanks,
+>Kiran
 
 ### 0619 meeting minutes
 
