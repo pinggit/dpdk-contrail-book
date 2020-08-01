@@ -50,6 +50,39 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0731 Meeting minutes
+
+* New gdrive location for 1st drafts: https://drive.google.com/drive/u/1/folders/1QCMnx128WzBNb-N8mYLJ_H0qC0x7dYns
+* Laurent/przemyslaw merged kiran’s work into Laurent’s ch2, so ch2 is mostly ready
+
+Next:
+
+* Laurent to check my earlier comments (resent) in word and get them merged in ch2 
+* Once it’s done, let me know and I’ll take some time to polish it (convert to
+  text, download/save all pictures in one place, merge with ch1 to one big doc,
+  etc)
+* Laurent/Przemyslaw will be on vacation and return back mid of August
+* Przemyslaw will submit ch4 before end of August. Laurent will do it if Przemyslaw can’t finish in time
+
+New deadline: 
+
+* Patrick asked me about the time and I’ve just told him our new deadline. We need to submit everything before that. 
+
+### 0718 meeting minutes
+
+>From: Kiran KN <kirankn@juniper.net>
+>Date: Sunday, 19 July 2020 at 05:29
+>To: Ping Song <pings@juniper.net>, Laurent Antoine Durand <ldurand@juniper.net>, Przemyslaw Grygiel <pgrygiel@juniper.net>
+>Subject: Re: [Minutes] vrouter/DPDK day one book: Laurent ch2 review
+> 
+>Minutes:
+> 
+>1)	Kiran does not have cycles since a new story(feature) came at last moment. But volunteered to merge chapter 2&3.
+>2)	Przemek and Laurent to work on chapter 4 (architecture) – Laurent to confirm if this is okay with him.
+>3)	Przemek will re-work on chapter 5&6 to include kolla instead of Redhat.
+ 
+Please add/edit if anything
+
 ### 0703 meeting minutes
 
 >From: Kiran KN <kirankn@juniper.net> 
@@ -192,6 +225,15 @@ convenience of quick search.
 * the book idea discussed
 * materials/references shared
 * private google doc home folder built
+
+## book I TOC (proposed 0703)
+
+    chapter 1: SDN overview#*   #<---ready
+    chapter 2: SDN dataplane fundamentals#               #<---ready
+    chapter 3: Contrail DPDK vrouter architecture#*      #<---ready
+    chapter 4: Contrail DPDK vrouter packet forwarding#* #<---to cleanup/enhance
+    chapter 5: TR case study    #<---optional
+    chapter 6: lab installation #<---optional
 
 ## table of content (Volume I) (2020-06-02)
 
@@ -799,6 +841,7 @@ for web page, word has problem to display
 
 * day one book workplace google folder: https://drive.google.com/drive/u/2/folders/1GtlqAhiY0u2DIClPVUwWsCTIsfHMv9uO
 * References - DPDK day-one book - https://docs.google.com/document/d/1_V1zLgh8wiYyQz2KdV_dqQJe8j7hHvm4GQpsO4xVU7o/edit?usp=sharing
+* dpdk day one book 1st drafts: https://drive.google.com/drive/u/1/folders/1QCMnx128WzBNb-N8mYLJ_H0qC0x7dYns
 
 * DPDK performance guide - https://docs.google.com/document/d/1vbW7a2NDSbB0NBcYQzqyVkcH3E0g1pqj8PXQg4EMD28/edit?ts=5a845566
 * CONTRAIL DPDK VROUTERS INTERNAL DETAILS - https://drive.google.com/open?id=1ITKvvPM19M1xF_bgYgi_x7hpvx6bFysB
