@@ -52,6 +52,15 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0821 meeting minutes
+
+Laurent/ping
+
+* ping will merge all current work.
+* Przemyslaw is busy on something else. Laurent will start the chapter3
+  (contrail dpdk vrouter packet forwarding) next week
+* We'll try to finish first draft end of this month
+
 ### 0731 Meeting minutes
 
 * New gdrive location for 1st drafts: https://drive.google.com/drive/u/1/folders/1QCMnx128WzBNb-N8mYLJ_H0qC0x7dYns
@@ -488,6 +497,7 @@ From any of the hypervisor, run:
     Password:           contrail123
 
 You’ll be in director node.
+
 or:
 
     [root@dl6 ~]# ssh stack@192.168.122.3
@@ -526,6 +536,7 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
 
     [4/30 9:06 AM] Przemyslaw Grygiel
         please login to 10.87.5.122 root/c0ntrail
+        su contrail
         tmux attach -t  ping
 
     [contrail@5a3s21-node2 ~]# su contrail
@@ -855,3 +866,4 @@ for web page, word has problem to display
 * https://docs.google.com/document/d/1yyE5EMy6lI307NJbr9e4xgLqeZtWuGDpnB4c7Uhub7o/edit#heading=h.7zcp425tallj
 * https://docs.google.com/document/d/1AabF0ECAmERFLBCH1mCGfNNfSLnpO1U1neYiksrnbMo/edit?ts=5eed1ab8
 * https://docs.google.com/presentation/d/1-GGRK2pyuyWdrzdnpRWSegJTeGTfwEUE7oWRc1JJtfg/edit#slide=id.g89db5fdbaf_0_389
+* CEM-15246 run to complete mode: https://docs.google.com/presentation/d/1MMAwtPEACh22FipOB3cpi2VKYK6hkGHy_xcuQh9suj0/edit#slide=id.p
