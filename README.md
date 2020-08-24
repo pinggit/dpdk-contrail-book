@@ -1,6 +1,7 @@
 # contrail dpdk day one book
 
   * [progress/meetings](#progressmeetings)
+     * [0821 meeting minutes](#0821-meeting-minutes)
      * [0731 Meeting minutes](#0731-meeting-minutes)
      * [0718 meeting minutes](#0718-meeting-minutes)
      * [0703 meeting minutes](#0703-meeting-minutes)
@@ -846,7 +847,8 @@ works in everywhere
 
 for web page, word has problem to display
 
-    $ libreoffice --headless --convert-to svg image1.emf
+    libreoffice --headless --convert-to svg image1.emf
+    for file in *.emf; do echo "converting $file ..."; libreoffice --headless --convert-to svg $file; done
 
     $ inkscape -z -l image8.svg image8.emf
 
