@@ -8,11 +8,11 @@
 //:pygments-linenums-mode: inline
 :pygments-linenums-mode: table
 
-= *[underline]#chapter 1: SDN overview#*
+== *[underline]#chapter 1: SDN overview#*
 
-== what is SDN - the history
+=== what is SDN - the history
 
-=== Network device evolution
+==== Network device evolution
 
 Since early 1990 network device manufacturer made a lot of innovation in order
 to increase router speeds. They started from a router node in which everything
@@ -20,8 +20,9 @@ was computed into the central CPU to reach a situation where the central CPU is
 less and less used due to a distributed architecture in which lots of action
 are done in “line cards”.
 
-//image::ch1-extracted-media/word/media/image1.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image1.png[image]
+//image:ch1-extracted-media/word/media/image1.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image1.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image1.emf[image]]
 
 These progresses have been made thanks to the use of proprietary TCAM (Ternary
 Content-Addressable Memory) and ASICs (Application-Specific Integrated Circuit)
@@ -43,7 +44,7 @@ emerged:
 
 And these desires called for the cloud and SDN technology development.
 
-=== Early age of SDN
+==== Early age of SDN
 
 In Stanford University (US - CA), Clean Slate Research Projects program has been
 initiated in order to think about how to improve the Internet network
@@ -58,7 +59,7 @@ from a network controller.
 In 2011, ONF (Open Networking Foundation) has been created to promote SDN
 Architecture and OpenFlow protocols.
 
-=== SDN startups acquired by major networks or virtualization vendors
+==== SDN startups acquired by major networks or virtualization vendors
 
 First companies working on SDN have been founded around 2010. (Most of them have
 now been acquired by main networks or virtualization solution vendors.)
@@ -82,11 +83,11 @@ complex to be described in a short section. This diagram from <<sdn-history>>
 shows developments in programmable networking over the past 20 years, and their
 chronological relationship to advances in network virtualization.
 
-image::../diagrams/sdn-history.png[sdn-history]
+image:../diagrams/sdn-history.png[sdn-history]
 
-== SDN definition
+=== SDN definition
 
-=== What is SDN?
+==== What is SDN?
 
 The concept of `SDN`, and the term itself, are both very broad and often
 confusing.  There is no real accurate definition of SDN, and vendors usually
@@ -117,9 +118,9 @@ According to <<onf-sdn-definition>>, *Software-Defined Networking (SDN)* is:
 
 .SDN layer^<<onf-sdn-definition>>^
 //jpg is too small after converted to word
-//image::../diagrams/sdn-architecture-img.jpg[image, 400, 400]
+//image:../diagrams/sdn-architecture-img.jpg[image, 400, 400]
 //seems size does not help when converting to word
-image::../diagrams/sdn-architecture-img.png[image]
+image:../diagrams/sdn-architecture-img.png[image]
 
 ////
 //ping:
@@ -181,14 +182,15 @@ layer and infrastructure layer. This is to give an example about the standard
 communication protocols. As of today more choices are available and standardized
 in the SDN industry, which will be covered later in this chapter.
 
-=== Traditional Network Planes and SDN layer
+==== Traditional Network Planes and SDN layer
 
 .traditional network device planes
 traditionally, A typical network device (e.g. a router) has following planes:
 
 .traditional network device planes
-//image::ch1-extracted-media/word/media/image3.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image3.png[image]
+//image:ch1-extracted-media/word/media/image3.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image3.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image3.emf[image]]
 
 - *Configuration* (and management) *plane*: used for network node configuration
   and supervision. Examples of widely use protocols are CLI (Command Line
@@ -220,8 +222,9 @@ card".
 SDN architecture is built with 3 layers:
 
 .SDN architecture
-//image::ch1-extracted-media/word/media/image4.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image4.png[image]
+//image:ch1-extracted-media/word/media/image4.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image4.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image4.emf[image]]
 
 - *Application Layer*: containing all the application provided by the SDN
   solution. Generally a Web GUI dashboard is the first application provided to
@@ -246,7 +249,7 @@ image::../diagrams/ch1-extracted-media/word/media/image4.png[image]
   ** A flow/routing table built by the SDN Agent.
   ** A forwarding plane engine
 
-=== the primary changes between SDN and traditional networking
+==== the primary changes between SDN and traditional networking
 
 In a traditional infrastructure, the route calculation is made on each
 individual router. each router needs to run one or several routing protocols,
@@ -260,15 +263,16 @@ decisions made by the control plane located on each router.
 The control plane on one router may look like this:
 
 .Component in a traditional router
-//image::ch1-extracted-media/word/media/image5.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image5.png[image]
+//image:ch1-extracted-media/word/media/image5.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image5.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image5.emf[image]]
 
 In reality, for example, a simplified Juniper MX control plane typical looks
 like this:
 
-//image::../diagrams/Juniper-router-Separate-Control-and-Forwarding-Planes.png[image]
-//image::../diagrams/Juniper-RE-PFE.png[image]
-image::../diagrams/mx-control-data-plane.png[image]
+//image:../diagrams/Juniper-router-Separate-Control-and-Forwarding-Planes.png[image]
+//image:../diagrams/Juniper-RE-PFE.png[image]
+image:../diagrams/mx-control-data-plane.png[image]
 
 //even though traditional networks are very robust, 
 Running a control plane on each router make it very hard to manage, because each
@@ -291,8 +295,9 @@ This new Cloud infrastructure brings:
 Let's compare the two architectures:
 
 .Comparison between tradition network devices and SDN devices
-//image::ch1-extracted-media/word/media/image2.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image2.png[image]
+//image:ch1-extracted-media/word/media/image2.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image2.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image2.emf[image]]
 
 ////
 ?
@@ -340,7 +345,7 @@ the problem.
 
 //* highly scalable: using distributed compute and storage architectures
 
-=== underlay vs overlay
+==== underlay vs overlay
 
 .underlay network
 In SDN architecture, each network node is connected to a physical network
@@ -383,8 +388,9 @@ traverse transparently across underlay network infrastructure calls for a packet
 encapsulation, or "tunneling" mechanism in SDN networks.
 
 .overlay tunnels and encapsulations
-//image::ch1-extracted-media/word/media/image7.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image7.png[image]
+//image:ch1-extracted-media/word/media/image7.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image7.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image7.emf[image]]
 
 //TODO: correct diagram: IP node 1 => VM11, VM12; IP node 2=> VM21, VM22
 
@@ -409,8 +415,9 @@ Several encapsulation protocols are used into SDN networks:
 * Geneve
 * STT
 
-//image::ch1-extracted-media/word/media/image8.svg[image]
-image::../diagrams/ch1-extracted-media/word/media/image8.png[image]
+//image:ch1-extracted-media/word/media/image8.svg[image]
+ifndef::word[image:../diagrams/ch1-extracted-media/word/media/image8.png[image]]
+ifdef::word[image:../diagrams/ch1-extracted-media/word/media/image8.emf[image]]
 
 //NVGRE: ethernet over GRE
 //Geneve: ethernet over UDP, introduce TLV
@@ -420,7 +427,7 @@ required between customers workload connected to the SDN infrastructure.
 Each SDN node is call a VTEP (Virtual Tunnel End Point) as it is starting and
 terminating the overlay tunnels.
 
-=== interfaces between layers
+==== interfaces between layers
 
 We've seen "openflow" marked as one of the possible interfaces in the "SDN
 layer" section. Now we'll introduce the concept of "southbound" and "northbound"
@@ -443,6 +450,12 @@ others, examples of the most well-known southbound interfaces in the industry
 are `openflow`, `OVSDB` and `XMPP`.
 
 .openflow
+
+openflow is a protocol that sends flow information into the virtual switch so
+the switch can forward the packets between the different ports.  Flows are
+defined based on different criteria such as traffic between a source MAC
+address and a destination MAC address, source and destination IP addresses, TCP
+ports, VLANs, tunnels, and so on.
 
 OpenFlow is one of the most widely deployed southbound standard from open source
 community. It first made its appearance in 2008 by Martin Casado at Stanford
@@ -471,11 +484,13 @@ available(like XMPP).
 ////
 
 .OVSDB
-
-unlike openflow, OVSDB is a southbound API designed to provide additional
-**management** or **configuration** capabilities like networking functions. With
-OVSDB we can create the virtual switch instances, set the interfaces and connect
-them to the switches.  We can also provide the QoS policy for the interfaces.
+abbreviation for "Open vSwitch Database".  unlike openflow, OVSDB is a
+southbound API designed to provide additional **management** or
+**configuration** capabilities like networking functions. With OVSDB we can
+create the virtual switch instances, set the interfaces and connect them to the
+switches.  We can also provide the QoS policy for the interfaces.  OVSDB is a
+protocol written in the JavaScript Object Notation (JSON) that basically sends
+and receives commands via JSON RPCs. 
 
 .northbound interface
 
@@ -487,7 +502,7 @@ we have a wide range of northbound API support like ad-hoc API's, RESTful APIs
 etc. The selection of northbound interface usually depends on the programming
 language used in application development.
 
-=== more alphabet soup of terms
+==== more alphabet soup of terms
 
 with the development of virtualization, SDN technologies and their ecology in
 recent years, more and more terms and changing of these terms emerge in the
@@ -513,7 +528,7 @@ take a look at these different terms along with the pros and cons of each.
 for years.  according to ETSI:
 
 .VNF/VNFI (contrail/NFX) vs NFV (vsrx) vs NMO (cso):
-image::https://user-images.githubusercontent.com/2038044/57194252-c9f6cd00-6f12-11e9-8ae0-dbc96830f428.png[]
+image:https://user-images.githubusercontent.com/2038044/57194252-c9f6cd00-6f12-11e9-8ae0-dbc96830f428.png[]
 
 `NFV` means "network function virtualization", it stands for an "operation
 framework for orchestrating and automating VNFs". And `VNF` means "virtualized
@@ -560,7 +575,7 @@ expose to the user as a pool of common "resources": number of CPUs, RAMs, hard
 disk spaces, IP addresses, etc. The user does not (need to) care about vendor
 and brand details.
 
-image::../diagrams/openstack-ui.png[image]
+image:../diagrams/openstack-ui.png[image]
 
 If we compare openstack with SDN, it's not hard to see that the two model shares
 some common features. Both models provide certain level of abstractions, hide
@@ -593,9 +608,9 @@ network itself is also part of the virtualization revolution. SDN and network
 overlays are the key drivers for virtualizing networks in data centers.
 ////
 
-== SDN solutions
+=== SDN solutions
 
-=== controllers
+==== controllers
 
 As we've mentioned in previous sections, SDN is a networking scenario which
 changes the traditional network architecture by bringing all control
@@ -618,10 +633,10 @@ corresponding SDN solutions.
 
 .TODO, some research about today's market players, may skip
 
-image::https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-11ea-9742-20b94163ddcf.png[image]
+image:https://user-images.githubusercontent.com/2038044/78374061-61d4bf00-7599-11ea-9742-20b94163ddcf.png[image]
 ////
 
-=== opendaylight (ODL)
+==== opendaylight (ODL)
 
 OpenDaylight, aften abbreviated as ODL, is a Java based open source project
 started from 2013, it was originally led by IBM and Cisco but later hosted under
@@ -635,8 +650,8 @@ There are many plugins and modules built for OpenDaylight. Some are in
 production, while some are still under development. 
 
 .opendaylight "Boron"
-image::../diagrams/BoronDiagrams_final.png[]
-//image::https://user-images.githubusercontent.com/2038044/78376350-2f789100-759c-11ea-923c-883b03048d37.png[image]
+image:../diagrams/BoronDiagrams_final.png[]
+//image:https://user-images.githubusercontent.com/2038044/78376350-2f789100-759c-11ea-923c-883b03048d37.png[image]
 
 Some of the initial SDN controllers had their southbound APIs tightly bound to
 OpenFlow, But as we can see from the diagram, besides openflow, many other
@@ -661,28 +676,115 @@ info, it visualize the network topology by drawing a diagram dynamically, all
 the managed devices and how they are connected together will be showed in it.
 
 .ODL topology
-image::../diagrams/odl-topo1.png[]
+image:../diagrams/odl-topo1.png[]
 
 any topology changes, such as adding new devices, will be updated in the
 database and reflected immediately in the diagram. 
 
 .ODL topology update
-image::../diagrams/odl-topo2.png[]
+image:../diagrams/odl-topo2.png[]
 
 Remember earlier we mentioned that an SDN controller has "global
 view" of the whole SDN network. In that sense ODL has all necessary visibility
 and knowledge of the network that can be used to draw the network diagram in
 realtime.
 
-=== underlay network and overlay network
+=== OVS^<<ovs>>^
 
-=== OVN
+==== Open vSwitch (OVS) introduction
 
-==== OVS
+OVS is one of the most popular and "production quality" open source
+implementation of a multilayer virtual switch. OVS was created by Nicira back
+in 2009, which was acquired by VMware. It is licensed under the Apache 2.0
+license and provided by Linux Foundation.The virtual switch basically does most
+of the jobs you could expect a physical switch does, but in a software method.
+OVS is typically running with linux hypervisors like KVM and can be loaded on a
+Linux kernel. OVS supports most features supported in tradtional physical
+switches, such as:
 
-==== OVN
+* 802.1Q and VLAN
+* BFD
+* NetFlow/sFlow
+* port mirroring
+* LACP
+* VXLAN
+* GENEVE GRE Overlays
+* STP
+* IPv6
 
-=== ONOS
+Beside functions of traditional switches, the bigger advantage of OVS is that
+it also has native support to SDN solution via `OVSDB` and `OpenFlow`
+protocols.  That means any SDN controller can integrate OVS via these 2 open
+standard protocols. Therefore OVS can work either as a standalone L2 switch
+within a hypervisor host, or it can be managed and programmed via an SDN
+controller, such as ODL. that is why it is used in so many open source and
+commercial virtualization projects.  
+
+==== The OVS archetecture
+
+Open vSwitch introduced an architecture that comprises an SDN controller that
+configures and manages virtual switches via the `OVSDB` protocol and pushes
+flows inside the switches via the `OpenFlow` protocol. In general the OVS
+comprises the following components:
+
+* an ovsdb-server database
+* an ovsdb-vswitchd daemon
+* a kernel module
+
+The architecture is described in this figure:
+
+image::../diagrams/OVS-arch.jpg[image]
+
+.Ovsdb-server
+
+This is a configuration database that controls and stores the switch-level
+configuration. It contains information on creating bridges, attaching
+interfaces, attaching tunnels, and so on. these objects are organized in the
+form of a set of different tables that points to each other in a certain
+sequence:
+
+* OVS table 
+* bridge table
+* port table 
+* interface table
+
+For example, an entry in the top level OVS table points to a brige table, which
+has items pointing to a port table, which in turn, points to a interface table.
+The stateful database make sure the system can recover back to the exact status
+it was in case it rebooted. The ovsdb-server database talks to the outside
+controller via the `OVSDB` protocol.
+
+.Ovsdb-vswitchd
+
+This is the heart of OVS and where flow processing happens.  `ovsdb-vswitchd`
+has all the information (e.g. bridges, flow tables, etc) needed to forward
+packets. It has different interfaces to other components.  Inside of the
+hypervisor, it connects to ovsdb-server via the OVSDB protocol, and to the
+kernel module via a Linux Netlink interface. To outside controller, it runs
+OpenFlow protocol to exchange flow information.
+
+//Ovsdb-vswitchd handles the forwarding of all sorts
+//of flows that are communicated to it via the OpenFlow protocol.
+
+
+////
+.ovs ovsdb:
+
+image::https://user-images.githubusercontent.com/2038044/78375629-158a7e80-759b-11ea-965a-6e858a76b2b8.png[image]
+////
+
+==== OVS workflow
+
+`Ovsdb-vswitchd` pushes the flows to the kernel module for fast forwarding.
+When the first packet arrives, it goes through the kernel module, where the
+headers are hashed to find a flow entry. If the flow entry is not found, the
+packet goes to ovsdb-vswitchd for normal processing. `Ovsdb-vswitchd` then
+pushes the flow to be cached inside the module kernel. If a similar flow comes
+in, it is forwarded via the fast path inside the kernel module. The kernel
+module does not contain any of the OpenFlow tables that are known to
+ovsdb-vswitchd; rather, it contains the result of the different lookups in the
+flow tables. The kernel module also handles the tunneling of packets via
+protocols such as GRE, VXLAN, and others.
 
 === calico
 
@@ -718,8 +820,8 @@ calico uses a policy engine to deliver high-level network policy management.
 
 ==== calico archetecture
 
-//image::../diagrams/k8s-calico-graph.png[image]
-image::../diagrams/calico-arch.png[image]
+//image:../diagrams/k8s-calico-graph.png[image]
+image:../diagrams/calico-arch.png[image]
 
 Calico is made up of the following components:
 
@@ -731,7 +833,7 @@ Calico is made up of the following components:
 - IPAM: for IP address allocation management
 - etcd: the data store.
 
-===== felix (policy)
+.felix (policy)
 
 This is calico "agent" - a daemon that runs on every workload, for example on
 nodes that host containers or VMs. it is the one that performs most of the
@@ -756,7 +858,7 @@ It has multiple responsibilities:
 It does all this by connecting to etcd and reading information from there. It
 runs inside the calico/node DaemonSet along with `confd` and `BIRD`.
 
-===== Orchestrator plugin
+.Orchestrator plugin
 
 The orchestrator plugins are essentially responsible for API translations.
 Calico has a separate plugin for each major cloud orchestration platforms (e.g.
@@ -771,7 +873,7 @@ with Neutron’s ML2 plugin to allows users to configure the Calico network
 simply by making Neutron API calls. This provides seamless integration with
 Neutron.
 
-===== Etcd (database)
+.Etcd (database)
 
 the backend data store for all the information Calico needs. it can be the same of different etcd that kubernetes use.
 //it's recommended deploy a separate etcd for production systems, or at least
@@ -782,7 +884,7 @@ it has at least, but not limited to the following information:
 * policys from user (e.g. defined via the `calicoctl` tool)
 * information about each container (pod name, IP, etc), received from calico CNI
 
-===== BIRD (BGP)
+.BIRD (BGP)
 
 Calico makes uses of BGP to propagate routes between hosts.  And the BGP
 "speaker" in calico is BIRD - a routing daemon that runs on every host that
@@ -795,14 +897,14 @@ other nodes in the deployment, this turns each host to a virtual Internet BGP
 router ("vRouter"), and ensures that traffic is efficiently routed around the
 deployment.
 
-===== Confd
+.Confd
 
 confd is a simple configuration management tool. In Calico, BIRD does not deal
 with etcd directly, it is another module "confd" that reads the BGP
 configuration from etcd and feed to BIRD in the form of configurations files in
 disk.
 
-===== CNI plugin
+.CNI plugin
 
 configure IP, routes
 `CNI` stands for "container networking interface". 
@@ -816,7 +918,7 @@ when a new pod starts up, Calico will:
 - create an interface on the host so that the container can get an address
 - tell the kubernetes API about this new IP
 
-===== IPAM plugin
+.IPAM plugin
 
 as the name indicated already, Calico's IPAM plugin is responsible for "IP
 address management". when a new container is spawn, calico IPAM plugin reads
@@ -849,26 +951,23 @@ routing table spaces.
 * https://www.projectcalico.org
 * https://www.projectcalico.org/why-bgp/
 
-=== nuage VCP (Nokia)
+=== VCP(nuage)
 
-The Virtualized Cloud Platform (VCP) product from Nuage networks provides a
-highly scalable policy-based Software-Defined Networking (SDN) platform. It is
-an enterprise-grade offering that builds on top of the open source Open vSwitch
-for the data plane along with a feature-rich SDN controller built on open
-standards.
+==== VCP introduction
 
-The Nuage platform uses overlays to provide seamless policy-based networking
-between Kubernetes Pods and non-Kubernetes environments (VMs and bare metal
-servers). Nuage's policy abstraction model is designed with applications in
-mind and makes it easy to declare fine-grained policies for applications. The
-platform's real-time analytics engine enables visibility and security
-monitoring for Kubernetes applications.
+The Virtualized Cloud Platform (VCP) is created by Nuage networks. It provides
+a "policy-based" SDN platform that has a data plane built on top of the open
+source OVS, and a SDN controller built on open standards.
 
-All VCS components can be installed in containers. There are no special
-hardware requirements.
+The Nuage platform uses overlays to provide policy-based networking between
+different clouding environment (Kubernetes Pods or non-Kubernetes environments
+such as VMs and bare metal servers). it also has a real-time analytics engine
+to monitor Kubernetes applications.
 
-.Nuage architecture
-image::https://user-images.githubusercontent.com/2038044/78465427-93e24000-76c3-11ea-92ee-39a45a259e74.png[image]
+All components can be installed in containers. There are no special hardware
+requirements.
+
+==== VCP architecture
 
 .Nuage VSP incudes 3 major components
 
@@ -876,7 +975,10 @@ image::https://user-images.githubusercontent.com/2038044/78465427-93e24000-76c3-
 * virtualized services controller (VSC)
 * virtualized routing and switching (VRS)
 
-==== VSD
+.Nuage architecture
+image:https://user-images.githubusercontent.com/2038044/78465427-93e24000-76c3-11ea-92ee-39a45a259e74.png[image]
+
+.VSD
 
 In Nuage VCP, The Virtualised Services Directory (VSD) is a policy engine,
 business logic and analytics engine that supports the abstract definition of
@@ -893,7 +995,7 @@ apps. Either way, the VSD is based on tools from the service provider world,
 and therefore scaling potential looks very good. It integrates multiple data
 centre networks by linking VSDs together and exchanging policy data.
 
-==== VSC
+.VSC
 
 Nuage Virtual Services Controllers (VSC) works between VSD and VRS. policies
 from VSD is distributed through a number of VSC to all of the VRS nodes in the
@@ -915,7 +1017,7 @@ multiple data centres can be achieved by connecting VSC controllers
 horizontally at the top of the hierarchy.
 
 .Nuage VSC MP-BGP
-image::../diagrams/nuage-mpbgp.png[]
+image:../diagrams/nuage-mpbgp.png[]
 
 As shown in the diagram above, VSC controllers are synchronised using
 MP-BGP. A BGP connection peers with PE routers at the WAN edge, and then the
@@ -925,7 +1027,7 @@ VSCs in other data centres. This is vital for end-to-end network stability.
 When dVRS devices are communicating to non-local dVRS devices,
 data is tunnelled in MPLS-over-GRE to the PE router.
 
-==== VRS
+.VRS
 
 The VRS module serves as a virtual endpoint for network services. It detects
 changes in the compute environment as they occur and instantaneously triggers
@@ -951,9 +1053,11 @@ information required to have a complete model of the network.
 ==== vmare NSX
 ////
 
-== Overview of Tungsten Fabric (TF)
+==== VCP workflow
 
-=== TF introduction
+=== Overview of Tungsten Fabric (TF)
+
+==== TF introduction
 
 ////
 We've introduced a few SDN solutions existing in the market.  Some of them are
@@ -1020,7 +1124,7 @@ functionalities, features and performances.
 NOTE: Throughout this book, we use these terms "contrail", "opencontrail",
 "Tungsten Fabric" and "TF" interchangeably.
 
-=== TF components
+==== TF architecture
 
 TF consists of two main components:
 
@@ -1042,10 +1146,10 @@ widely used messaging protocol.
 A high level Tungsten Fabric architecture is shown below:
 
 .TF architecture
-image::../diagrams/TFA_private_cloud.png[TF arch]
-//image::../diagrams/TF_arch1.png[TF arch]
+image:../diagrams/TFA_private_cloud.png[TF arch]
+//image:../diagrams/TF_arch1.png[TF arch]
 
-==== The TF SDN controller node
+===== The TF SDN controller node
 
 The TF SDN controller integrates with an orchestrator's networking module in
 the form of a "plugin", for instance:
@@ -1082,7 +1186,7 @@ the cluster. it implements this by collecting the route information from all
 computes (where the TF Vrouters resides) and distributes these information
 throughout the cluster.
 
-==== TF vRouter: compute node
+===== TF vRouter: compute node
 
 Compute nodes are general-purpose virtualized servers that host VMs. These VMs
 can be tenants running general applications, or service VMs running network
@@ -1105,11 +1209,11 @@ computes, communication between VMs on different nodes are carried in these
 tunnels and behaves as if they are on the same compute. Currently vXLAN,
 MPLSoUDP and MPLSoGRE tunnels are supported.
 
-==== TF controller components
+===== TF controller components
 
 In each TF SDN Controller there are three main components:
 
-image::../diagrams/TF_arch2.png[contrail arch]
+image:../diagrams/TF_arch2.png[contrail arch]
 
 - Configuration nodes keep a persistent copy of the intended configuration
   states and store them in cassandra database. they are also responsible for
@@ -1143,7 +1247,7 @@ in the system to the analytics nodes. This interface is not shown in Figure 2
 to avoid clutter.
 ////
 
-==== TF vRouter components
+===== TF vRouter components
 
 TF vRouter is running in each compute node. The compute node is a
 general-purpose x86 server that hosts tenant VMs running customer applications.
@@ -1163,7 +1267,7 @@ later chapters.
 
 .vRouter Agent
 
-image::../diagrams/TF_vrouter1.png[contrail vrouter1]
+image:../diagrams/TF_vrouter1.png[contrail vrouter1]
 
 The vRouter agent is a user space process running inside Linux. It acts as the
 local, lightweight control plane in the compute, in a way similar to what
@@ -1175,7 +1279,7 @@ instructions to the vRouter about how to forward packets.
 
 .vRouter Forwarding Plane
 
-image::../diagrams/TF_vrouter2.png[contrail vrouter2]
+image:../diagrams/TF_vrouter2.png[contrail vrouter2]
 
 The vRouter forwarding plane works like a "line card" of a traditional router.
 it looks up its local FIB and determines the next hop of a packet.  It also
@@ -1184,25 +1288,30 @@ decapsulates packets to be received from the overlay network.
 
 We'll cover more details of TF vrouter in the later chapters.
 
-////
-.References
+==== TF workflow
+
+=== References
 
 * [[sdn-history]] https://www.cs.princeton.edu/courses/archive/fall13/cos597E/papers/sdnhistory.pdf
-* http://yuba.stanford.edu/cleanslate/research_project_ethane.php
-* http://yuba.stanford.edu/ethane/pubs.html
-* https://dl.acm.org/doi/10.1145/1355734.1355746
 * [[onf-sdn-definition]] https://www.opennetworking.org/sdn-definition/
+* [[ovs]]https://www.openvswitch.org/
+////
 * https://www.rfc-editor.org/rfc/rfc7426.txt
 * https://portal.etsi.org/NFV/NFV_White_Paper.pdf
-* https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf[2015 ]
-* https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf[2016 ]
+* https://www.sdxcentral.com/wp-content/uploads/2015/08/SDxCentral-SDN-Controllers-Report-2015-B2.pdf[SDxCentral-SDN-Controllers-Report-2015]
+* https://www.opennetworking.org/images/stories/downloads/sdn-resources/special-reports/Special-Report-OpenFlow-and-SDN-State-of-the-Union-B.pdf[Special-Report-OpenFlow-and-SDN-2016]
 * https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8379403[Controllers in SDN: A Review Report. 2018]
 //* https://aptira.com/comparison-of-software-defined-networking-sdn-controllers-part-2-open-network-operating-system-onos[2019]
 * https://www.opendaylight.org/technical-community/getting-started-for-developers/roadmap
 * https://www.opendaylight.org/what-we-do/current-release/boron
 * https://www.sdnlab.com/community/article/odl/1
 * https://wiki.lfnetworking.org/display/LN/Tungsten+Fabric+Project+Proposal
+* http://yuba.stanford.edu/cleanslate/research_project_ethane.php
+* http://yuba.stanford.edu/ethane/pubs.html
+* https://dl.acm.org/doi/10.1145/1355734.1355746
 ////
 
 <<<
+
+
 
