@@ -1,6 +1,7 @@
 # contrail dpdk day one book
 
   * [progress/meetings](#progressmeetings)
+     * [0828 meeting minutes](#0828-meeting-minutes)
      * [0821 meeting minutes](#0821-meeting-minutes)
      * [0731 Meeting minutes](#0731-meeting-minutes)
      * [0718 meeting minutes](#0718-meeting-minutes)
@@ -30,8 +31,6 @@
      * [iperf VM@dpdk-1](#iperf-vmdpdk-1)
      * [recvr VM@dpdk-3](#recvr-vmdpdk-3)
      * [runrapid.py](#runrapidpy)
-* [the number of flows in the list need to be powers of 2, max 2^20](#the-number-of-flows-in-the-list-need-to-be-powers-of-2-max-220)
-* [Select from following numbers: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524280, 1048576](#select-from-following-numbers-1-2-4-8-16-32-64-128-256-512-1024-2048-4096-8192-16384-32768-65536-131072-262144-524280-1048576)
   * [dpdk lab(2003)](#dpdk-lab2003)
   * [tools](#tools)
      * [git/github](#gitgithub)
@@ -52,6 +51,17 @@ coauthors:  (as of March 17)
 * ping song <pings@juniper.net>
 
 ## progress/meetings
+
+### 0828 meeting minutes
+
+between all 4 folks
+
+* Ping to explore Kiran’s setup for basic debug/troubleshooting commands
+* Ping will use findings to work on chapter 5 (debug/troubleshooting)
+* Kiran to walk through the steps of kolla deployment to Ping. Ping will note down the steps and publish to Przemek.
+* Przemek to use these steps for chapter 4 (deployment using kolla)
+* Laurent will continue to work on chapter 3 (vrouter architecture)
+* Agreed upon deadline to publish the draft to the editor is end of September
 
 ### 0821 meeting minutes
 
@@ -764,6 +774,39 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
     | 01a7e0cb-b3e9-4ddb-9c80-1e6d1d08050c | overcloudjcx-compdpdk1hw1-1    | ACTIVE | ctlplane=192.168.213.57 | overcloud-full | ComputeDpdk1Hw1           |
     +--------------------------------------+--------------------------------+--------+-------------------------+----------------+---------------------------+
 
+## latest lab (kiran)
+
+    Controller: 10.84.27.2
+    DPDK computes: 10.84.27.3, 10.84.27.4
+    Kernel compute: 10.84.27.5
+    Username/password: root/c0ntrail123
+
+    Openstack URL: http://10.84.27.51/auth/login/?next=/
+    Contrail command URL: https://10.84.27.51:8143/
+
+    Username/password: admin/c0ntrail123
+
+a7s3            dpdk     
+a7s4-kiran      dpdk
+a7s5-kiran      kernel jump
+
+    [root@a7s2 dpdk-prox-contrail]# nova service-list
+    /usr/lib/python2.7/site-packages/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in a future release.
+    from cryptography import x509
+    +--------------------------------------+------------------+------------+----------+---------+-------+----------------------------+-----------------+-------------+
+    | Id                                   | Binary           | Host       | Zone     | Status  | State | Updated_at                 | Disabled Reason | Forced down |
+    +--------------------------------------+------------------+------------+----------+---------+-------+----------------------------+-----------------+-------------+
+    | eb9c0c3c-f9e2-42e5-a224-554f76cab430 | nova-scheduler   | a7s2       | internal | enabled | up    | 2020-09-14T17:19:59.000000 | -               | False       |
+    | 41130b27-33e3-46a5-afd1-9c3b792fbcf9 | nova-conductor   | a7s2       | internal | enabled | up    | 2020-09-14T17:19:59.000000 | -               | False       |
+    | e631e715-c922-4a62-8ad3-4f144ad7c773 | nova-consoleauth | a7s2       | internal | enabled | up    | 2020-09-14T17:20:02.000000 | -               | False       |
+
+    | 377bb6f2-485b-4ad9-9bb3-ded47d259b56 | nova-compute     | a7s3       | nova     | enabled | up    | 2020-09-14T17:19:57.000000 | -               | False       |
+    | fff455e2-cb3a-4fb6-9f21-40503ce62d50 | nova-compute     | a7s4-kiran | nova     | enabled | up    | 2020-09-14T17:20:00.000000 | -               | False       |
+    | 8e2539fe-b9dc-489e-8d24-8814924be7d3 | nova-compute     | a7s5-kiran | nova     | enabled | up    | 2020-09-14T17:20:02.000000 | -               | False       |
+    +--------------------------------------+------------------+------------+----------+---------+-------+----------------------------+-----------------+-------------+
+
+
+
 ## tools
 
 ### git/github
@@ -869,3 +912,4 @@ for web page, word has problem to display
 * https://docs.google.com/document/d/1AabF0ECAmERFLBCH1mCGfNNfSLnpO1U1neYiksrnbMo/edit?ts=5eed1ab8
 * https://docs.google.com/presentation/d/1-GGRK2pyuyWdrzdnpRWSegJTeGTfwEUE7oWRc1JJtfg/edit#slide=id.g89db5fdbaf_0_389
 * CEM-15246 run to complete mode: https://docs.google.com/presentation/d/1MMAwtPEACh22FipOB3cpi2VKYK6hkGHy_xcuQh9suj0/edit#slide=id.p
+* installation: https://github.com/Juniper/contrail-ansible-deployer/wiki/Contrail-with-Openstack-Kolla
