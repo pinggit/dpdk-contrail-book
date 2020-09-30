@@ -1,6 +1,8 @@
 # contrail dpdk day one book
 
   * [progress/meetings](#progressmeetings)
+     * [0929 meeting minutes](#0929-meeting-minutes)
+     * [0918 meeting minutes](#0918-meeting-minutes)
      * [0828 meeting minutes](#0828-meeting-minutes)
      * [0821 meeting minutes](#0821-meeting-minutes)
      * [0731 Meeting minutes](#0731-meeting-minutes)
@@ -52,6 +54,119 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 0929 meeting minutes
+
+We'll ask for one more month, for the **last** time. and here is the the
+highlighted TODO list, plan and deadline for each task. 
+
+TODO list:
+
+* make ch2/3/4 (core) readable, acceptable by editor (top 1 priority, 50% of our effort)
+* better flow in each chapter, rewrite (based on current content) if necessary (20% effort)
+* global read: better flow:     (20% effort)
+    * good flow, 
+    * remove redundency, 
+    * add new contents, 
+    * move content around, 
+    * etc
+* fine tuning                   (10% effort)
+    * better grammar
+    * rewrite those statement if used directly from existing document
+    * typos
+    * improve diagrams          (can do during editor's editing period)
+
+detail plan:
+
+* first week:
+
+        ch1: done
+        ch2: kiran is reviewing
+
+        ch3:
+            kiran mark the heading,                     (9/30)
+            laurent/prz read it and laurent merge, push it <time?>
+            everybody review it, update/comment and push <before 10/4>
+            laurent read it and merge                   (10/4)
+        ch4:
+            laurent read comments from prz and merge, push today (9/30)
+        ch5:
+            ping will review and share comment Friday   (10/2)
+
+        every chapter being reviewed once at least
+
+* 2nd week:
+
+        mid of next week, all review merged             (before 10/8)
+        laurent merge all chapters into 1 word do       (10/8)
+        everybody start to review and give comment      
+        goal: merge of everything and everybody start to review
+
+           September 2020           October 2020
+        Su Mo Tu We Th Fr Sa    Su Mo Tu We Th Fr Sa
+               1  2  3  4  5                 1  2  3
+         6  7  8  9 10 11 12     4  5  6  7  8  9 10
+        13 14 15 16 17 18 19    11 12 13 14 15 16 17
+        20 21 22 23 24 25 26    18 19 20 21 22 23 24
+        27 28 29 30             25 26 27 28 29 30 31
+
+
+* 3rd week:
+
+        every submit the 1st review.                    (10/14)
+        laurent merge all 1st reviews                   (10/16)
+        every start to 2nd review
+
+* 4th week
+
+        every submit the 2nd review.                    (10/21)
+        laurent merge all 2nd reviews                   (10/23)
+        ping: start to clean, uniformed, convert the word draft for first draft submit
+
+* 5th week:
+
+        ping: first draft ready to submit (10/27)
+        everything start final review
+        everyone submit final review if any(10/39)
+        buffer time 10/29-10/31
+
+### 0918 meeting minutes
+
+target Sep 30.
+
+If everyone agree, I’d like to split the review work among 4 of us. We need a new “owner” of each chapter now. The responsibilities are:
+
+* Review the chapter(s):
+    * read and see if it’s easy to understand from other audiences, and most importantly, the editor’s perspective.
+    * found all issues tiny or big, give comments, or better, correct/improve directly. If needed, discuss anytime with among us.
+    * When you update, please turn on “review” -> “track changes”. You can also add “comments”
+
+* Follow up this chapter for later changes requests from the editors:
+    * Once we submitted, the editors will read it literally, ask tons of questions and give comments/changes word by word, they will then return back to us for approval.
+    * Whoever own this chapter needs to read it again and reject/merge the changes
+    * This will repeat at least 2 rounds, or more, toward publish.
+    * We can change owner of this task again later, if necessary, depending on who is the best person or cycles available. We can discuss.
+
+assignment:
+
+* Ch1: laurent
+* Ch3: kiran
+* Ch4: prez
+* Ch5: ping
+* Ch2: I’ve reviewed once and Laurent updated. But @Kiran KN @Przemyslaw
+  Grygiel if you have spare cycles please go ahead read it thoroughly again –
+  just to make sure the content is at least 70% readable for the editor.
+* Ch6/appendix: Meanwhile I’ll document prox/rapid test we’ve done so far and
+  will test the installations. Hopefully the last chapter can be done and
+  submit together with the other 5 chapters!
+
+We can discuss on Monday, or Wednesday maybe. And then definitely Friday.
+
+From now there are about 10 days left! Please if possible give it some priority.
+I believe this 10 days are the most important for this book. Once we give to
+editor, it’s hard to do big changes.  Better make it the best we could than
+regret
+
+
 ### 0828 meeting minutes
 
 between all 4 folks
@@ -79,16 +194,16 @@ Laurent/ping
 
 Next:
 
-* Laurent to check my earlier comments (resent) in word and get them merged in ch2 
+* Laurent to check my earlier comments (resent) in word and get them merged in ch2
 * Once it’s done, let me know and I’ll take some time to polish it (convert to
   text, download/save all pictures in one place, merge with ch1 to one big doc,
   etc)
 * Laurent/Przemyslaw will be on vacation and return back mid of August
 * Przemyslaw will submit ch4 before end of August. Laurent will do it if Przemyslaw can’t finish in time
 
-New deadline: 
+New deadline:
 
-* Patrick asked me about the time and I’ve just told him our new deadline. We need to submit everything before that. 
+* Patrick asked me about the time and I’ve just told him our new deadline. We need to submit everything before that.
 
 ### 0718 meeting minutes
 
@@ -96,18 +211,18 @@ New deadline:
 >Date: Sunday, 19 July 2020 at 05:29
 >To: Ping Song <pings@juniper.net>, Laurent Antoine Durand <ldurand@juniper.net>, Przemyslaw Grygiel <pgrygiel@juniper.net>
 >Subject: Re: [Minutes] vrouter/DPDK day one book: Laurent ch2 review
-> 
+>
 >Minutes:
-> 
+>
 >1)	Kiran does not have cycles since a new story(feature) came at last moment. But volunteered to merge chapter 2&3.
 >2)	Przemek and Laurent to work on chapter 4 (architecture) – Laurent to confirm if this is okay with him.
 >3)	Przemek will re-work on chapter 5&6 to include kolla instead of Redhat.
- 
+
 Please add/edit if anything
 
 ### 0703 meeting minutes
 
->From: Kiran KN <kirankn@juniper.net> 
+>From: Kiran KN <kirankn@juniper.net>
 >Sent: Friday, July 3, 2020 2:22 PM
 >To: Ping Song <pings@juniper.net>; Laurent Antoine Durand <ldurand@juniper.net>; Przemyslaw Grygiel <pgrygiel@juniper.net>
 >Subject: [Minutes] vrouter/DPDK day one book: meeting 0703
@@ -786,7 +901,13 @@ https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-
 
     Username/password: admin/c0ntrail123
 
-a7s3            dpdk     
+    server-manager (for re-image), disabled
+        https://10.84.5.100:9143/
+    new process here:
+        https://docs.google.com/document/d/16HEtz4Y3g8cV_0yj5REvZ0_y3TtLFRXkdXlgk_CEtJI/edit
+
+
+a7s3            dpdk
 a7s4-kiran      dpdk
 a7s5-kiran      kernel jump
 
