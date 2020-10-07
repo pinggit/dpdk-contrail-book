@@ -607,12 +607,14 @@ convenience of quick search.
     * Static mapping of queues
     * Run-to-completion
 
-## dpdk lab (1910)
+## dpdk lab (1910) laurent
 
 If needed you can use following labs:
 
     19.12.L1:     10.85.32.6
     19.10:        10.85.224.2
+
+    ssh 10.219.117.16   #<---(2020-10-04) 
 
     User:         root
     Password:     contrail123
@@ -656,7 +658,7 @@ https://drive.google.com/open?id=1n1D6ZwF61SSh1EqOmOM6OWBkZWfyULey
 also see "dpdk performance tests.pptx"
 https://docs.google.com/presentation/d/1eXxnvUzSYr-6ee3Ra04KNjpOznvwIpRycdsSMDb-LW8/edit#slide=id.g7dfd0123ae_1_300
 
-## dpdk lab (1904)
+## dpdk lab (1904) prz
 
 ### login
 
@@ -1034,3 +1036,4 @@ for web page, word has problem to display
 * https://docs.google.com/presentation/d/1-GGRK2pyuyWdrzdnpRWSegJTeGTfwEUE7oWRc1JJtfg/edit#slide=id.g89db5fdbaf_0_389
 * CEM-15246 run to complete mode: https://docs.google.com/presentation/d/1MMAwtPEACh22FipOB3cpi2VKYK6hkGHy_xcuQh9suj0/edit#slide=id.p
 * installation: https://github.com/Juniper/contrail-ansible-deployer/wiki/Contrail-with-Openstack-Kolla
+* https://tungsten.io/getting-started-with-tungsten-fabric-using-tf-devstack/ contrail installation recommended by tf community
