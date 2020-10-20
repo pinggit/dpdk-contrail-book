@@ -54,6 +54,44 @@ coauthors:  (as of March 17)
 
 ## progress/meetings
 
+### 1019 meeting minutes
+
+Last week we’ve determined how to update ch3.
+Next:
+
+* Kiran rewrite ch3, return before end of this week.
+
+    Content wise make sure it has whatever we want 
+    good flow 
+    more readable
+
+* Ping finish ch6, Before end of this week
+
+    ch5+ch6 will merge into new ch5. Update all-in-one book doc.
+    Update case study section with 4 fwd lcore captures (currently 2). Leave it to the end. If time permit only.
+
+* Laurent/Przemyslaw go over the whole book literally, improve global flow. Before end of this week.
+
+    Remove duplications. There are just for example:
+        TF was introduced in ch1 already. Maybe shorten/cut it and move to ch3? 
+        Or, move to ch1, and just in ch3 briefly mention “we’ve introduced TF architecture in ch1, and now let’s dive deeper ..”?
+        Something like that. 
+    Remove unnecessary topics, those may sounds useful, but won’t affect much without. Below are just examples:
+        Ch1: SDN solutions overview: OVS, calico, nuage, TF. Maybe cut them all? 
+        Ch4: this is good but too much/advanced. 
+            Not working for kiran’s kolla setup which we use for demo. 
+            Without this chapter the book is also good and quite enough topics. 
+* Ping work on ch3 and rewrite for 2nd iteration. Finish by Oct 30th.
+* Kiran/Przemyslaw: 
+    Explain VXLAN traffic LB behavior observed in R2008
+    https://contrail-jws.atlassian.net/browse/CEM-19837
+    https://github.com/pinggit/dpdk-contrail-book/issues/24 
+    if above (5. c) resolved, maybe we can enable ch4 and update with RH vs centos steps – that is if time permit only. Will see.
+
+### 1013 meeting minutes
+
+mainly discussed about ch3
+
 ### 0929 meeting minutes
 
 We'll ask for one more month, for the **last** time. and here is the the
