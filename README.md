@@ -1,6 +1,7 @@
 # contrail dpdk day one book
 
   * [progress/meetings](#progressmeetings)
+     * [1019 meeting minutes](#1019-meeting-minutes)
      * [0929 meeting minutes](#0929-meeting-minutes)
      * [0918 meeting minutes](#0918-meeting-minutes)
      * [0828 meeting minutes](#0828-meeting-minutes)
@@ -88,9 +89,12 @@ Next:
     https://github.com/pinggit/dpdk-contrail-book/issues/24 
     if above (5. c) resolved, maybe we can enable ch4 and update with RH vs centos steps – that is if time permit only. Will see.
 
+
 ### 1013 meeting minutes
 
 mainly discussed about ch3
+all-in-one book draft:
+https://junipernetworks-my.sharepoint.com/:w:/r/personal/pings_juniper_net/_layouts/15/Doc.aspx?sourcedoc=%7BA1B5B67B-2980-479E-BF6B-BCA20EB6B7C8%7D&file=Contrail%20DPDK%20book%20v0.1.docx&wdLOR=c16B7E66A-A154-A64F-A387-0135C190FC72&action=default&mobileredirect=true
 
 ### 0929 meeting minutes
 
@@ -1075,3 +1079,5 @@ for web page, word has problem to display
 * CEM-15246 run to complete mode: https://docs.google.com/presentation/d/1MMAwtPEACh22FipOB3cpi2VKYK6hkGHy_xcuQh9suj0/edit#slide=id.p
 * installation: https://github.com/Juniper/contrail-ansible-deployer/wiki/Contrail-with-Openstack-Kolla
 * https://tungsten.io/getting-started-with-tungsten-fabric-using-tf-devstack/ contrail installation recommended by tf community
+* https://junipernetworks.sharepoint.com/sites/ContrailScaleandPerformance/ and
+* https://docs.google.com/spreadsheets/d/1IZrgOA97_u5POT-jZiCr8z1Hb4l98dSZlAqC6Mi5XS0/edit#gid=1753042829
