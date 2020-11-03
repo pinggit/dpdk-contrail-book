@@ -1,7 +1,10 @@
 # contrail dpdk day one book
 
   * [progress/meetings](#progressmeetings)
+     * [1102 first draft submitted](#1102-first-draft-submitted)
+     * [1030 meeting minnutes](#1030-meeting-minnutes)
      * [1019 meeting minutes](#1019-meeting-minutes)
+     * [1013 meeting minutes](#1013-meeting-minutes)
      * [0929 meeting minutes](#0929-meeting-minutes)
      * [0918 meeting minutes](#0918-meeting-minutes)
      * [0828 meeting minutes](#0828-meeting-minutes)
@@ -28,13 +31,14 @@
      * [[underline]#chapter 7: Contrail DPDK vrouter Deployment considerations#* (prz)](#underlinechapter-7-contrail-dpdk-vrouter-deployment-considerations-prz)
      * [[underline]#chapter 8: Contrail DPDK vrouter troubleshooting#* (laurent)](#underlinechapter-8-contrail-dpdk-vrouter-troubleshooting-laurent)
   * [table of content (Volume II)](#table-of-content-volume-ii)
-  * [dpdk lab (1910)](#dpdk-lab-1910)
-  * [dpdk lab (1904)](#dpdk-lab-1904)
+  * [dpdk lab (1910) laurent](#dpdk-lab-1910-laurent)
+  * [dpdk lab (1904) prz](#dpdk-lab-1904-prz)
      * [login](#login)
      * [iperf VM@dpdk-1](#iperf-vmdpdk-1)
      * [recvr VM@dpdk-3](#recvr-vmdpdk-3)
      * [runrapid.py](#runrapidpy)
   * [dpdk lab(2003)](#dpdk-lab2003)
+  * [latest lab (kiran)](#latest-lab-kiran)
   * [tools](#tools)
      * [git/github](#gitgithub)
      * [document format/editor recommendation](#document-formateditor-recommendation)
@@ -54,6 +58,24 @@ coauthors:  (as of March 17)
 * ping song <pings@juniper.net>
 
 ## progress/meetings
+
+### 1102 first draft submitted
+
+### 1030 meeting minnutes
+
+here is a brief about today’s meeting minutes: 
+* @Przemyslaw Grygiel and @Laurent Antoine Durand have confirmed the book (ch1
+  through ch4) is ready based on their careful review
+* @Przemyslaw Grygiel and @Laurent Antoine Durand  believe best to include
+  chapter 4 after ch3 in this book. Originally I’ve suggested to consider it
+  later, but I’m fine with team decision.
+* @Przemyslaw Grygiel, I have attached the last chapter as you requested. In it
+  I copied Laurent’s log analysis section in his ch5. So I believe ch5 is not
+  necessary now. But again, I’m totally fine if anyone want to include both.  I
+  ’ve tried the best to revised it again, and solved the preview from
+  @Przemyslaw Grygiel.  @Kiran KN and @Laurent Antoine Durand please also read
+  it.
+* We’ll submit next Monday and then follow up with editor.
 
 ### 1019 meeting minutes
 
