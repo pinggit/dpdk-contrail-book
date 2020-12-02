@@ -2434,14 +2434,17 @@ end. This give the overall lcore forwarding load in the DPDK vRouter.
 To understand the output, first let's review the DPDK vRouter cpu cores allocation.
 
 In chapter 3, you've learned about DPDK vRouter architectures and you know how
-the packet processing works. Basically, *vRouter creates same number of lcores
-and DPDK queues as the number of CPUs allocated to it*. In this compute, for
-testing purpose, we've allocated 2 CPU cores to vRouter dpdk forwarding lcores.
-CPU allocatioin to DPDK vRouter forwarding lcores is configurable via vRouter
-configuration files. Refer to chapter 4 for CPU allocation details. For each
-vRouter interface, 2 DPDK queues are created, each served by a forwarding lcore
-in DPDK process. That is why that in the output for each vif interface there
-are 2 lines statistics, for "Core 1" and "Core 2" respectively.
+the packet processing works. Basically: 
+
+**vRouter creates same number of lcores and DPDK queues as the number of CPUs allocated to it**. 
+
+In this compute, for testing purpose, we've allocated 2 CPU cores to vRouter
+dpdk forwarding lcores.  CPU allocatioin to DPDK vRouter forwarding lcores is
+configurable via vRouter configuration files. Refer to chapter 4 for CPU
+allocation details. For each vRouter interface, 2 DPDK queues are created, each
+served by a forwarding lcore in DPDK process. That is why that in the output
+for each vif interface there are 2 lines statistics, for "Core 1" and "Core 2"
+respectively.
 
 This capture shows vRouter interface `vif 0/3` processed `1501` pps traffic in
 the first forwarding lcore, that is `720640` bit per second for 60 Bytes packet
@@ -2540,7 +2543,7 @@ we are in a setup where NIC card is invisible to most of the linux applications
 - including `tcpdump`! Next let's briefly go over another DPDK vRouter packet
 capture script: `vifdump`.
 
-===== vifdump script
+==== vifdump script
 
 In many linux machine, `tcpdump` comes with the OS as part of a standard
 packets. With that you can capture whatever packets `sensed` by a NIC, which
@@ -2644,7 +2647,7 @@ useful in DPDK environment: `dpdkinfo`.
 ----
 ////
 
-==== dpdkinfo command
+=== dpdkinfo command
 
 ////
 As you have learned so far, in a compute where DPDK is "in charge", basically
@@ -2698,7 +2701,7 @@ introduced in this book, and the list of supported functions may grow in each
 future releases. But you will get the basic idea of its usage and you can refer
 the official documents for other usage informations.
 
-===== version
+==== version
 
 The `-v` or `--version` option reports the basic version information of dpdk release in use.
 
@@ -2709,7 +2712,7 @@ DPDK Version: DPDK 19.11.0
 vRouter version: {"build-info": [{"build-time": "2020-09-04 10:38:22.330666", "build-hostname": "6fb64a1f86b9", "build-user": "root", "build-version": "2004"}]}
 ----
 
-===== bond and LACP status
+==== bond and LACP status
 
 `-b` or `--bond` option print detail information about the bond interface
 managed by DPDK. The output is organized in a similiar form as what you would
@@ -2900,7 +2903,7 @@ timers and PDU statistics about number of packet exchanged with the peer
 device. Of course, here the counters are LACP PDU only. If we need all packets
 received and sent through the bond interface, we can use `-n|--stats` option.
 
-===== bond packet counters
+==== bond packet counters
 
 `-n|--stats` option is useful to look into packet statistics of bond interface.
 So far we've seen at least 2 ways of retreiving packet counters from a vif
@@ -3233,7 +3236,7 @@ deployment.
 
 Next we'll explore another interesting option `-c|--lcore`.
 
-===== lcore
+==== lcore
 
 There are several key concepts we've been trying to illustrate in this book.
 Among others, at least four of them are often mentioned together: `lcore`,
@@ -3259,7 +3262,7 @@ lcores will be created, and 4 DPDK interface queues will be created for each
 vif interface. Same rule applies to the VM - You assign 4 CPU cores to a VM,
 then by default, Nova will create 4 (virtio??) queues for a tap interface in the
 VM. That said, of course, `multiple queue` as a feature needs to be turned on
-in Nova at the first place. We can illustrate this with a table below:
+in Nova at the first place. We can illustrate this with a table below table:
 
 [options="header", width="50%",cols="5*^.^"]
 |====
@@ -3367,6 +3370,7 @@ word, interfaces this core is "serving".
 
 Please note that there are some inconsistencies in term of the lcore numbering
 in different tools.
+
 * In `dpdkvifstats.py` script, forwarding lcore number starts from "1", so
   "Core 1" refers to the first forwarding lcore.
 * In `dpdkinnfo -c` output, forwarding lcore number starts from "0", so "Lcore
@@ -3408,9 +3412,12 @@ Finally, Let's look at the last line - the VM tap interface. From the output,
 we see it is the second forwarding lcore (`lcore#11`) being assigned to this VM
 interface. You probably wonder is it just randomly chosen out of the 2 lcores
 or some algorithms are used? It is not like that. Currently the allocation
-basically follows a simple method. *The least used lcore, in term of number of
-interface queues it is serving, will be assigned to serve the next interface
-queue.* Based on what we just explained, `lcore#10` took two interfaces
+basically follows a simple method:
+
+**The least used lcore, in term of number of interface queues it is serving,
+will be assigned to serve the next interface queue.**
+
+Based on what we just explained, `lcore#10` took two interfaces
 (`bond0.101` and `vhost0`) while `lcore#11` took just one (`bond0.101`), so it
 is `lcore#11`'s turn to take the next interface and queue.
 
@@ -3419,11 +3426,10 @@ algorithm: The forwarding core that is currently polling the least number of
 queues is selected, with a tie won by the core with the lowest number (the
 first forwarding core lcore#10).
 
-We'll see more examples in later sections, in there we'll test out the "tie
-breaker" and other things. We can convert the above mapping into a table
-like this:
+We'll see more examples in later sections, when we'll test out the "tie
+breaker" and other things. For now this mapping looks like this matrix:
 
-[options="header", width="50%",cols="5*^.^"]
+[options="header", width="80%",cols="5*^.^"]
 |====
     | vif   | queue | lcore      | queue | tap(vNIC)
  .2+| 0/0   | 0     | 0          |  0 .2+| bond0
@@ -3674,7 +3680,7 @@ mbufs mempools
 
 ////
 
-==== dpdk vRouter log files
+=== dpdk vRouter log files
 
 ////
 TODO: this is copied and rewritten based on Laurent's chapter 5.
@@ -3693,7 +3699,7 @@ This log file contains lots of good information that is helpful to understand
 the current running status. Understanding the log messages are important during
 troubleshooting process.
 
-===== DPDK vrouter parameters
+==== DPDK vrouter parameters
 
 Each time the vrouter is started, the main configuration parameters are listed
 in the log file during the vrouter initialization stage. We can see the DPDK
@@ -3754,7 +3760,7 @@ tools and see if they are consistent:
 
 Any inconsistency will provide a clue to proceed in that area.
 
-===== Polling core allocation
+==== Polling core allocation
 
 In chapter 3 we've introduced that DPDK vRouter process is a multiple threads
 application and the threads falls into different categories based on their
@@ -3803,7 +3809,7 @@ that are isolated from any other system tasks. So this log reads:
 * lcore numbers 10 and above are defined with *_DPDK_CTRL_THREAD_MASK_*
 ////
 
-===== Internal Load Balancing
+==== Internal Load Balancing
 
 In some situation the polling core performs a new hash calculation to
 distribute the polled packets to another processing core. This is a DPDK
@@ -3829,7 +3835,7 @@ VxLAN packet will be distributed via hashing by the polling core.
 ifdef::word[image::../diagrams/extracted-media-chapter5.docx/media/image1.emf[image]]
 ifndef::word[image::../diagrams/extracted-media-chapter5.docx/media/image1.png[image]]
 
-===== Virtual Interface queues
+==== Virtual Interface queues
 
 Each time a new virtual interface is connected to the vrouter, a vif port is
 created on the vrouter with the same number of queues as the number of polling
@@ -3920,18 +3926,18 @@ must not be enabled on the virtual machine NIC. Unfortunately, these queues can
 ifdef::word[image::../diagrams/extracted-media-chapter5.docx/media/image3.emf[image]]
 ifndef::word[image::../diagrams/extracted-media-chapter5.docx/media/image3.png[image]]
 
-=== dpdk vRouter case studies
+== dpdk vRouter case studies
 
 In previous sections, we've introduced some dpdk tools and explained some
 important log entries.
 to help collecting DPDK vRouter running status.
 
-==== single queue
+=== single queue
 
 Having understood the lcore mapping basics, let's start a test with some
 traffic flowing.
 
-===== one way single flow: VM to fabric
+==== one way single flow: VM to fabric
 
 To make it very simple, we are sending single uni-directional UDP flow from the
 PROX gen VM. We can list current flows we have in vRouter to confirm this.
@@ -4153,21 +4159,22 @@ Here after the first forwarding lcore processed the packets from vif0/0, it
 sent them out of vif0/0, which is reflected as `TX packets` and `TX device
 packets`.
 
-IMPORTANT: What we've tested and demonstrated is the DPDK vRouter default
-behavior with the current parameters it current takes. Please keep in mind that
-vRouter is configurable. There is one vRouter configuration option introduced
-in release R2008 which will change this default `pipeline model` behavior. This
-option is `--vr_no_load_balance`, and we can verify the vrouter-dpdk process
-running command line in our setup with `ps` command. With that configured,
-vRouter will change to the so-called `run to complete model`, which means same
-lcore whichever polled the packet will continue to process/forward it. This
-requires reboot of DPDK vRouter, and We won't test this scenarios in this book.
+IMPORTANT: One important thing that is worth to point out here is that, what
+we've tested and demonstrated is the DPDK vRouter default behavior with the
+current parameters it current takes. Please keep in mind that vRouter is
+configurable. There is one vRouter configuration option introduced in release
+R2008 which will change this default `pipeline model` behavior. This option is
+`--vr_no_load_balance`, and we can verify the vrouter-dpdk process running
+command line in our setup with `ps` command. With that configured, vRouter will
+change to the so-called `run to complete model`, which means same lcore
+whichever polled the packet will continue to process/forward it. This requires
+reboot of DPDK vRouter, and We won't test this scenarios in this book.
 
 This concludes the analysis of traffic forwarding in the direction of VM to
 fabric. Next let's take a look at the returning direction: from fabric (vif0/0)
 to VM (vif0/3).
 
-===== returning traffic: fabric to VM
+==== returning traffic: fabric to VM
 
 Now we add returning traffic. We configure the swap VM in such a way that it
 loops whatever it received back to the sender. Here is the capture:
@@ -4348,7 +4355,7 @@ close to what you would see in real life.
 
 Next, we'll add more flows in our testbed and check the result.
 
-===== multiple flows
+==== multiple flows
 
 Here, we are sending 64 flows from PROX gen VM. To confirm the flow numbers we
 use `flow -s` command in `contrail-tools`:
@@ -4439,7 +4446,7 @@ our DPDK forwarding lcores.
 This concludes our analysis on one single queue test, and we'll go ahead to
 test "multiple queues".
 
-==== multiple queues
+=== multiple queues
 
 Let's look at a multiple queue example.
 
@@ -4463,7 +4470,7 @@ Lcore 1:
 
 Here is the table view of these mapping:
 
-[options="header", width="50%",cols="5*^.^"]
+[options="header", width="80%",cols="5*^.^"]
 |====
     | vif   | queue | lcore      | queue | tap(vNIC)
  .2+| 0/0   | 0     | 0          |  0 .2+| bond0
@@ -4620,11 +4627,11 @@ Lcore 7:
 
 ifdef::appendix[]
 
-=== appendix
+== appendix
 
-==== heat
+=== heat
 
-===== environment.yaml
+==== environment.yaml
 
 ----
 parameters:
@@ -4651,7 +4658,7 @@ parameters:
   - 1024
 ----
 
-===== build-rapid.yml
+==== build-rapid.yml
 
 ----
 heat_template_version: queens
@@ -5174,7 +5181,7 @@ outputs:
     condition: use_floating
 ----
 
-===== configure.rapid.sh
+==== configure.rapid.sh
 
 ----
 #!/bin/bash
@@ -5490,9 +5497,9 @@ Host *
 EOF
 ----
 
-==== rapid
+=== rapid
 
-===== rapid.env
+==== rapid.env
 
 ```sh
 [root@stack2-jump rapid]# less rapid.env
@@ -5523,7 +5530,7 @@ vim = OpenStack
 ```
 
 
-===== basicrapid.test
+==== basicrapid.test
 
 [source, sh, linenums]
 ----
@@ -5573,7 +5580,7 @@ flows=[16384]
 ----
 
 
-===== machine.map
+==== machine.map
 
 [source, sh, linenums]
 ----
@@ -5610,9 +5617,9 @@ machine_index=2
 machine_index=3
 ----
 
-==== gen & swap
+=== gen & swap
 
-===== gen.cfg
+==== gen.cfg
 
 
 [source, sh, linenums]
@@ -5682,7 +5689,7 @@ accuracy limit nsec=1000000
 ;arp update time=1
 ----
 
-===== gen parameters.lua
+==== gen parameters.lua
 
 [source, sh, linenums]
 ----
@@ -5697,7 +5704,7 @@ dest_hex_ip="c0 a8 01 69"
 dest_hex_mac="02 35 d2 a9 12 fe"
 ----
 
-===== swap.cfg
+==== swap.cfg
 
 [source, sh, linenums]
 ----
@@ -5737,7 +5744,7 @@ drop=no
 ----
 
 
-===== swap parameters.lua
+==== swap parameters.lua
 
 [source, sh, linenums]
 ----
@@ -5748,12 +5755,12 @@ local_hex_ip="c0 a8 01 69"
 cores="2"
 ----
 
-===== gen booting log
+==== gen booting log
 
 
-==== misc & errors
+=== misc & errors
 
-===== error1
+==== error1
 
     [root@a7s2 dpdk-prox-contrail]# openstack stack show 5da20953-9c4b-428e-a6e6-915d7a570575
     /usr/lib/python2.7/site-packages/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed in a future release.
@@ -5850,7 +5857,7 @@ cores="2"
     +-----------------------+------------------------------------------------------------------------------------------------------------------------------------------+
     [root@a7s2 dpdk-prox-contrail]#
 
-===== error2
+==== error2
 
     [root@a7s2 dpdk-prox-contrail]# openstack stack show perf-test1
     /usr/lib/python2.7/site-packages/OpenSSL/crypto.py:12: CryptographyDeprecationWarning: Python 2 is no longer supported by the Python core team. Support for it is now deprecated in cryptography, and will be removed
@@ -5948,12 +5955,12 @@ cores="2"
     +-----------------------+---------------------------------------------------------------
     [root@a7s2 dpdk-prox-contrail]#
 
-===== error3
+==== error3
 
     | stack_status_reason   | Resource CREATE failed: Forbidden: resources.gen_vm: Quota exceeded for cores: Requested 14, but already used 8 of 20 cores (HTTP 403) (Request-ID: req-48e39a6f-790b-4bca-80af-28c30af30979) |
     | parameters            | OS::project_id: 4499b8ba34b34281b7315325921832fa                                                                                                                                              |
 
-==== References
+=== References
 
 * https://github.com/damjanek/dpdk-prox-contrail config files from damian and prz
 * https://wiki.opnfv.org/display/SAM/Rapid+scripting rapid introduction
