@@ -17,8 +17,7 @@ showcase of a close knit collaboration between Intel and Juniper engineers over
 many years to deliver high performance and cloud scale applications for the
 networking industry. I am impressed with its thoroughness and wealth of
 practical, hands-on information. In summary, this book rocks."
-
-- Rajesh Gadiyar, Vice President and CTO, Network Platforms Group, Intel Corporation
+-- Rajesh Gadiyar, Vice President and CTO, Network Platforms Group, Intel Corporation
 
 "This is a superb book. Four Juniper engineers have combined their experience
 in working with DPDK and its use as an open source data plane for SDN
@@ -26,8 +25,7 @@ in working with DPDK and its use as an open source data plane for SDN
 you how to configure, optimize, and troubleshoot one of the best SDN solutions
 in the marketplace. Congratulations to the authors, and to you the reader who
 are about to be impressed."
-
-- Raj Yavatkar, CTO, Juniper Networks
+-- Raj Yavatkar, CTO, Juniper Networks
 
 == Welcome to this book
 
