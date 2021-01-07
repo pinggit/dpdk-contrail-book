@@ -56,14 +56,18 @@ This book is available here:
 * Applebook preview: https://books.apple.com/us/book/day-one-building-containers-with-kubernetes-and-contrail/id1487859822
 ////
 
-== Authors
+== Authors/editor/reviewers
 
-* Author: Ping Song, Ayman Aborabh,Yuvaraja Mariappan
+* Published by Juniper Networks Books
+* Authors: Kiran K N, Ping Song, Przemyslaw Grygiel, Laurent Durand
+* Technical Reviewers: Vincent Zhang, Richard Roberts, T. Sridhar
 * Editor in Chief: Patrick Ames
 * Copyeditor: Nancy Koerbel
-* Technical Reviewers: Yuvaraja Mariappan, Vincent Zhang
-* ISBN: 978-1-941441-96-1
-* Version History: v1, November. 2019
+* ISBN 978-1936779895
+* Printed in the USA by Vervante Corporation.
+* Version History: v1, January. 2021
+ 2 3 4 5 6 7 8 9 10
+* Comments, errata: dayone@juniper.net
 
 ////
 == book progress
