@@ -27,6 +27,7 @@ in the marketplace. Congratulations to the authors, and to you the reader who
 are about to be impressed."
 -- Raj Yavatkar, CTO, Juniper Networks
 
+
 == Welcome to this book
 
 This book is available here:
@@ -67,67 +68,6 @@ This book is available here:
  2 3 4 5 6 7 8 9 10
 * Comments, errata: dayone@juniper.net
 
-////
-== book progress
-
-* (2019-11-13) patrick returns the final edit, the book is DONE!
-* (2019-10-29) Patrick send his edit to Nancy(5th edit)
-* (2019-10-28) submit update (3rd update)
-* (2019-10-28) patrick returns his edit(4th edit)
-* (2019-10-21) submit update to 3rd edit (2nd update)
-* (2019-10-14) Nancy returns her edit (3nd edit)
-* (2019-10-03) patrick sent his edit to our first update to Nancy (2nd edit)
-* (2019-10-01) submitted rewritten network policy chapter 8
-* (2019-09-23) submitted rough version of network policy chapter 8
-* (2019-09-20) submitted update to first edit (first update)
-* (2019-09-07) patrick's edit to first draft returns (first edit)
-* (2019-09-04) submitted first draft: chapter 4 (splitted into 6 chapters latter)
-* (2019-08-26) submitted first draft: chapter 1 ~ 3
-* (2019-06-30) main part of the book is done, start updating/extending/reviewing
-* (2019-06-01) yuvaraja starts to co-author formally
-* (2019-05-31) adjusted the book content plan
-* (2019-05-28) tested csrx service chaining feature
-* (2019-05-24) local setup built, tested multi intf pod and csrx
-* (2019-05-05) ch1, ch2 done, starting ch3
-* (2019-04-13) book project started, this repository is built
-* (2019-04-10) ayman starts to co-author
-* (2019-03-15) ping started the idea of this book with patrick
-////
-
-
-////
-* (2019-11-13) patrick releases the final pdf
-* (2019-10-29) Patrick send his edit to Nancy(5th edit)
-* (2019-10-28) submit update (3rd update)
-* (2019-10-28) patrick returns his edit(4th edit)
-* (2019-10-21) submit final edit, patrick to merge all the changes
-* (2019-10-14) Nancy returns her edit (3nd edit)
-* (2019-10-03) patrick send his edit to our first update to Nancy (2nd edit)
-* (2019-10-01) submitted network policy chapter 8 after rewritten 
-* (2019-09-23) submitted rough version of network policy chapter 8
-* (2019-09-20) submitted update to patrick's first edit (first update)
-* (2019-09-07) patrick returns his edit to first draft (first edit)
-* (2019-09-04) submitted first draft: chapter 4 (splitted into 6 chapters latter)
-* (2019-08-26) submitted first draft: chapter 1 ~ 3
-* (2019-06-30) main part of the book is done, start updating/extending/reviewing
-* (2019-06-01) yuvaraja start to co-author formally
-* (2019-05-31) adjusted the book content plan
-* (2019-05-28) tested csrx service chaining feature
-* (2019-05-24) local setup built, tested multi intf pod and csrx
-* (2019-05-05) ch1, ch2 done, starting ch3
-* (2019-04-13) book project started, this repository is built
-* (2019-04-10) ayman start to co-author
-* (2019-03-15) ping started the idea of this book with patrick
-////
-
-
-////
-* (2019-04-27) ping updated ch2: starting pod building example
-* (2019-04-22) ayman uploaded 'docker.docx' of chapter 1
-* (2019-04-20) ping kicked off ch2
-* (2019-04-17) ayman uploaded 'containers' of chapter 1
-////
-
 == Key Juniper Contrail Resources
 
 The Juniper TechLibrary has been supporting Contrail with its excellent
@@ -149,8 +89,8 @@ substitution for that body of information.
 === chapters
 
 This book details the long list of Juniper Contrail features that can enrich
-Kubernetes implementations. It starts with the basics and builds from there to
-cover more complex setups. It’s structured as follows:
+DPDK implementations in vRouter. It starts with the basics and builds from
+there to cover more complex setups. It’s structured as follows:
 
 * Chapter 1 provides an SDN overview.
 * Chapter 2 introduces virtualization concepts.
@@ -159,29 +99,31 @@ cover more complex setups. It’s structured as follows:
 * Chapter 5 reviews key Contrail and testing tool installations.
 * Chapter 6 details DPDK vRouter tools and some lab studies.
 
+== files
+
+.book pdf
+
+The latest book PDF is available in this repository.
+
+.PROX Automation of PROX and RAPID script installation are based on files in
+folder `dpdk-prox-contrail`, which is copied from and modified based on the
+files located in https://github.com/damjanek/dpdk-prox-contrail[this]
+repository.
+
+.lab setup
+Chapter 5&6 are based on a 4 nodes lab:
+
+* 1 openstack+contrail controller node
+* 1 kernel compute node
+* 2 dpdk compute nodes
+
+Some of the configuration files (bond, instances.yaml) are available in folder:
+`lab_setup`.
+
 == issues/suggestions/contributions
 
 This book is free and is maintained as a "open source" project! you can find
 all text, diagrams, source code it refers in this GitHub repository.
-
-////
-- README.adoc                 : this file
-- kubernetes-contrail-v1.pdf  : version v1, this is the PFD available in all
-  official channels. the TOC (Table of Content) has problems
-- kubernetes-contrail-v1.1pdf : version v1.1, with corrections on TOC
-- kubernetes-contrail-v1.mobi : for kindle 
-
-- kubernetes-contrail.pdf     : original draft (before editor's editing), with original TOC
-- kubernetes-contrail.html    : original draft in html format, with a
-  TOC panel on the right side, making it the same looking and feeling as the
-  PDF, but much smaller.
-- kubernetes-contrail.mobi    : original draft in kindle format
-
-- kubernetes-contrail.adoc    : "source code" of the original "draft" of the
-  whole book, the format in which we've writen/maintained.
-
-- diagrams                    : all diagrams (except screenshots)
-////
 
 If you discover errors or omissions in the source code(yaml file, command line
 output, etc), documentation, or anything else, please don’t hesitate to submit
@@ -190,6 +132,3 @@ an issue.
 If you want to help by improving upon it, you can also fork the project, revise
 the content, then send a pull request. When the pull request is merged, the
 content will be updated automatically.
-
-== known issues
-

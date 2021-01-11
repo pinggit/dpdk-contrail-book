@@ -1,0 +1,7 @@
+SUBCHANNELS=1,2,3
+NM_CONTROLLED=no
+BOOTPROTO=none
+BONDING_OPTS="miimon=100 mode=802.3ad xmit_hash_policy=layer3+4"
+DEVICE=bond0
+BONDING_MASTER=yes
+ONBOOT=yes

@@ -1,0 +1,22 @@
+parameters:
+  gen_list: 2,3,4,5
+  lat_list: 6,7,8,9
+  swap_list: 2,3,4,5
+  gen_flavor_cpu: 10
+  swap_flavor_cpu: 6
+  jump_on_kernel_node: True
+  gen_az: nova:compute1.example.com
+  swap_az: nova:compute2.example.com
+  jump_az: nova:compute3.example.com
+  #floating_network: public-net
+  packet_mode: True
+  drop_rate: "0.01"
+  start_speed: 200
+  packet_sizes:
+  - 64
+  - 256
+  - 512
+  - 1024
+  - 1500
+  flows:
+  - 1024

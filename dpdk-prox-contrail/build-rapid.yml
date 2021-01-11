@@ -1,0 +1,518 @@
+heat_template_version: queens
+description: |
+  Heat template to build Rapid/Prox DPDK testing framework, in case of issues please contact:
+  Przemek Grygiel pgrygiel@juniper.net
+  Damian Szeluga dszeluga@juniper.net
+
+parameters:
+  rapid-image:
+    type: string
+    description: "Image used for gen and swap VMs"
+    default: "rapidVM-1908"
+  data_net_prefix:
+    type: string
+    description: "Network prefix for data network"
+    default: "192.168.1.0"
+  data_net_mask:
+    type: string
+    description: "Network netmask for data network"
+    default: "24"
+  data_gen_ip:
+    type: string
+    description: "Gen VM data ip"
+    default: "192.168.1.104"
+  data_swap_ip:
+    type: string
+    description: "Swap VM data ip"
+    default: "192.168.1.105"
+  control_net_prefix:
+    type: string
+    description: "Network prefix for control network"
+    default: "192.168.0.0"
+  control_net_mask:
+    type: string
+    description: "Network netmask for control network"
+    default: "24"
+  control_gen_ip:
+    type: string
+    description: "Gen VM control ip"
+    default: "192.168.0.104"
+  control_swap_ip:
+    type: string
+    description: "Swap VM control ip"
+    default: "192.168.0.105"
+  control_jump_ip:
+    type: string
+    description: "Jump VM control ip"
+    default: "192.168.0.106"
+  gen_az:
+    type: string
+    description: "AZ for gen VM"
+    default: "nova:overcloudjcx-compdpdk2hw1-0.prod1.bw.juniper.net"
+  swap_az:
+    type: string
+    description: "AZ for swap VM"
+    default: "nova:overcloudjcx-compdpdk3hw1-0.prod1.bw.juniper.net"
+  jump_az:
+    type: string
+    description: "AZ for jump VM"
+    default: "nova:overcloudjcx-compdpdk3hw0-0.prod1.bw.juniper.net"
+  vrouter_gen_cpus:
+    type: number
+    default: 4
+    description: "Number of lcores assigned to vRouter (applicable to gen HV)"
+  vrouter_swap_cpus:
+    type: number
+    default: 4
+    description: "Number of lcores assigned to vRouter (applicable to swap HV)"
+  floating_network:
+    type: string
+    description: "FIP network. ID or name. Not used if not passed"
+    default: ""
+  packet_mode: 
+    type: boolean
+    description: "Use packet mode for swap VM"
+    default: True
+  drop_rate:
+    type: string
+    description: "Drop rate threshold"
+    default: "0.01"
+  start_speed:
+    type: number
+    description: "Percentage of 10Gig link as starting point for tests"
+    default: 200
+  packet_sizes:
+    type: comma_delimited_list
+    description: "List of packet sizes (in bytes) performed during tests"
+    default:
+      - 64
+      - 256
+      - 512
+      - 1024
+      - 1500
+  flows:
+    type: comma_delimited_list
+    description: "List of concurent flow numbers used during tests"
+    default:
+      - 1024
+  lat_list:
+    type: string
+    description: "Cores used for lat"
+    default: "4,5"
+  gen_list:
+    type: string
+    description: "Cores used for gen"
+    default: "2,3"
+  swap_list:
+    type: string
+    description: "Cores used for swap"
+    default: "2,3"
+  gen_flavor_cpu:
+    type: number
+    description: "Number of vcpus for gen"
+    default: 6
+  swap_flavor_cpu:
+    type: number
+    description: "Number of vcpus for swap"
+    default: 4
+  jump_on_kernel_node:
+    type: boolean
+    default: False
+
+conditions:
+  use_floating:
+    not:
+      equals:
+      - get_param: floating_network
+      - ""
+
+resources:
+  flavor_jump:
+    type: OS::Nova::Flavor
+    properties:
+      ram: 4096
+      vcpus: 2
+      disk: 40
+      name:
+        str_replace:
+          template: '%stack_name%-jump'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      extra_specs:
+        if: [{ get_param: jump_on_kernel_node},{}, {'hw:mem_page_size': 'large'}]
+
+  flavor_gen:
+    type: OS::Nova::Flavor
+    properties:
+      ram: 8192
+      vcpus: { get_param: gen_flavor_cpu}
+      disk: 40
+      name:
+        str_replace:
+          template: '%stack_name%-gen'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      extra_specs:
+        'hw:cpu_policy': 'dedicated'
+        'hw:mem_page_size': 'large'
+        
+  flavor_swap:
+    type: OS::Nova::Flavor
+    properties:
+      ram: 8192
+      vcpus: { get_param: swap_flavor_cpu }
+      disk: 40
+      name:
+        str_replace:
+          template: '%stack_name%-swap'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      extra_specs:
+        'hw:cpu_policy': 'dedicated'
+        'hw:mem_page_size': 'large'
+
+  control_net_name:
+    type: OS::Heat::Value
+    properties:
+      value:
+        str_replace:
+          template: '%stack_name%-control'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+  data_net_name:
+    type: OS::Heat::Value
+    properties:
+      value:
+        str_replace:
+          template: '%stack_name%-data'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+
+  service_keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      save_private_key: True
+      name: { get_param: 'OS::stack_name' }
+
+  rapid_config:
+    type: OS::Heat::SoftwareConfig
+    depends_on: [swap_vm, gen_vm, vmi_data_gen, vmi_data_swap]
+    properties:
+      group: ungrouped
+      config:
+        str_replace:
+          template: { get_file: configure.rapid.sh }
+          params:
+            '%gen_list%': { get_param: gen_list }
+            '%lat_list%': { get_param: lat_list }
+            '%swap_list%': { get_param: swap_list }
+            '%gen_name%': { get_attr: [gen_vm, name]}
+            '%swap_name%': { get_attr: [swap_vm, name]}
+            '%gen_mac%': { get_attr: [vmi_data_gen, virtual_machine_interface_mac_addresses, mac_address, 0]}
+            '%swap_mac%': { get_attr: [vmi_data_swap, virtual_machine_interface_mac_addresses, mac_address, 0]}
+            '%gen_ip%': { get_param: data_gen_ip}
+            '%swap_ip%': { get_param: data_swap_ip}
+            '%admin_gen_ip%': { get_param: control_gen_ip}
+            '%admin_swap_ip%': { get_param: control_swap_ip}
+            '%drop_rate%': {get_param: drop_rate }
+            '%start_speed%': {get_param: start_speed }
+            '%packet_sizes%':
+              yaql:
+                expression: 'let(a => $.data) -> ",".join($a)'
+                data: { get_param: packet_sizes }
+            '%flows%':
+              yaql:
+                expression: 'let(a => $.data) -> ",".join($a)'
+                data: { get_param: flows }
+
+
+  userdata_jump:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: rapid_config}
+      - config: {get_resource: rapid_ssh_private_key}
+      - config: {get_resource: enable_root}
+      - config: {get_resource: common_software_config}
+
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: enable_root}
+      - config: {get_resource: common_software_config}
+
+  enable_root:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        disable_root: false
+
+  common_software_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: |
+        #!/bin/sh
+        echo "root:c0ntrail123" | chpasswd
+        echo -e "\nUseDNS no" >>/etc/ssh/sshd_config
+        sed -i -e 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+        sed -i -e 's#/home/centos#/root#' /usr/local/libexec/check_prox_system_setup.sh
+        systemctl restart sshd
+
+  rapid_ssh_private_key:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        write_files:
+        - path: /root/.ssh/id_rsa
+          content: {get_attr: [service_keypair, private_key]}
+          permissions: '0600'
+          owner: 'root:root'
+
+  ipam_data_net:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+       name:
+        str_replace:
+          template: "ipam_%ident%"
+          params:
+            '%ident%': {get_attr: [data_net_name, value ]}
+  
+  data_net_vn:
+    type: OS::ContrailV2::VirtualNetwork
+    depends_on: [ipam_data_net]
+    properties:
+      name: { get_attr: [data_net_name, value] }
+      network_ipam_refs: [{ get_resource: ipam_data_net }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: { get_param: data_net_prefix },
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: { get_param: data_net_mask },
+                },
+                network_ipam_refs_data_ipam_subnets_enable_dhcp: 'true',
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+     }]
+
+  ipam_control_net:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+       name:
+        str_replace:
+          template: "ipam_%ident%"
+          params:
+            '%ident%': {get_attr: [control_net_name, value]}
+  
+  control_net_vn:
+    type: OS::ContrailV2::VirtualNetwork
+    depends_on: [ipam_control_net]
+    properties:
+      name: { get_attr: [control_net_name, value] }
+      network_ipam_refs: [{ get_resource: ipam_control_net }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: { get_param: control_net_prefix },
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: { get_param: control_net_mask },
+                },
+                network_ipam_refs_data_ipam_subnets_enable_dhcp: 'true',
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+     }]
+
+  vmi_data_gen:
+    type: OS::ContrailV2::VirtualMachineInterface
+    properties:
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ data_net_vn, fq_name ] } ] }]
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "gen-data" ]]
+      port_security_enabled: false
+      virtual_machine_interface_disable_policy: true
+      
+  instance_data_gen:
+    type: OS::ContrailV2::InstanceIp
+    depends_on: [ vmi_data_gen ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "gen-data" ]]
+      virtual_machine_interface_refs: [{ get_resource: vmi_data_gen }]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ data_net_vn, fq_name ] } ] }]
+      instance_ip_address: { get_param: data_gen_ip }
+
+  vmi_data_swap:
+    type: OS::ContrailV2::VirtualMachineInterface
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "swap-data" ]]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ data_net_vn, fq_name ] } ] }]
+      port_security_enabled: false
+      virtual_machine_interface_disable_policy: { get_param: packet_mode }
+
+  instance_data_swap:
+    type: OS::ContrailV2::InstanceIp
+    depends_on: [ vmi_data_swap ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "swap-data" ]]
+      virtual_machine_interface_refs: [{ get_resource: vmi_data_swap}]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ data_net_vn, fq_name ] } ] }]
+      instance_ip_address: { get_param: data_swap_ip } 
+
+  vmi_control_gen:
+    type: OS::ContrailV2::VirtualMachineInterface
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "gen-control" ]]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      port_security_enabled: false
+  
+  instance_control_gen:
+    type: OS::ContrailV2::InstanceIp
+    depends_on: [ vmi_control_gen ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "gen-control" ]]
+      virtual_machine_interface_refs: [{ get_resource: vmi_control_gen }]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      instance_ip_address: { get_param: control_gen_ip }
+      
+  vmi_control_swap:
+    type: OS::ContrailV2::VirtualMachineInterface
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "swap-control" ]]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      port_security_enabled: false
+      
+  instance_control_swap:
+    type: OS::ContrailV2::InstanceIp
+    depends_on: [ vmi_control_swap ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "swap-control" ]]
+      virtual_machine_interface_refs: [{ get_resource: vmi_control_swap}]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      instance_ip_address: { get_param: control_swap_ip } 
+
+  vmi_control_jump:
+    type: OS::ContrailV2::VirtualMachineInterface
+    depends_on: [ control_net_vn ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "jump-control" ]]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      port_security_enabled: false
+
+  instance_control_jump:
+    type: OS::ContrailV2::InstanceIp
+    depends_on: [ vmi_control_jump ]
+    properties:
+      name: 
+        list_join: ['-', [{ get_param: 'OS::stack_name' }, "jump-control" ]]
+      virtual_machine_interface_refs: [{ get_resource: vmi_control_jump}]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ control_net_vn, fq_name ] } ] }]
+      instance_ip_address: { get_param: control_jump_ip }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    condition: use_floating
+    properties:
+      floating_network_id: { get_param: floating_network }
+      port_id: { get_resource: vmi_control_jump }
+
+  jump_vm:
+    type: OS::Nova::Server
+    depends_on: [ instance_control_jump, userdata_jump ]
+    properties:
+      name:
+        str_replace:
+          template: '%stack_name%-jump'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      image: { get_param: rapid-image }
+      flavor: { get_resource: flavor_jump }
+      availability_zone: { get_param: jump_az }
+      key_name: { get_resource: service_keypair }
+      user_data_format: RAW
+      user_data: { get_resource: userdata_jump }
+      networks:
+      - port: { get_resource: vmi_control_jump }
+
+  gen_vm:
+    type: OS::Nova::Server
+    depends_on: [ instance_data_gen, instance_control_gen, userdata ]
+    properties:
+      name:
+        str_replace:
+          template: '%stack_name%-gen'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      image: { get_param: rapid-image }
+      flavor: { get_resource: flavor_gen }
+      availability_zone: { get_param: gen_az }
+      key_name: { get_resource: service_keypair }
+      user_data_format: RAW
+      user_data: { get_resource: userdata }
+      networks:
+      - port: { get_resource: vmi_data_gen }
+      - port: { get_resource: vmi_control_gen }
+
+  swap_vm:
+    type: OS::Nova::Server
+    depends_on: [ instance_data_swap, instance_control_swap, userdata ]
+    properties:
+      name:
+        str_replace:
+          template: '%stack_name%-swap'
+          params:
+            '%stack_name%': { get_param: 'OS::stack_name' }
+      image: { get_param: rapid-image }
+      flavor: { get_resource: flavor_swap }
+      availability_zone: { get_param: swap_az }
+      key_name: { get_resource: service_keypair }
+      user_data_format: RAW
+      user_data: { get_resource: userdata }
+      networks:
+      - port: { get_resource: vmi_data_swap }
+      - port: { get_resource: vmi_control_swap }
+ 
+  description:
+    type: OS::Heat::Value
+    properties:
+      value:
+        str_replace:
+          template: 'Packet Mode: %pm% DR: %dr% Start speed: %ss%% Flows: %flows% Packet sizes: %ps% Vrouter cores for gen: %vrg% Vrouter cores for swap: %vrs%.'
+          params:
+            '%pm%': {get_param: packet_mode}
+            '%dr%': {get_param: drop_rate}
+            '%ss%': {get_param: start_speed}
+            '%flows%': {get_param: flows}
+            '%ps%': {get_param: packet_sizes}
+            '%vrg%': {get_param: vrouter_gen_cpus}
+            '%vrs%': {get_param: vrouter_swap_cpus}
+
+outputs:
+  gen_cores:
+    description: "List of cores used as gen cores"
+    value: {get_param: gen_list}
+  lat_cores:
+    description: "List of cores used as lat cores"
+    value: {get_param: lat_list}
+  swap_cores:
+    description: "List of cores used as swap cores"
+    value: {get_param: swap_list}
+  desc:
+    description: "Deployed testing permutation"
+    value: {get_attr: [description, value] }
+  jump_ip:
+    description: "IP Address of jump if floating_id provided"
+    value: {get_attr: [floating_ip, floating_ip_address]}
+    condition: use_floating
