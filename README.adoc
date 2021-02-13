@@ -5,7 +5,7 @@
 :toc-placement: preamble
 :imagesdir: diagrams
 
-//image::cover.front.png[]
+image::cover.front.png[]
 //image::cover.frontnback.png[]
 
 "This book is a must read for network software developers. It covers in great
@@ -42,17 +42,29 @@ This book is available here:
 ////
 
 * PDF edition at:
-  - https://www.juniper.net/documentation/en_US/day-one-books/contrail-DPDK.pdf[day-one-books]
-  - http://www.juniper.net/dayone/[Juniper]
+  - https://www.juniper.net/documentation/en_US/day-one-books/contrail-DPDK.pdf[Juniper website]
+  - http://www.juniper.net/dayone/[Juniper day-one-books]
   - https://www.juniper.net/us/en/training/junos-genius/[Junos Genius App]
 
-////
 * Purchase the paper edition at:
-  - Amazon: https://www.amazon.com/dp/1950960870
-  - Vervante Corporation (http://www.vervante.com) in 
-  https://store.vervante.com/c/v/category_order.html?base_cat=Juniper%20Networks%3aShop%20Day%20One%20Books&pard=juniper[here]
+  - Vervante Corporation (http://www.vervante.com) in
+    https://store.vervante.com/c/v/V4081903048.html?id=d7fMB5Te
+  - Amazon: https://www.amazon.com/Day-One-Contrail-DPDK-vRouter/dp/1936779897
 
-* Applebook preview: https://books.apple.com/us/book/day-one-building-containers-with-kubernetes-and-contrail/id1487859822
+////
+* PDF 下载:
+  - https://www.juniper.net/documentation/en_US/day-one-books/contrail-DPDK.pdf[Juniper网站下载]
+  - http://www.juniper.net/dayone/[Juniper day-one 系列]
+  - https://www.juniper.net/us/en/training/junos-genius/[Junos Genius App]
+
+* 购买纸质书:
+  - Vervante 出版公司 (http://www.vervante.com)
+    https://store.vervante.com/c/v/V4081903048.html?id=d7fMB5Te
+  - 亚马逊: https://www.amazon.com/Day-One-Contrail-DPDK-vRouter/dp/1936779897
+
+* Applebook preview: 
+    https://books.apple.com/us/book/day-one-building-containers-with-kubernetes-and-contrail/id1487859822[here]
+
 ////
 
 == Authors/editor/reviewers
